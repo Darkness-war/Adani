@@ -1,0 +1,1571 @@
+/* --- Global Styles & Variables --- */
+:root {
+    --primary-color: #1e3c72;
+    --secondary-color: #2a5298;
+    --text-dark: #1a202c;
+    --text-light: #555;
+    --bg-light: #f4f6f9;
+    --border-color: #eef2f7;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+/* --- Core Layout Components --- */
+.top-bar {
+    background: var(--primary-color); color: white; padding: 15px 20px;
+    font-size: 1.2em; font-weight: bold; text-align: center;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+}
+main { padding-top: 60px; }
+
+/* === THIS SECTION IS UPDATED === */
+.bottom-nav {
+    display: flex; 
+    justify-content: space-around; 
+    position: fixed;
+    bottom: 0; left: 0; right: 0; 
+    background-color: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+    padding: 10px 0; 
+    z-index: 900;
+}
+.bottom-nav a { 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light); 
+    text-decoration: none; 
+    font-size: 0.9em; 
+    transition: color 0.2s;
+    flex: 1;
+}
+.bottom-nav a i {
+    font-size: 1.2em;
+    margin-right: 6px; /* Adds space between icon and text */
+}
+.bottom-nav a.active { 
+    color: var(--primary-color); 
+    font-weight: bold; 
+}
+/* === END OF UPDATED SECTION === */
+
+.bottom-nav-spacer { height: 70px; }
+/* --- Reusable Components --- */
+.card {
+  background: #ffffff; border-radius: 12px; padding: 20px;
+  margin: 15px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color);
+}
+.page-container { padding: 0; }
+.submit-btn {
+  width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold;
+  background-color: var(--primary-color); color: white; border: none;
+  border-radius: 8px; cursor: pointer; transition: background-color 0.2s;
+}
+.submit-btn:hover { background-color: var(--secondary-color); }
+.submit-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+/* --- Hamburger Menu & Sidebar --- */
+.menu-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; }
+.menu-btn span { display: block; width: 22px; height: 2px; background-color: white; margin: 5px 0; }
+body.sidebar-open { overflow: hidden; }
+.sidebar-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); z-index: 998; opacity: 0;
+    pointer-events: none; transition: opacity 0.3s ease-in-out;
+}
+body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+.side-menu {
+    position: fixed; top: 0; left: 0; width: 280px; max-width: 85vw; height: 100%;
+    background-color: #ffffff; z-index: 999; display: flex; flex-direction: column;
+    box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.1); transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+body.sidebar-open .side-menu { transform: translateX(0); }
+.sidebar-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 25px 20px; }
+.sidebar-id { font-size: 1.1em; font-weight: bold; margin-bottom: 5px; }
+.sidebar-vip { background-color: rgba(255, 215, 0, 0.8); color: #333; display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold; }
+.sidebar-actions { flex-grow: 1; padding-top: 15px; }
+
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 15px 20px;
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    font-size: 1em;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    box-sizing: border-box; 
+}
+
+.sidebar-btn:hover { background-color: var(--bg-light); color: var(--primary-color); }
+.sidebar-btn span { font-size: 1.4em; }
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 2.5em; color: rgba(255, 255, 255, 0.8); cursor: pointer; transition: color 0.2s ease; }
+.close-btn:hover { color: white; }
+
+/* --- Home Page (index.html) - Restored original tab styles --- */
+.banner-img { width: 100%; display: block; }
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    background-color: white;
+    padding: 10px 0;
+    margin-top: -5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.tabs .tab-button {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #dce4f0;
+    border-radius: 20px;
+    background-color: #f8fafc;
+    color: var(--text-light);
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.tabs .tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(30, 60, 114, 0.2);
+}
+.tab-content { display: none; padding: 15px; }
+.tab-content.active { display: block; }
+.plan-card { display: flex; background-color: white; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 15px; overflow: hidden; }
+.plan-card img { width: 100px; height: 100px; object-fit: cover; }
+.plan-details { flex-grow: 1; padding: 10px 15px; }
+.plan-details h4 { margin: 0 0 5px 0; }
+.plan-details p { margin: 5px 0; font-size: 0.9em; color: var(--text-light); }
+.buy-btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; align-self: center; margin-right: 15px; border-radius: 6px; }
+
+/* --- Auth Pages (login.html, register.html) --- */
+.auth-page-background { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.auth-container { width: 100%; max-width: 400px; padding: 20px; }
+.auth-card { background: #ffffff; padding: 30px 25px; border-radius: 12px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
+.auth-card h2 { text-align: center; margin-top: 0; margin-bottom: 25px; color: var(--text-dark); font-size: 1.6em; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+.input-group input { width: 100%; padding: 12px 15px; border: 1px solid #dce4f0; border-radius: 8px; font-size: 1em; box-sizing: border-box; }
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { padding-right: 40px; }
+.password-toggle-icon { position: absolute; right: 12px; cursor: pointer; user-select: none; font-size: 1.2em; color: #888; }
+.form-options { text-align: right; margin-bottom: 15px; }
+.form-options a { color: #555; font-size: 0.9em; text-decoration: none; }
+.auth-switch { text-align: center; margin-top: 20px; font-size: 0.9em; color: #555; }
+.auth-switch a { color: var(--primary-color); font-weight: bold; text-decoration: none; }
+
+/* --- Mine Page Styles --- */
+.mine-page .profile-header-card { display: flex; align-items: center; gap: 15px; padding: 20px; flex-direction: row; }
+.mine-page .profile-avatar { font-size: 2.5em; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mine-page .profile-info { display: flex; flex-direction: column; flex-grow: 1; }
+.mine-page #profileId { font-weight: bold; color: #333; margin-bottom: 5px; font-size: 1rem; word-break: break-all; }
+.mine-page #profileEmail { font-size: 0.9em; color: #666; }
+.mine-page .balance-card { text-align: center; padding: 20px; }
+.mine-page .balance-label { font-size: 0.9em; color: var(--text-light); margin-bottom: 5px; }
+.mine-page .balance-amount { font-size: 2.2em; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; }
+.mine-page .action-buttons { display: flex; gap: 10px; justify-content: center; }
+.mine-page .action-btn { background-color: #eef2f7; border: 1px solid #dce4f0; color: #333; padding: 12px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; max-width: 140px; justify-content: center; font-size: 0.9em; }
+.mine-page .options-list-card { padding: 10px; }
+.mine-page .option-item { display: flex; align-items: center; padding: 15px; text-decoration: none; color: #333; border-radius: 8px; }
+.mine-page .option-item:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
+.mine-page .option-icon { font-size: 1.5em; margin-right: 15px; }
+.mine-page .option-chevron { margin-left: auto; color: #ccc; font-weight: bold; }
+.mine-page .logout-btn { width: 100%; padding: 12px; border: none; background-color: #fbebeb; color: #c53030; font-size: 1em; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+/* --- Recharge Page --- */
+.current-balance-card { display: flex; justify-content: space-between; align-items: center; background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 15px 20px; }
+.balance-amount-small { font-weight: bold; font-size: 1.1em; color: var(--primary-color); }
+.input-container { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 8px; padding: 10px 15px; margin: 20px 0; }
+.input-container span { font-size: 1.5em; font-weight: bold; color: var(--text-light); margin-right: 10px; }
+.input-container input { border: none; outline: none; width: 100%; font-size: 1.8em; font-weight: bold; box-sizing: border-box; }
+.quick-amounts-label { text-align: center; font-size: 0.9em; color: #777; }
+.quick-amounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
+.quick-amount-btn { padding: 10px; background-color: #fff; border: 1px solid #dce4f0; border-radius: 8px; cursor: pointer; }
+.quick-amount-btn.active, .quick-amount-btn:hover { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+/* --- Investment Plan Cards --- */
+.plan-card { background: white; border-radius: 12px; box-shadow: var(--card-shadow); margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; }
+.plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.buy-btn { background: var(--primary-color); color: white; border: none; padding: 12px 20px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: background-color 0.2s; }
+.buy-btn:hover { background: var(--secondary-color); }
+.plan-card:has(h4:contains('VIP')) { border: 2px solid #ffd700; background: linear-gradient(135deg, #fffaf0, #fff5e6); }
+.progress-bar { background: #f0f0f0; border-radius: 10px; height: 8px; margin: 10px 0; }
+.progress-fill { background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 100%; border-radius: 10px; transition: width 0.3s ease; }
+
+/* --- Modern Investment Plan Card Styles --- */
+.plan-card { background: #ffffff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07); margin: 15px 0; padding: 20px; border: 1px solid #e9ecef; display: flex; flex-direction: column; transition: transform 0.3s, box-shadow 0.3s; }
+.plan-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+.plan-card.vip { border-left: 5px solid #9b59b6; }
+.plan-card-header { border-bottom: 1px solid #f1f1f1; padding-bottom: 15px; margin-bottom: 15px; position: relative; }
+.plan-card-header h3 { margin: 0; font-size: 1.4em; color: #1a237e; }
+.vip-badge { position: absolute; top: -5px; right: 0; background-color: #9b59b6; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75em; font-weight: bold; }
+.plan-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex-grow: 1; }
+.plan-detail { display: flex; flex-direction: column; }
+.plan-label { font-size: 0.8em; color: #6c757d; margin-bottom: 4px; }
+.plan-value { font-size: 1.3em; font-weight: 600; color: #343a40; }
+.plan-card-footer { margin-top: 20px; }
+.buy-button { width: 100%; background: linear-gradient(135deg, #1a237e, #283593); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s; }
+.buy-button:hover { background: linear-gradient(135deg, #161d6a, #212b7a); transform: scale(1.02); }
+
+/* --- Modern Auth Page Styles --- */
+.auth-page-background { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; }
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+.auth-card { background: #ffffff; padding: 40px; border-radius: 16px; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08); width: 100%; max-width: 450px; box-sizing: border-box; } /* Added box-sizing */
+.auth-card h2 { text-align: center; font-size: 2em; margin-bottom: 30px; color: #1a237e; font-weight: 600; }
+.input-group input:focus { outline: none; border-color: #283593; box-shadow: 0 0 0 3px rgba(40, 53, 147, 0.1); }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(40, 53, 147, 0.3); }
+.auth-footer-link { text-align: center; margin-top: 25px; color: #666; }
+.auth-footer-link a { color: #1a237e; text-decoration: none; font-weight: 600; }
+
+/* --- NEW MODERN AUTH UI STYLES --- */
+.auth-page-background { background-color: #F0F2F5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.auth-container-wrapper { width: 100%; max-width: 420px; margin: 20px; background-color: #FFFFFF; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); overflow: hidden; }
+.auth-header { background-color: #6A7BFF; color: white; padding: 40px 30px; text-align: center; border-bottom-left-radius: 60px; }
+.auth-header h1 { margin: 0 0 10px 0; font-size: 2.5em; font-weight: 700; }
+.auth-header p { margin: 0; font-size: 1.1em; opacity: 0.9; }
+.auth-header .header-link { display: inline-block; margin-top: 20px; padding: 10px 25px; border: 2px solid white; border-radius: 30px; color: white; text-decoration: none; font-weight: 600; transition: background-color 0.3s, color 0.3s; }
+.auth-header .header-link:hover { background-color: white; color: #6A7BFF; }
+.auth-content { padding: 40px 30px; }
+.auth-content h2 { text-align: center; font-size: 2em; color: #333; margin-bottom: 30px; }
+.input-group input { background-color: #F9F9F9; transition: all 0.3s; box-sizing: border-box; } /* Added box-sizing */
+.input-group input:focus { outline: none; border-color: #6A7BFF; background-color: #FFFFFF; box-shadow: 0 0 0 4px rgba(106, 123, 255, 0.1); }
+.auth-options { text-align: right; margin-top: -10px; margin-bottom: 25px; }
+.auth-options .forgot-password { color: #6A7BFF; text-decoration: none; font-size: 0.9em; font-weight: 500; }
+.submit-btn { background: #6A7BFF; transition: all 0.3s; }
+.submit-btn:hover { box-shadow: 0 5px 15px rgba(106, 123, 255, 0.4); transform: translateY(-2px); }
+.social-login { text-align: center; margin-top: 30px; }
+.social-login p { color: #AAA; margin-bottom: 20px; }
+.social-icons { display: flex; justify-content: center; gap: 20px; }
+.social-icon { display: flex; justify-content: center; align-items: center; width: 50px; height: 50px; border-radius: 50%; border: 1px solid #E0E0E0; text-decoration: none; color: #555; font-size: 1.2em; transition: all 0.3s; }
+.social-icon:hover { background-color: #F5F5F5; color: #6A7BFF; border-color: #6A7BFF; }
+
+/* --- ENHANCED AUTH PAGES STYLES ONLY --- */
+.input-field-group .input-group { margin-bottom: 0; }
+.input-field-group .input-group:not(:first-child) { margin-top: -1px; }
+.input-field-group .input-group input { border-radius: 0; }
+.input-field-group .input-group:first-child input { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.input-field-group .input-group:last-child input { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* === REVISED STYLES FOR refer.html === */
+.refer-page-container {
+  padding: 0;
+}
+.refer-main-tabs {
+    margin-bottom: 15px;
+}
+.friends-sub-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
+}
+.friends-sub-tabs .friends-sub-tab-button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font-size: 1em;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.2s;
+  position: relative;
+}
+.friends-sub-tabs .friends-sub-tab-button.active {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+.friends-sub-tabs .friends-sub-tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+.friend-list {
+}
+.friend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+.friend-item:last-child {
+  border-bottom: none;
+  margin-bottom: 15px;
+}
+.friend-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.friend-name {
+  font-weight: 500;
+  font-size: 1em;
+  color: #333;
+}
+.friend-phone {
+  font-size: 0.9em;
+  color: #777;
+  margin-top: 3px;
+}
+.invite-btn-simple {
+  background-color: white;
+  color: #6A7BFF;
+  border: 1px solid #6A7BFF;
+  padding: 6px 15px;
+  border-radius: 5px;
+  font-weight: normal;
+  font-size: 0.9em;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: 15px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.invite-btn-simple:hover {
+  background-color: #6A7BFF;
+  color: white;
+}
+.level-buttons-container {
+  display: flex;
+}
+
+/* === UPDATES FOR REFER PAGE === */
+.earnings-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.earnings-item {
+  flex: 1 1 calc(50% - 5px);
+  box-sizing: border-box;
+  padding: 0;
+}
+.earnings-item.full-width {
+  flex: 1 1 100%;
+  margin-top: 10px;
+}
+.earnings-label {
+  font-size: 0.9em;
+  color: var(--text-light, #555);
+  margin-bottom: 4px;
+}
+.earnings-amount {
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--text-dark, #1a202c);
+}
+.redeem-btn {
+  background-color: #a0aFFF;
+  font-size: 1.1em;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(160, 175, 255, 0.4);
+}
+.redeem-btn:hover {
+  background-color: #8a9bff;
+}
+.refer-main-tabs {
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  margin: 15px;
+  box-shadow: none;
+}
+.refer-main-tabs .tab-button {
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-light, #555);
+  font-size: 1em;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin: 0;
+}
+.refer-main-tabs .tab-button.active {
+  background-color: #ffffff;
+  color: var(--text-dark, #1a202c);
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.friends-sub-tabs {
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+.friends-sub-tabs .friends-sub-tab-button {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.friends-sub-tabs .friends-sub-tab-button.active {
+  background-color: #ffffff;
+  color: var(--text-dark, #1a202c);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+.friends-sub-tabs .friends-sub-tab-button.active::after {
+  content: none;
+}
+.invite-btn-simple {
+  background-color: #6A7BFF;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(106, 123, 255, 0.3);
+}
+.invite-btn-simple:hover {
+  background-color: #5a6bf0;
+}
+.invite-btn-simple .fa-whatsapp {
+  font-size: 1.1em;
+}
+.search-input-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+.search-input-wrapper .fa-search {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+}
+.search-input-wrapper input {
+  width: 100%;
+  padding: 12px 15px 12px 40px;
+  border: 1px solid #eef2f7;
+  border-radius: 10px;
+  background: #f8f9fa;
+  font-size: 1em;
+  box-sizing: border-box;
+}
+.search-input-wrapper input:focus {
+  outline: none;
+  border-color: #6A7BFF;
+  background: white;
+}
+
+/* --- Mobile Layout Fixes --- */
+@media (max-width: 768px) {
+  .refer-page-container {
+    padding: 0 10px;
+  }
+  .earnings-card,
+  .invite-header-card {
+    margin: 0 0 15px 0 !important;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .earnings-grid {
+    flex-direction: column;
+    gap: 15px;
+  }
+  .earnings-item {
+    flex: 1 1 100% !important;
+    margin-bottom: 10px;
+  }
+  .earnings-item.full-width {
+    margin-top: 0;
+  }
+  .refer-main-tabs {
+    margin: 10px 0 !important;
+    width: 100%;
+  }
+  .friends-sub-tabs {
+    margin-bottom: 15px;
+  }
+  .commission-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .commission-card {
+    padding: 12px 8px;
+  }
+  .referral-link-box {
+    flex-direction: column;
+    gap: 10px;
+    padding: 12px;
+  }
+  #referralLinkText {
+    width: 100%;
+    text-align: center;
+    padding-right: 0;
+    margin-bottom: 5px;
+  }
+  .copy-btn-inset {
+    width: 100%;
+  }
+  .friend-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 10px;
+  }
+  .friend-details {
+    width: 100%;
+  }
+  .invite-btn-simple {
+    width: 100%;
+    justify-content: center;
+  }
+  .scrollable-friend-list {
+    max-height: 250px;
+  }
+  .invite-header-card h2 {
+    font-size: 1.4em;
+  }
+  .earnings-amount {
+    font-size: 1.4em;
+  }
+  .commission-card .level-percent {
+    font-size: 1.3em;
+  }
+}
+
+@media (max-width: 480px) {
+  .refer-main-tabs .tab-button,
+  .friends-sub-tabs .friends-sub-tab-button {
+    font-size: 0.9em;
+    padding: 8px 10px;
+  }
+  .earnings-amount {
+    font-size: 1.3em;
+  }
+  .redeem-btn {
+    padding: 12px;
+    font-size: 1em;
+  }
+  .invite-header-card {
+    padding: 20px 15px;
+  }
+}
+
+/* --- Styles for Static Legal Pages --- */
+.static-content-card {
+    padding: 20px;
+    line-height: 1.7;
+}
+.static-content-card h3 {
+    font-size: 1.5em;
+    color: var(--text-dark, #1a202c);
+    margin-bottom: 15px;
+    border-bottom: 2px solid var(--border-color, #eef2f7);
+    padding-bottom: 10px;
+}
+.static-content-card h4 {
+    font-size: 1.2em;
+    color: var(--text-dark, #1a202c);
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+.static-content-card p {
+    font-size: 0.95em;
+    color: var(--text-light, #555);
+    margin-bottom: 15px;
+}
+.static-content-card ul {
+    padding-left: 20px;
+    margin-bottom: 15px;
+}
+.static-content-card li {
+    color: var(--text-light, #555);
+    margin-bottom: 8px;
+}
+.static-content-card a {
+    color: var(--primary-color, #1e3c72);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* --- REVISED Settings Submenu Styles (Cleaner Look) --- */
+
+/* Styles for the main Settings button (mostly unchanged) */
+#settingsToggleBtn {
+  display: flex;
+  justify-content: space-between; /* Pushes chevron to the right */
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+#settingsToggleBtn .chevron {
+  font-size: 1.4em;
+  font-weight: bold;
+  color: #aaa; /* Chevron color */
+  transition: transform 0.2s ease; /* Smooth rotation */
+}
+#settingsToggleBtn.active .chevron {
+  transform: rotate(90deg); /* Point down when open */
+  color: var(--primary-color, #1e3c72); /* Chevron color when open */
+}
+
+/* Submenu container: Hides/shows, no extra styling */
+.settings-submenu {
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  /* Removed padding/gap from container */
+  margin-top: -5px; /* Adjust vertical spacing slightly */
+  margin-bottom: 5px;
+}
+.settings-submenu.active {
+  display: flex; /* Shown when active class is added by JS */
+}
+
+/* Sub-items: Make them look like normal buttons but indented */
+.settings-submenu .sub-item {
+  /* Inherits most styles from .sidebar-btn (like font, color, hover) */
+  font-size: 0.95em; /* Slightly smaller text for hierarchy */
+  /* --- THIS IS THE KEY --- */
+  padding-left: 35px; /* Increase left padding for indentation */
+                        /* Adjust this value (e.g., 40px) if alignment isn't perfect */
+
+  /* Make vertical padding slightly less than main items if desired */
+  padding-top: 12px;
+  padding-bottom: 12px;
+
+  /* Removed the background-color and border-left from previous version */
+}
+/* <-- THE MISSING BRACKET IS NOW ADDED, AND THE EXTRA ONE IS GONE */
+
+/* === STYLES FOR PURCHASED PLANS (index.html) === */
+
+.purchased-plan-card {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+  margin: 15px 0;
+  border: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
+}
+.purchased-plan-card .plan-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f1f1f1;
+  padding: 15px 20px;
+}
+.purchased-plan-card .plan-card-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: #1a237e;
+}
+.purchased-plan-card .plan-status {
+  font-weight: bold;
+  font-size: 0.9em;
+}
+.purchased-plan-card .plan-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  padding: 15px 20px;
+}
+.plan-progress {
+  padding: 15px 20px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #f1f1f1;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: #555;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--primary-color, #1e3c72);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+
+/* === STYLES FOR TRANSACTION LIST (mine.html) === */
+.transactions-card h3 {
+  font-size: 1.2em;
+  color: var(--text-dark, #1a202c);
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-color, #eef2f7);
+  padding-bottom: 10px;
+}
+#transactionList {
+  max-height: 400px;
+  overflow-y: auto;
+}
+.transaction-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+.transaction-item:last-child {
+  border-bottom: none;
+}
+.transaction-details {
+  display: flex;
+  flex-direction: column;
+}
+.transaction-type {
+  font-weight: 600;
+  font-size: 1em;
+  color: #333;
+}
+.transaction-info {
+  font-size: 0.9em;
+  color: #777;
+  margin-top: 2px;
+}
+.transaction-amount {
+  font-weight: bold;
+  font-size: 1.1em;
+  text-align: right;
+}
+.transaction-amount.positive {
+  color: #28a745;
+}
+.transaction-amount.negative {
+  color: #dc3545;
+}
+.transaction-date {
+  display: block;
+  font-size: 0.8em;
+  color: #999;
+  font-weight: normal;
+  margin-top: 2px;
+}
+
+/* === NEW MODAL STYLES (POP-UP) === */
+
+/* Prevents scrolling the page when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* The dark background overlay */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
+
+/* The modal box itself */
+.modal-container {
+  display: none; /* HIDE BY DEFAULT */
+  position: fixed;
+  top: 25%;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 500px;
+  height: 60%; 
+  background: #ffffff;
+  border-radius: 16px;
+  z-index: 1001;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  /* Use flexbox to organize header/content */
+  flex-direction: column;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+  color: var(--text-dark);
+}
+
+#txModalCloseBtn {
+  background: none;
+  border: none;
+  font-size: 1.8em;
+  color: #aaa;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-content {
+  /* This makes the list scrollable */
+  overflow-y: auto;
+  flex-grow: 1;
+  padding: 0 20px;
+}
+
+/* === NEW MODERN TRANSACTION STYLES (INSIDE MODAL) === */
+
+.modal-content .transaction-item.modern {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+.modal-content .transaction-item.modern:last-child {
+    border-bottom: none;
+}
+
+.modal-content .transaction-icon {
+    font-size: 1.8em;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; 
+}
+
+.modal-content .transaction-details {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; 
+}
+
+.modal-content .transaction-type {
+    font-weight: 600;
+    font-size: 1em;
+    color: #333;
+    margin-bottom: 2px;
+}
+
+.modal-content .transaction-info {
+    font-size: 0.9em;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-content .transaction-amount {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: right;
+    flex-shrink: 0; 
+    margin-left: 10px;
+}
+
+.modal-content .transaction-amount.positive {
+    color: #28a745;
+}
+
+.modal-content .transaction-amount.negative {
+    color: #dc3545;
+}
+
+.modal-content .transaction-date {
+    display: block;
+    font-size: 0.8em;
+    color: #999;
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+/* === FIX FOR VIP BADGE ON PURCHASED CARD === */
+
+.purchased-plan-card .plan-card-header h3 {
+  display: flex; /* Use flex to align title and badge */
+  align-items: center;
+}
+
+.purchased-plan-card .vip-badge {
+  background-color: #9b59b6;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 15px;
+  font-size: 0.75em;
+  font-weight: bold;
+  margin-left: 10px; /* Space between title and badge */
+}
+
+/* === STYLES FOR NEW BANK MODAL === */
+
+.modal-content form {
+  padding: 0 10px 10px 10px;
+}
+
+.modal-content form .input-group {
+  margin-bottom: 15px;
+}
+
+.modal-content form .input-group label {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+}
+
+/* === STYLES FOR NEW BANK MODAL === */
+
+.modal-content form {
+  padding: 0 10px 10px 10px;
+}
+
+.modal-content form .input-group {
+  margin-bottom: 15px;
+}
+
+.modal-content form .input-group label {
+  font-size: 0.9em;
+  margin-bottom: 5px;
+  color: var(--text-light, #555);
+}
+
+/* === NEW: Styles for Icon Inputs === */
+.input-group.icon-input {
+  position: relative;
+}
+
+.input-group.icon-input .input-icon {
+  position: absolute;
+  top: 50%;
+  left: 15px;
+  transform: translateY(2px); /* Adjust for label height */
+  font-size: 1.2em;
+  color: #aaa;
+  z-index: 2;
+}
+
+.input-group.icon-input input {
+  padding-left: 45px !important; /* Make space for the icon */
+}
+
+/* === NEW: Professional Validation === */
+.modal-content input:invalid {
+  border-color: #e74c3c; /* Red border for invalid fields */
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.1);
+}
+
+/* === NEW STYLE FOR LOCKED BANK FORM === */
+
+.form-locked-info {
+  display: none; /* Hidden by default */
+  text-align: center;
+  padding: 10px;
+  background: #fdf2f2;
+  border: 1px solid #e74c3c;
+  border-radius: 8px;
+  color: #e74c3c;
+  margin-top: 15px;
+  font-size: 0.9em;
+}
+
+/* === NEW STYLES FOR ADMIN USER DETAILS MODAL === */
+
+#userDetailsModal .modal-content {
+    /* Styles for the bank details grid */
+    padding-bottom: 20px;
+}
+
+#userDetailsContent {
+    padding: 0 10px;
+}
+
+.user-details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    background: #f8f9fa;
+    border: 1px solid #eee;
+    padding: 15px;
+    border-radius: 8px;
+}
+
+.user-details-grid div {
+    font-size: 0.95em;
+    color: #333;
+    word-wrap: break-word; /* Prevents long text from breaking layout */
+}
+
+.user-details-grid div strong {
+    color: #000;
+    display: inline-block;
+    width: 80px;
+}
+
+/* --- Styles for transaction list inside admin modal --- */
+#userTransactionList {
+    padding: 0 10px;
+}
+
+#userTransactionList .transaction-item.modern {
+    display: flex;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+#userTransactionList .transaction-item.modern:last-child {
+    border-bottom: none;
+}
+#userTransactionList .transaction-icon {
+    font-size: 1.8em;
+    margin-right: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px; 
+}
+#userTransactionList .transaction-details {
+    flex-grow: 1; 
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0; 
+}
+#userTransactionList .transaction-type {
+    font-weight: 600;
+    font-size: 1em;
+    color: #333;
+    margin-bottom: 2px;
+}
+#userTransactionList .transaction-info {
+    font-size: 0.9em;
+    color: #777;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#userTransactionList .transaction-amount {
+    font-weight: bold;
+    font-size: 1.1em;
+    text-align: right;
+    flex-shrink: 0; 
+    margin-left: 10px;
+}
+#userTransactionList .transaction-amount.positive {
+    color: #28a745;
+}
+#userTransactionList .transaction-amount.negative {
+    color: #dc3545;
+}
+#userTransactionList .transaction-date {
+    display: block;
+    font-size: 0.8em;
+    color: #999;
+    font-weight: normal;
+    margin-top: 2px;
+}
+
+/* --- Global Styles & Variables --- */
+:root {
+    --primary-color: #1e3c72;
+    --secondary-color: #2a5298;
+    --text-dark: #1a202c;
+    --text-light: #555;
+    --bg-light: #f4f6f9;
+    --border-color: #eef2f7;
+    --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+}
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    background-color: var(--bg-light);
+    color: var(--text-dark);
+}
+/* --- Core Layout Components --- */
+.top-bar {
+    background: var(--primary-color); color: white; padding: 15px 20px;
+    font-size: 1.2em; font-weight: bold; text-align: center;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 900;
+}
+main { padding-top: 60px; }
+
+/* === THIS SECTION IS UPDATED === */
+.bottom-nav {
+    display: flex; 
+    justify-content: space-around; 
+    position: fixed;
+    bottom: 0; left: 0; right: 0; 
+    background-color: white;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.1); 
+    padding: 10px 0; 
+    z-index: 900;
+}
+.bottom-nav a { 
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-light); 
+    text-decoration: none; 
+    font-size: 0.9em; 
+    transition: color 0.2s;
+    flex: 1;
+}
+.bottom-nav a i {
+    font-size: 1.2em;
+    margin-right: 6px; /* Adds space between icon and text */
+}
+.bottom-nav a.active { 
+    color: var(--primary-color); 
+    font-weight: bold; 
+}
+/* === END OF UPDATED SECTION === */
+
+.bottom-nav-spacer { height: 70px; }
+/* --- Reusable Components --- */
+.card {
+  background: #ffffff; border-radius: 12px; padding: 20px;
+  margin: 15px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color);
+}
+.page-container { padding: 0; }
+.submit-btn {
+  width: 100%; padding: 15px; font-size: 1.1em; font-weight: bold;
+  background-color: var(--primary-color); color: white; border: none;
+  border-radius: 8px; cursor: pointer; transition: background-color 0.2s;
+}
+.submit-btn:hover { background-color: var(--secondary-color); }
+.submit-btn:disabled { background-color: #cccccc; cursor: not-allowed; }
+/* --- Hamburger Menu & Sidebar --- */
+.menu-btn { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); cursor: pointer; }
+.menu-btn span { display: block; width: 22px; height: 2px; background-color: white; margin: 5px 0; }
+body.sidebar-open { overflow: hidden; }
+.sidebar-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); z-index: 998; opacity: 0;
+    pointer-events: none; transition: opacity 0.3s ease-in-out;
+}
+body.sidebar-open .sidebar-overlay { opacity: 1; pointer-events: auto; }
+.side-menu {
+    position: fixed; top: 0; left: 0; width: 280px; max-width: 85vw; height: 100%;
+    background-color: #ffffff; z-index: 999; display: flex; flex-direction: column;
+    box-shadow: 4px 0px 15px rgba(0, 0, 0, 0.1); transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+body.sidebar-open .side-menu { transform: translateX(0); }
+.sidebar-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; padding: 25px 20px; }
+.sidebar-id { font-size: 1.1em; font-weight: bold; margin-bottom: 5px; }
+.sidebar-vip { background-color: rgba(255, 215, 0, 0.8); color: #333; display: inline-block; padding: 3px 10px; border-radius: 15px; font-size: 0.8em; font-weight: bold; }
+.sidebar-actions { flex-grow: 1; padding-top: 15px; }
+
+.sidebar-btn {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    width: 100%;
+    padding: 15px 20px;
+    background-color: transparent;
+    border: none;
+    text-align: left;
+    font-size: 1em;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    text-decoration: none;
+    box-sizing: border-box; 
+}
+
+.sidebar-btn:hover { background-color: var(--bg-light); color: var(--primary-color); }
+.sidebar-btn span { font-size: 1.4em; }
+.close-btn { position: absolute; top: 10px; right: 15px; font-size: 2.5em; color: rgba(255, 255, 255, 0.8); cursor: pointer; transition: color 0.2s ease; }
+.close-btn:hover { color: white; }
+
+/* --- Home Page (index.html) - Restored original tab styles --- */
+.banner-img { width: 100%; display: block; }
+.tabs {
+    display: flex;
+    justify-content: space-around;
+    background-color: white;
+    padding: 10px 0;
+    margin-top: -5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+.tabs .tab-button {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #dce4f0;
+    border-radius: 20px;
+    background-color: #f8fafc;
+    color: var(--text-light);
+    font-size: 0.9em;
+    font-weight: 500;
+    text-align: center;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+.tabs .tab-button.active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(30, 60, 114, 0.2);
+}
+.tab-content { display: none; padding: 15px; }
+.tab-content.active { display: block; }
+.plan-card { display: flex; background-color: white; border-radius: 8px; box-shadow: var(--card-shadow); margin-bottom: 15px; overflow: hidden; }
+.plan-card img { width: 100px; height: 100px; object-fit: cover; }
+.plan-details { flex-grow: 1; padding: 10px 15px; }
+.plan-details h4 { margin: 0 0 5px 0; }
+.plan-details p { margin: 5px 0; font-size: 0.9em; color: var(--text-light); }
+.buy-btn { background-color: var(--primary-color); color: white; border: none; padding: 10px 20px; font-weight: bold; cursor: pointer; align-self: center; margin-right: 15px; border-radius: 6px; }
+
+/* --- Auth Pages (login.html, register.html) --- */
+.auth-page-background { display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.auth-container { width: 100%; max-width: 400px; padding: 20px; }
+.auth-card { background: #ffffff; padding: 30px 25px; border-radius: 12px; box-shadow: var(--card-shadow); border: 1px solid var(--border-color); }
+.auth-card h2 { text-align: center; margin-top: 0; margin-bottom: 25px; color: var(--text-dark); font-size: 1.6em; }
+.input-group { margin-bottom: 20px; }
+.input-group label { display: block; margin-bottom: 5px; font-weight: 500; color: #555; }
+.input-group input { width: 100%; padding: 12px 15px; border: 1px solid #dce4f0; border-radius: 8px; font-size: 1em; box-sizing: border-box; }
+.password-wrapper { position: relative; display: flex; align-items: center; }
+.password-wrapper input { padding-right: 40px; }
+.password-toggle-icon { position: absolute; right: 12px; cursor: pointer; user-select: none; font-size: 1.2em; color: #888; }
+.form-options { text-align: right; margin-bottom: 15px; }
+.form-options a { color: #555; font-size: 0.9em; text-decoration: none; }
+.auth-switch { text-align: center; margin-top: 20px; font-size: 0.9em; color: #555; }
+.auth-switch a { color: var(--primary-color); font-weight: bold; text-decoration: none; }
+
+/* --- Mine Page Styles --- */
+.mine-page .profile-header-card { display: flex; align-items: center; gap: 15px; padding: 20px; flex-direction: row; }
+.mine-page .profile-avatar { font-size: 2.5em; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); color: white; border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.mine-page .profile-info { display: flex; flex-direction: column; flex-grow: 1; }
+.mine-page #profileId { font-weight: bold; color: #333; margin-bottom: 5px; font-size: 1rem; word-break: break-all; }
+.mine-page #profileEmail { font-size: 0.9em; color: #666; }
+.mine-page .balance-card { text-align: center; padding: 20px; }
+.mine-page .balance-label { font-size: 0.9em; color: var(--text-light); margin-bottom: 5px; }
+.mine-page .balance-amount { font-size: 2.2em; font-weight: bold; color: var(--primary-color); margin-bottom: 20px; }
+.mine-page .action-buttons { display: flex; gap: 10px; justify-content: center; }
+.mine-page .action-btn { background-color: #eef2f7; border: 1px solid #dce4f0; color: #333; padding: 12px 15px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; flex: 1; max-width: 140px; justify-content: center; font-size: 0.9em; }
+.mine-page .options-list-card { padding: 10px; }
+.mine-page .option-item { display: flex; align-items: center; padding: 15px; text-decoration: none; color: #333; border-radius: 8px; }
+.mine-page .option-item:not(:last-child) { border-bottom: 1px solid #f0f0f0; }
+.mine-page .option-icon { font-size: 1.5em; margin-right: 15px; }
+.mine-page .option-chevron { margin-left: auto; color: #ccc; font-weight: bold; }
+.mine-page .logout-btn { width: 100%; padding: 12px; border: none; background-color: #fbebeb; color: #c53030; font-size: 1em; font-weight: bold; border-radius: 8px; cursor: pointer; }
+
+/* --- Recharge Page --- */
+.current-balance-card { display: flex; justify-content: space-between; align-items: center; background-color: #e3f2fd; border: 1px solid #bbdefb; padding: 15px 20px; }
+.balance-amount-small { font-weight: bold; font-size: 1.1em; color: var(--primary-color); }
+.input-container { display: flex; align-items: center; border: 1px solid #ccc; border-radius: 8px; padding: 10px 15px; margin: 20px 0; }
+.input-container span { font-size: 1.5em; font-weight: bold; color: var(--text-light); margin-right: 10px; }
+.input-container input { border: none; outline: none; width: 100%; font-size: 1.8em; font-weight: bold; box-sizing: border-box; }
+.quick-amounts-label { text-align: center; font-size: 0.9em; color: #777; }
+.quick-amounts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 25px; }
+.quick-amount-btn { padding: 10px; background-color: #fff; border: 1px solid #dce4f0; border-radius: 8px; cursor: pointer; }
+.quick-amount-btn.active, .quick-amount-btn:hover { background-color: var(--primary-color); color: white; border-color: var(--primary-color); }
+
+/* --- Investment Plan Cards --- */
+.plan-card { background: white; border-radius: 12px; box-shadow: var(--card-shadow); margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border-color); transition: transform 0.2s, box-shadow 0.2s; }
+.plan-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.15); }
+.buy-btn { background: var(--primary-color); color: white; border: none; padding: 12px 20px; font-weight: bold; cursor: pointer; border-radius: 8px; transition: background-color 0.2s; }
+.buy-btn:hover { background: var(--secondary-color); }
+.plan-card:has(h4:contains('VIP')) { border: 2px solid #ffd700; background: linear-gradient(135deg, #fffaf0, #fff5e6); }
+.progress-bar { background: #f0f0f0; border-radius: 10px; height: 8px; margin: 10px 0; }
+.progress-fill { background: linear-gradient(90deg, var(--primary-color), var(--secondary-color)); height: 100%; border-radius: 10px; transition: width 0.3s ease; }
+
+/* --- Modern Investment Plan Card Styles --- */
+.plan-card { background: #ffffff; border-radius: 12px; box-shadow: 0 5px 20px rgba(0, 0, 0, 0.07); margin: 15px 0; padding: 20px; border: 1px solid #e9ecef; display: flex; flex-direction: column; transition: transform 0.3s, box-shadow 0.3s; }
+.plan-card:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1); }
+.plan-card.vip { border-left: 5px solid #9b59b6; }
+.plan-card-header { border-bottom: 1px solid #f1f1f1; padding-bottom: 15px; margin-bottom: 15px; position: relative; }
+.plan-card-header h3 { margin: 0; font-size: 1.4em; color: #1a237e; }
+.vip-badge { position: absolute; top: -5px; right: 0; background-color: #9b59b6; color: white; padding: 4px 10px; border-radius: 15px; font-size: 0.75em; font-weight: bold; }
+.plan-card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; flex-grow: 1; }
+.plan-detail { display: flex; flex-direction: column; }
+.plan-label { font-size: 0.8em; color: #6c757d; margin-bottom: 4px; }
+.plan-value { font-size: 1.3em; font-weight: 600; color: #343a40; }
+.plan-card-footer { margin-top: 20px; }
+.buy-button { width: 100%; background: linear-gradient(135deg, #1a237e, #283593); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 1em; font-weight: bold; cursor: pointer; transition: background-color 0.3s, transform 0.2s; }
+.buy-button:hover { background: linear-gradient(135deg, #161d6a, #212b7a); transform: scale(1.02); }
+
+/* --- Modern Auth Page Styles --- */
+.auth-page-background { background-color: #f4f7f6; font-family: 'Poppins', sans-serif; }
+.auth-container { display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+.auth-card { background: #ffffff; padding: 40px; border-radius: 16px; box-shadow: 0 8px 40px rgba(0, 0, 0, 0.08); width: 100%; max-width: 450px; box-sizing: border-box; } /* Added box-sizing */
+.auth-card h2 { text-align: center; font-size: 2em; margin-bottom: 30px; color: #1a237e; font-weight: 600; }
+.input-group input:focus { outline: none; border-color: #283593; box-shadow: 0 0 0 3px rgba(40, 53, 147, 0.1); }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(40, 53, 147, 0.3); }
+.auth-footer-link { text-align: center; margin-top: 25px; color: #666; }
+.auth-footer-link a { color: #1a237e; text-decoration: none; font-weight: 600; }
+
+/* --- NEW MODERN AUTH UI STYLES --- */
+.auth-page-background { background-color: #F0F2F5; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+.auth-container-wrapper { width: 100%; max-width: 420px; margin: 20px; background-color: #FFFFFF; border-radius: 24px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1); overflow: hidden; }
+.auth-header { background-color: #6A7BFF; color: white; padding: 40px 30px; text-align: center; border-bottom-left-radius: 60px; }
+.auth-header h1 { margin: 0 0 10px 0; font-size: 2.5em; font-weight: 700; }
+.auth-header p { margin: 0; font-size: 1.1em; opacity: 0.9; }
+.auth-header .header-link { display: inline-block; margin-top: 20px; padding: 10px 25px; border: 2px solid white; border-radius: 30px; color: white; text-decoration: none; font-weight: 600; transition: background-color 0.3s, color 0.3s; }
+.auth-header .header-link:hover { background-color: white; color: #6A7BFF; }
+.auth-content { padding: 40px 30px; }
+.auth-content h2 { text-align: center; font-size: 2em; color: #333; margin-bottom: 30px; }
+.input-group input { background-color: #F9F9F9; transition: all 0.3s; box-sizing: border-box; } /* Added box-sizing */
+.input-group input:focus { outline: none; border-color: #6A7BFF; background-color: #FFFFFF; box-shadow: 0 0 0 4px rgba(106, 123, 255, 0.1); }
+.auth-options { text-align: right; margin-top: -10px; margin-bottom: 25px; }
+.auth-options .forgot-password { color: #6A7BFF; text-decoration: none; font-size: 0.9em; font-weight: 500; }
+.submit-btn { background: #6A7BFF; transition: all 0.3s; }
+.submit-btn:hover { box-shadow: 0 5px 15px rgba(106, 123, 255, 0.4); transform: translateY(-2px); }
+.social-login { text-align: center; margin-top: 30px; }
+.social-login p { color: #AAA; margin-bottom: 20px; }
+.social-icons { display: flex; justify-content: center; gap: 20px; }
+.social-icon { display: flex; justify-content: center; align-items: center; width: 50px; height: 50px; border-radius: 50%; border: 1px solid #E0E0E0; text-decoration: none; color: #555; font-size: 1.2em; transition: all 0.3s; }
+.social-icon:hover { background-color: #F5F5F5; color: #6A7BFF; border-color: #6A7BFF; }
+
+/* --- ENHANCED AUTH PAGES STYLES ONLY --- */
+.input-field-group .input-group { margin-bottom: 0; }
+.input-field-group .input-group:not(:first-child) { margin-top: -1px; }
+.input-field-group .input-group input { border-radius: 0; }
+.input-field-group .input-group:first-child input { border-top-left-radius: 8px; border-top-right-radius: 8px; }
+.input-field-group .input-group:last-child input { border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; }
+
+/* === REVISED STYLES FOR refer.html === */
+.refer-page-container {
+  padding: 0;
+}
+.refer-main-tabs {
+    margin-bottom: 15px;
+}
+.friends-sub-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
+}
+.friends-sub-tabs .friends-sub-tab-button {
+  flex: 1;
+  padding: 12px 0;
+  border: none;
+  background: none;
+  font-size: 1em;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: color 0.2s;
+  position: relative;
+}
+.friends-sub-tabs .friends-sub-tab-button.active {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+.friends-sub-tabs .friends-sub-tab-button.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    height: 2px;
+    background-color: var(--primary-color);
+    border-radius: 1px;
+}
+.friend-list {
+}
+.friend-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+.friend-item:last-child {
+  border-bottom: none;
+  margin-bottom: 15px;
+}
+.friend-details {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+.friend-name {
+  font-weight: 500;
+  font-size: 1em;
+  color: #333;
+}
+.friend-phone {
+  font-size: 0.9em;
+  color: #777;
+  margin-top: 3px;
+}
+.invite-btn-simple {
+  background-color: white;
+  color: #6A7BFF;
+  border: 1px solid #6A7BFF;
+  padding: 6px 15px;
+  border-radius: 5px;
+  font-weight: normal;
+  font-size: 0.9em;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: 15px;
+  transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.invite-btn-simple:hover {
+  background-color: #6A7BFF;
+  color: white;
+}
+.level-buttons-container {
+  display: flex;
+}
+
+/* === UPDATES FOR REFER PAGE === */
+.earnings-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.earnings-item {
+  flex: 1 1 calc(50% - 5px);
+  box-sizing: border-box;
+  padding: 0;
+}
+.earnings-item.full-width {
+  flex: 1 1 100%;
+  margin-top: 10px;
+}
+.earnings-label {
+  font-size: 0.9em;
+  color: var(--text-light, #555);
+  margin-bottom: 4px;
+}
+.earnings-amount {
+  font-size: 1.6em;
+  font-weight: 600;
+  color: var(--text-dark, #1a202c);
+}
+.redeem-btn {
+  background-color: #a0aFFF;
+  font-size: 1.1em;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(160, 175, 255, 0.4);
+}
+.redeem-btn:hover {
+  background-color: #8a9bff;
+}
+.refer-main-tabs {
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  margin: 15px;
+  box-shadow: none;
+}
+.refer-main-tabs .tab-button {
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-light, #555);
+  font-size: 1em;
+  font-weight: 500;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  margin: 0;
+}
+.refer-main-tabs .tab-button.active {
+  background-color: #ffffff;
+  color: var(--text-dark, #1a202c);
+  font-weight: 600;
+  border: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+.friends-sub-tabs {
+  background-color: #f0f2f5;
+  border-radius: 10px;
+  padding: 4px;
+  display: flex;
+  border-bottom: none;
+  margin-bottom: 20px;
+}
+.friends-sub-tabs .friends-sub-tab-button {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  font-size: 0.95em;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.friends-sub-tabs .friends-sub-tab-button.active {
+  background-color: #ffffff;
+  color: var(--text-dark, #1a202c);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.07);
+}
+.friends-sub-tabs .friends-sub-tab-button.active::after {
+  content: none;
+}
+.invite-btn-simple {
+  background-color: #6A7BFF;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radi
