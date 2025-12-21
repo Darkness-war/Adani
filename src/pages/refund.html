@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>UZUMAKI - Refund Policy</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sideMenu" class="side-menu">
+    <div class="sidebar-header">
+        <div id="sidebarId">Loading...</div>
+        <div id="sidebarVIP">...</div>
+    </div>
+    <div class="sidebar-actions">
+      
+      <a href="contact.html" class="sidebar-btn"><span>🧑‍💼</span> Customer Support</a>
+      <a href="#" target="_blank" class="sidebar-btn"><span>💬</span> Telegram Channel</a>
+      
+      <button class="sidebar-btn" id="settingsToggleBtn">
+        <div class="sidebar-btn-content">
+            <span>⚙️</span> Settings
+        </div>
+        <span class="chevron">›</span>
+      </button>
+      
+      <div class="settings-submenu" id="settingsSubmenu">
+        <a href="terms.html" class="sidebar-btn sub-item"><span>📄</span> Terms & Conditions</a>
+        <a href="privacy-policy.html" class="sidebar-btn sub-item"><span>🔒</span> Privacy Policy</a>
+        <a href="refund.html" class="sidebar-btn sub-item"><span>💳</span> Refund Policy</a>
+      </div>
+    <span id="closeBtn" class="close-btn">&times;</span>
+  </aside>
+
+  <header class="top-bar">
+    <div id="menuBtn" class="menu-btn"><span></span><span></span><span></span></div>
+    Cancellations & Refunds
+  </header>
+
+  <main class="page-container">
+    <div class="card static-content-card">
+        <h3>Cancellations & Refund Policy</h3>
+
+        <h4>Recharges</h4>
+        <p>All wallet recharges on UZUMAKI are final and non-refundable. Once funds are added to your wallet, they cannot be reversed or transferred back to your bank account, except through the official withdrawal system where applicable.</p>
+
+        <h4>Investments</h4>
+        <p>All investment purchases or plan activations are final. Once an investment is started, it cannot be cancelled. The principal amount remains locked until the plan’s maturity period.</p>
+
+        <h4>Failed Transactions</h4>
+        <p>If money is deducted from your bank account but not reflected in your wallet within 2 hours, contact support immediately with:</p>
+        <ul>
+            <li>Transaction ID</li>
+            <li>Payment screenshot</li>
+            <li>Time of transaction</li>
+        </ul>
+        <p>Our team will verify the payment with the gateway. If successful, the amount will be credited to your wallet.</p>
+
+        <h4>Support</h4>
+        <p>For payment-related issues, contact our support team:<br>
+        <a href="mailto:support@yourwebsite.com">support@yourwebsite.com</a></p>
+    </div>
+  </main>
+
+  <div class="bottom-nav-spacer"></div>
+
+  <footer class="bottom-nav">
+    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    <a href="recharge.html"><i class="fas fa-bolt"></i> Recharge</a>
+    <a href="refer.html"><i class="fas fa-user-friends"></i> Refer</a>
+    <a href="mine.html"><i class="fas fa-user"></i> Mine</a>
+  </footer>
+
+  <script src="common.js"></script>
+  <script type="module" src="supabase.js"></script>
+</body>
+</html>

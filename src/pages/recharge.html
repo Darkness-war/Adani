@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Adani Corporation - Recharge</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .recharge-note {
+            padding: 15px 20px;
+            line-height: 1.6;
+        }
+        .recharge-note h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--text-dark, #1a202c);
+        }
+        .recharge-note ol {
+            padding-left: 20px;
+            margin: 0;
+            font-size: 0.9em;
+            color: var(--text-light, #555);
+        }
+        .recharge-note li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sideMenu" class="side-menu">
+    <div class="sidebar-header">
+        <div id="sidebarId">Loading...</div>
+        <div id="sidebarVIP">...</div>
+    </div>
+    <div class="sidebar-actions">
+      
+      <a href="contact.html" class="sidebar-btn"><span>🧑‍💼</span> Customer Support</a>
+      
+      <a href="#" target="_blank" class="sidebar-btn"><span>💬</span> Telegram Channel</a>
+      
+      <button class="sidebar-btn" id="settingsToggleBtn">
+        <div class="sidebar-btn-content">
+            <span>⚙️</span> Settings
+        </div>
+        <span class="chevron">›</span>
+      </button>
+      
+      <div class="settings-submenu" id="settingsSubmenu">
+        <a href="terms.html" class="sidebar-btn sub-item"><span>📄</span> Terms & Conditions</a>
+        <a href="privacy-policy.html" class="sidebar-btn sub-item"><span>🔒</span> Privacy Policy</a>
+        <a href="refund.html" class="sidebar-btn sub-item"><span>💳</span> Refund Policy</a>
+      </div>
+    <span id="closeBtn" class="close-btn">&times;</span>
+  </aside>
+  <header class="top-bar">
+    <div id="menuBtn" class="menu-btn"><span></span><span></span><span></span></div>
+    Recharge
+  </header>
+  <main class="page-container">
+    <div class="card current-balance-card">
+      <div>Current Balance</div>
+      <div id="currentBalance" class="balance-amount-small">₹0.00</div>
+    </div>
+
+    <form id="rechargeForm" action="payment.html" target="_blank">
+        <div class="card">
+          <h3>Recharge Amount</h3>
+          <div class="input-container">
+            <span>₹</span>
+            <input type="number" id="rechargeAmount" placeholder="120" min="120" max="50000" value="">
+          </div>
+          <div class="quick-amounts-label">Quick Select</div>
+          <div class="quick-amounts">
+            <button type="button" class="quick-amount-btn" data-amount="100">₹100</button>
+            <button type="button" class="quick-amount-btn" data-amount="500">₹500</button>
+            <button type="button" class="quick-amount-btn" data-amount="1000">₹1000</button>
+            <button type="button" class="quick-amount-btn" data-amount="2000">₹2000</button>
+            <button type="button" class="quick-amount-btn" data-amount="5000">₹5000</button>
+            <button type="button" class="quick-amount-btn" data-amount="10000">₹10000</button>
+          </div>
+          <button type="submit" id="proceedRecharge" class="submit-btn">Proceed to Recharge</button>
+        </div>
+    </form>
+    
+    <div class="card recharge-note">
+        <h4>Important Notes</h4>
+        <ol>
+            <li>The minimum deposit amount is ₹120 and the maximum deposit limit is ₹50,000.</li>
+            <li>While making a payment, please verify the UPI ID carefully. If the payment is sent to an incorrect UPI ID, we will not be responsible for the loss.</li>
+            <li>After completing the recharge, please check the UTR (Transaction) number and submit it for verification.</li>
+            <li>It is mandatory to send a screenshot of the payment to the HR/Support team for confirmation.</li>
+        </ol>
+    </div>
+    </main>
+  <div class="bottom-nav-spacer"></div>
+  
+  <footer class="bottom-nav">
+    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    <a href="recharge.html" class="active"><i class="fas fa-bolt"></i> Recharge</a>
+    <a href="refer.html"><i class="fas fa-user-friends"></i> Refer</a>
+    <a href="mine.html"><i class="fas fa-user"></i> Mine</a>
+  </footer>
+  
+<script type="module" src="assets/js/supabase.js"></script>
+<script type="module" src="assets/js/common.js"></script>
+<script type="module" src="assets/js/script-recharge.js"></script>
+</body>
+</html>
+    

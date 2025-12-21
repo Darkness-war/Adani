@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Adani Corporation - My Account</title>
+<link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="mine-page">
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sideMenu" class="side-menu">
+    <div class="sidebar-header">
+        <div id="sidebarId">Loading...</div>
+        <div id="sidebarVIP">...</div>
+    </div>
+    <div class="sidebar-actions">
+      
+      <a href="contact.html" class="sidebar-btn"><span>🧑‍💼</span> Customer Support</a>
+      
+      <a href="#" target="_blank" class="sidebar-btn"><span>💬</span> Telegram Channel</a>
+      
+      <button class="sidebar-btn" id="settingsToggleBtn">
+        <div class="sidebar-btn-content">
+            <span>⚙️</span> Settings
+        </div>
+        <span class="chevron">›</span>
+      </button>
+      
+      <div class="settings-submenu" id="settingsSubmenu">
+        <a href="terms.html" class="sidebar-btn sub-item"><span>📄</span> Terms & Conditions</a>
+        <a href="privacy-policy.html" class="sidebar-btn sub-item"><span>🔒</span> Privacy Policy</a>
+        <a href="refund.html" class="sidebar-btn sub-item"><span>💳</span> Refund Policy</a>
+      </div>
+    <span id="closeBtn" class="close-btn">&times;</span>
+  </aside>
+  <header class="top-bar">
+    <div id="menuBtn" class="menu-btn"><span></span><span></span><span></span></div>
+    My Account
+  </header>
+
+  <main class="page-container">
+    <div class="card profile-header-card">
+      <div class="profile-avatar">👤</div>
+      <div class="profile-info">
+        <div id="profileId">ID: Loading...</div>
+        <div id="profileEmail">Loading email...</div>
+      </div>
+    </div>
+    <div class="card balance-card">
+      <div class="balance-label">Available Balance</div>
+      <div id="profileBalance" class="balance-amount">₹0.00</div>
+      <div class="action-buttons">
+        <button id="withdrawBtn" class="action-btn"><span>⬆️</span>Withdraw</button>
+        <button id="rechargeBtn" class="action-btn"><span>⬇️</span>Recharge</button>
+      </div>
+    </div>
+    <div class="card options-list-card">
+      <a href="#" class="option-item" id="bankDetailsBtn">
+        <div class="option-icon">🏦</div><span>Bank Account Details</span><div class="option-chevron">&gt;</div>
+      </a>
+      
+      <a href="#" class="option-item" id="transactionHistoryBtn">
+        <div class="option-icon">📜</div><span>Transaction History</span><div class="option-chevron">&gt;</div>
+      </a>
+      
+      <a href="#" class="option-item" id="changePasswordBtn">
+        <div class="option-icon">🔒</div><span>Change Password</span><div class="option-chevron">&gt;</div>
+      </a>
+    </div>
+
+    <div class="card logout-card">
+        <button id="logoutBtn" class="logout-btn">Log Out</button>
+    </div>
+  </main>
+  <div class="bottom-nav-spacer"></div>
+  
+  <footer class="bottom-nav">
+    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    <a href="recharge.html"><i class="fas fa-bolt"></i> Recharge</a>
+    <a href="refer.html"><i class="fas fa-user-friends"></i> Refer</a>
+    <a href="mine.html" class="active"><i class="fas fa-user"></i> Mine</a>
+  </footer>
+
+  <div class="modal-overlay" id="txModalOverlay"></div>
+  <div class="modal-container" id="txModalContainer">
+      <div class="modal-header">
+          <h3>Transaction History</h3>
+          <button id="txModalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-content" id="txModalContent">
+          <p>Loading transactions...</p>
+      </div>
+  </div>
+  
+  <div class="modal-overlay" id="bankModalOverlay"></div>
+  <div class="modal-container" id="bankModalContainer">
+      <div class="modal-header">
+          <h3>Bank Account Details</h3>
+          <button id="bankModalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-content" id="bankModalContent">
+          
+          <form id="bankDetailsForm" novalidate>
+              <div class="input-group icon-input">
+                  <label for="bankRealName">Your Real Name</label>
+                  <span class="input-icon">👤</span>
+                  <input type="text" id="bankRealName" placeholder="Enter your full name" required minlength="3">
+              </div>
+              
+              <div class="input-group icon-input">
+                  <label for="bankAccount">Bank Account No.</label>
+                  <span class="input-icon">🏦</span>
+                  <input type="text" id="bankAccount" placeholder="Min. 9 digits" required pattern="[0-9]{9,18}">
+              </div>
+              
+              <div class="input-group icon-input">
+                  <label for="bankConfirmAccount">Confirm Account No.</label>
+                  <span class="input-icon">🏦</span>
+                  <input type="text" id="bankConfirmAccount" placeholder="Re-enter account number" required pattern="[0-9]{9,18}">
+              </div>
+              
+              <div class="input-group icon-input">
+                  <label for="bankIFSC">IFSC Code</label>
+                  <span class="input-icon">💳</span>
+                  <input type="text" id="bankIFSC" placeholder="E.g., SBIN0001234" required pattern="[A-Za-z]{4}0[A-Z0-9]{6}">
+              </div>
+              
+              <div class="input-group icon-input">
+                  <label for="bankUPI">UPI ID</label>
+                  <span class="input-icon">🌐</span>
+                  <input type="text" id="bankUPI" placeholder="E.g., user@bank" required pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}">
+              </div>
+              
+              <div id="bankDetailsLockedInfo" class="form-locked-info">
+                  Bank details are locked. If you want to change bank details please contact HR.
+              </div>
+              
+              <button type="submit" class="submit-btn" id="saveBankBtn">Save Details</button>
+          </form>
+          
+      </div>
+  </div>
+  
+  <div class="modal-overlay" id="withdrawModalOverlay"></div>
+  <div class="modal-container" id="withdrawModalContainer">
+      <div class="modal-header">
+          <h3>Withdrawal</h3>
+          <button id="withdrawModalCloseBtn">&times;</button>
+      </div>
+      <div class="modal-content" id="withdrawModalContent">
+          <form id="withdrawForm" novalidate>
+              <div class="withdraw-balance-display">
+                  <span>Available Balance</span>
+                  <strong id="withdrawBalance">₹0.00</strong>
+              </div>
+              
+              <div class="input-group">
+                  <label for="withdrawAmount">Amount to Withdraw</label>
+                  <input type="number" id="withdrawAmount" placeholder="Enter amount" required min="130">
+              </div>
+              
+              <div class="withdraw-info">
+                  <p>Minimum Withdrawal: <strong>₹130.00</strong></p>
+                  <p>TDS (18%): <strong id="withdrawTDS">₹0.00</strong></p>
+                  <p>You Will Receive: <strong id="withdrawReceive">₹0.00</strong></p>
+              </div>
+              
+              <button type="submit" class="submit-btn" id="submitWithdrawBtn">Submit Request</button>
+          </form>
+      </div>
+  </div>
+  <script type="module" src="assets/js/supabase.js"></script>
+<script type="module" src="assets/js/common.js"></script>
+<script type="module" src="assets/js/script.js"></script>
+<script type="module" src="assets/js/script-mine.js"></script>
+</body>
+</html>

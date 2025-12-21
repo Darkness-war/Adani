@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Uzumaki - Login</title>
+     <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="auth-page-background">
+    <div class="auth-container-wrapper">
+        <div class="auth-header">
+            <div class="company-name">Uzumaki</div>
+            <p class="welcome-text">Welcome back to your journey!</p>
+            <a href="register.html" class="header-link">Create Account</a>
+        </div>
+
+        <div class="auth-content">
+            <h2>Login</h2>
+            <form id="loginForm">
+                <div class="input-group">
+                    <div class="password-wrapper">
+                    <input type="text" id="loginId" name="loginId" placeholder="email or phone" required>
+                </div>
+                
+                <div class="input-group">
+                    <div class="password-wrapper">
+                        <input type="password" id="password" name="password" placeholder="Password" required>
+                        <span id="togglePassword" class="password-toggle-icon">👁️</span>
+                    </div>
+                </div>
+
+                <button type="submit" class="submit-btn">Login</button>
+
+                <div class="divider">
+                    
+                </div>
+
+                <div class="social-login">
+                    <div class="social-icons">
+                        <a href="#" class="social-icon">📞</a>
+                        <a href="#" class="social-icon">🖥️</a>
+                        <a href="#" class="social-icon">👩🏻‍🎤</a>
+                    </div>
+                </div>
+
+                <div class="auth-footer-link">
+                    Don't have an account? <a href="register.html">Register</a>
+                </div>
+
+                <div class="auth-footer-link" style="margin-top: 10px;">
+                    <a href="#" id="forgotPasswordLink">Forgot Password?</a>
+                </div>
+                </form>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/supabase.js"></script>
+<script type="module" src="assets/js/auth.js"></script>
+</body>
+</html>

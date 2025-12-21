@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Refer & Earn</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/refer.css">
+</head>
+<body>
+<div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sideMenu" class="side-menu">
+    <div class="sidebar-header"><div id="sidebarId">Loading...</div><div id="sidebarVIP">...</div></div>
+    <div class="sidebar-actions">
+      
+      <a href="contact.html" class="sidebar-btn"><span>🧑‍💼</span> Customer Support</a>
+      
+      <a href="#" target="_blank" class="sidebar-btn"><span>💬</span> Telegram Channel</a>
+      
+      <button class="sidebar-btn" id="settingsToggleBtn">
+        <div class="sidebar-btn-content">
+            <span>⚙️</span> Settings
+        </div>
+        <span class="chevron">›</span>
+      </button>
+      
+      <div class="settings-submenu" id="settingsSubmenu">
+        <a href="terms.html" class="sidebar-btn sub-item"><span>📄</span> Terms & Conditions</a>
+        <a href="privacy-policy.html" class="sidebar-btn sub-item"><span>🔒</span> Privacy Policy</a>
+        <a href="refund.html" class="sidebar-btn sub-item"><span>💳</span> Refund Policy</a>
+      </div>
+    </div>
+    <span id="closeBtn" class="close-btn">&times;</span>
+  </aside>
+  
+  <header class="top-bar">
+    <div id="menuBtn" class="menu-btn"><span></span><span></span><span></span></div>
+    Refer & Earn
+  </header>
+  
+  <main>
+    <div class="refer-page-container">
+      <div class="tabs refer-main-tabs">
+        <a href="#" class="tab-button active" data-tab="invite">Invite</a>
+        <a href="#" class="tab-button" data-tab="earnings">My Earnings</a>
+      </div>
+
+      <section id="earnings" class="tab-content">
+        <div class="card earnings-card">
+          <div class="earnings-grid">
+            <div class="earnings-item">
+              <div class="earnings-label">Total Reward</div>
+              <div class="earnings-amount">₹0.00</div>
+            </div>
+            <div class="earnings-item">
+              <div class="earnings-label">Available to Redeem</div>
+              <div class="earnings-amount">₹0.00</div>
+            </div>
+            <div class="earnings-item">
+              <div class="earnings-label">Locked Reward</div>
+              <div class="earnings-amount">₹0.00</div>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <button id="redeemRewardBtn" class="redeem-btn">Redeem Reward</button>
+        </div>
+      </section>
+
+      <section id="invite" class="tab-content active">
+        <div class="card invite-header-card">
+          <h3>Invite Friends, Earn Rewards!</h3>
+          <div class="referral-link-box">
+            <span id="referralLinkText">Loading link...</span>
+            <button id="copyReferralBtn" class="copy-btn-inset">Copy</button>
+          </div>
+          <div class="commission-list">
+            <div class="commission-item">
+              <div class="commission-info">
+                <div class="level-badge">Level 1</div>
+                <div class="level-percent">16%</div>
+              </div>
+            </div>
+            <div class="commission-item">
+              <div class="commission-info">
+                <div class="level-badge">Level 2</div>
+                <div class="level-percent">2%</div>
+              </div>
+            </div>
+            <div class="commission-item">
+              <div class="commission-info">
+                <div class="level-badge">Level 3</div>
+                <div class="level-percent">1%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="card friends-card">
+        <h3>Friends</h3>
+        <div class="search-input-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" id="searchFriends" placeholder="Search friends by name">
+        </div>
+
+        <div class="friends-sub-tabs">
+          <a href="#" class="friends-sub-tab-button active" data-friend-tab="all">All</a>
+          <a href="#" class="friends-sub-tab-button" data-friend-tab="joined">Joined</a>
+        </div>
+        
+        <div id="all" class="friends-tab-content active">
+          <div class="friend-list scrollable-friend-list" id="allFriendList">
+            <div class="loading-state">Loading...</div>
+          </div>
+        </div>
+        
+        <div id="joined" class="friends-tab-content">
+          <div class="friend-list scrollable-friend-list" id="joinedFriendList">
+             <div class="loading-state">Loading...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="bottom-nav-spacer"></div>
+  <footer class="bottom-nav">
+    <a href="index.html"><i class="fas fa-home"></i> Home</a>
+    <a href="recharge.html"><i class="fas fa-bolt"></i> Recharge</a>
+    <a href="refer.html" class="active"><i class="fas fa-user-friends"></i> Refer</a>
+    <a href="mine.html"><i class="fas fa-user"></i> Mine</a>
+  </footer>
+
+  <div id="toastNotification" class="toast"></div>
+
+<script type="module" src="assets/js/supabase.js"></script>
+<script type="module" src="assets/js/common.js"></script>
+<script type="module" src="assets/js/script-refer.js"></script>
+</body>
+</html>
