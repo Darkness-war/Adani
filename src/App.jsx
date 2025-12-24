@@ -18,29 +18,30 @@ import Contact from './pages/Contact';
 import Transactions from './pages/Transactions';
 import VerifyEmail from './pages/VerifyEmail';
 
-// Import global CSS (copied from original style.css)
+// Import global CSS
 import './styles/style.css';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Check auth status on load
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
       
-      // Store user ID in localStorage for backward compatibility
       if (user) {
         localStorage.setItem('uid', user.id);
       }
+      
+      setLoading(false);
     };
 
     checkUser();
 
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
+      
       if (session?.user) {
         localStorage.setItem('uid', session.user.id);
       } else {
@@ -48,10 +49,16 @@ function App() {
       }
     });
 
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <div>Loading...</div>
+      </div>
+    );
+  }
 
   return (
     <Router>
@@ -60,6 +67,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/system-control" element={<SystemControl />} />
         
         {/* Protected Routes */}
         <Route path="/" element={user ? <Home /> : <Navigate to="/login" />} />
@@ -71,12 +79,9 @@ function App() {
         <Route path="/privacy-policy" element={user ? <Privacy /> : <Navigate to="/login" />} />
         <Route path="/refund" element={user ? <Refund /> : <Navigate to="/login" />} />
         <Route path="/contact" element={user ? <Contact /> : <Navigate to="/login" />} />
+        <Route path="/control-panel" element={user ? <ControlPanel /> : <Navigate to="/system-control" />} />
         
-        {/* Admin Routes */}
-        <Route path="/system-control" element={<SystemControl />} />
-        <Route path="/control-panel" element={<ControlPanel />} />
-        
-        {/* Redirects */}
+        {/* 404 Redirect */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
