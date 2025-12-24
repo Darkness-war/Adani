@@ -1,7 +1,9 @@
 {
-  "name": "uzumaki-investment",
+  "name": "uzumaki",
   "version": "1.0.0",
   "type": "module",
+  "homepage": ".",
+  "private": true,
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -15,12 +17,10 @@
     "@supabase/supabase-js": "^2.39.7"
   },
   "devDependencies": {
-    "@types/react": "^18.2.0",
-    "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",
-    "autoprefixer": "^10.4.16",
-    "postcss": "^8.4.32",
-    "tailwindcss": "^3.3.6",
     "vite": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
