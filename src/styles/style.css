@@ -1568,5 +1568,5 @@ body.sidebar-open .side-menu { transform: translateX(0); }
   color: white;
   border: none;
   padding: 8px 15px;
-  border-radi
+  border-radius: 8px;
 }
