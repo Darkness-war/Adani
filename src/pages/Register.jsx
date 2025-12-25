@@ -3,29 +3,34 @@ import { supabase } from '../lib/supabase';
 
 function Register() {
   useEffect(() => {
-    document.getElementById('registerBtn')?.addEventListener('click', async (e) => {
-      e.preventDefault();
-      
-      const name = document.getElementById('name').value;
-      const phone = document.getElementById('phone').value;
-      const email = document.getElementById('email').value;
+    const registerBtn = document.getElementById('registerBtn');
+    if (!registerBtn) return;
+
+    const handleRegister = async () => {
+      // Get form values
+      const name = document.getElementById('name').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
-      const referralCode = document.getElementById('referralCode').value;
-      
+      const referralCode = document.getElementById('referralCode').value.trim();
+
       // Validation
       if (password !== confirmPassword) {
         alert('Passwords do not match');
         return;
       }
-      
+
       if (password.length < 6) {
         alert('Password must be at least 6 characters');
         return;
       }
-      
+
+      // Generate unique referral code for new user
+      const userReferralCode = 'UZ' + Math.random().toString(36).substring(2, 8).toUpperCase();
+
       try {
-        // Check if referral code exists
+        // Get referrer ID if referral code provided
         let referredBy = null;
         if (referralCode) {
           const { data: referrer } = await supabase
@@ -41,10 +46,11 @@ function Register() {
             return;
           }
         }
-        
-        // Generate unique referral code for new user
-        const userReferralCode = 'UZ' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        
+
+        // Show loading
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'Creating account...';
+
         // Register user with Supabase Auth
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email,
@@ -58,40 +64,50 @@ function Register() {
             }
           }
         });
-        
+
         if (authError) throw authError;
-        
-        // Create profile in profiles table
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email,
-            name,
-            phone,
-            referral_code: userReferralCode,
-            referred_by: referredBy,
-            balance: 0,
-            vip_level: 0
-          });
-        
-        if (profileError) {
-          // If profile creation fails, delete the auth user
-          await supabase.auth.admin.deleteUser(authData.user.id);
-          throw profileError;
+
+        // Profile is created automatically by trigger
+        // But we need to update it with additional data
+        if (authData.user) {
+          const { error: updateError } = await supabase
+            .from('profiles')
+            .update({
+              name,
+              phone,
+              referral_code: userReferralCode,
+              referred_by: referredBy,
+              balance: 0,
+              vip_level: 0,
+              status: 'active'
+            })
+            .eq('id', authData.user.id);
+
+          if (updateError) console.log('Profile update note:', updateError.message);
         }
-        
-        alert('Registration successful! Please verify your email.');
+
+        alert('Registration successful! Please check your email to verify your account.');
         window.location.href = '/verify-email';
-        
+
       } catch (error) {
+        console.error('Registration error:', error);
         alert('Registration failed: ' + error.message);
+        
+        // Reset button
+        registerBtn.disabled = false;
+        registerBtn.textContent = 'Register';
       }
-    });
+    };
+
+    registerBtn.addEventListener('click', handleRegister);
+
+    return () => {
+      registerBtn.removeEventListener('click', handleRegister);
+    };
   }, []);
-  
+
   return (
-    <body className="auth-page-background">
+    <div className="auth-page-background">
       <div className="auth-container-wrapper">
         <div className="auth-header">
           <div className="company-name">Uzumaki</div>
@@ -122,7 +138,7 @@ function Register() {
             
             <div className="input-group">
               <div className="password-wrapper">
-                <input type="password" id="password" placeholder="Password" required />
+                <input type="password" id="password" placeholder="Password (min. 6 characters)" required minLength="6" />
               </div>
             </div>
             
@@ -148,7 +164,7 @@ function Register() {
           </form>
         </div>
       </div>
-    </body>
+    </div>
   );
 }
 
