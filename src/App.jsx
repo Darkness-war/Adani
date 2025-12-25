@@ -10,7 +10,6 @@ import Recharge from './pages/Recharge';
 import Refer from './pages/Refer';
 import Mine from './pages/Mine';
 import ControlPanel from './pages/ControlPanel';
-import SystemControl from './pages/SystemControl';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import Refund from './pages/Refund';
