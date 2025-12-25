@@ -5,7 +5,7 @@ import { supabase } from './lib/supabase';
 // Pages
 import Home from './pages/Home';
 import Login from './pages/Login';
-import Register from './pages/Register';
+import register from './pages/register';
 import Recharge from './pages/Recharge';
 import Refer from './pages/Refer';
 import Mine from './pages/Mine';
