@@ -13,6 +13,7 @@ import Contact from "./pages/Contact";
 import Transactions from "./pages/Transactions";
 import VerifyEmail from "./pages/VerifyEmail";
 import ControlPanel from "./pages/ControlPanel"
+import SystemControl from "./pages/SystemControl";
 import Terms from "./pages/Terms";
 import Privacy from "./pages/Privacy";
 import Refund from "./pages/Refund";
