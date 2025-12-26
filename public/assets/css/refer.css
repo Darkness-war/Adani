@@ -623,3 +623,150 @@ main {
   .toast.show { transform: translate(0, 0); }
   }
   
+/* Additional styles for updated Refer page */
+.refer-page-container {
+  padding: 15px;
+}
+
+.commission-rates {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.commission-item {
+  background: #f8f9fa;
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.commission-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.level-desc {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 5px;
+}
+
+.active-badge {
+  background: #28a745;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.75em;
+  margin-left: 10px;
+}
+
+.search-input-wrapper input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.friend-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.friend-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin-right: 15px;
+}
+
+.friend-details {
+  flex: 1;
+}
+
+.friend-name {
+  font-weight: 600;
+  color: #333;
+}
+
+.friend-info {
+  font-size: 0.85em;
+  color: #666;
+  margin-top: 3px;
+}
+
+.friend-earnings {
+  font-weight: 600;
+  color: #28a745;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.no-plans, .login-prompt {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.login-prompt button {
+  margin-top: 20px;
+  width: 200px;
+}
+
+.summary-card {
+  margin-bottom: 15px;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.summary-item {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.summary-label {
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.summary-value {
+  font-size: 1.2em;
+  font-weight: 600;
+  color: #333;
+}
+
+.profile-vip {
+  background: #ffd700;
+  color: #333;
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 15px;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+.profile-id, .profile-email {
+  margin-bottom: 5px;
+  }
