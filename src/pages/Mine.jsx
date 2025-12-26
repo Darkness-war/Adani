@@ -3,7 +3,7 @@ import Sidebar from '../components/Layout/Sidebar';
 import TopBar from '../components/Layout/TopBar';
 import BottomNav from '../components/Layout/BottomNav';
 import { supabase } from '../lib/supabase';
-import '../styles/style.css';
+import '../styles/Mine.css';
 
 function Mine() {
   const [user, setUser] = useState(null);
