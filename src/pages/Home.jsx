@@ -1,316 +1,185 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 import Sidebar from '../components/Layout/Sidebar';
 import TopBar from '../components/Layout/TopBar';
 import BottomNav from '../components/Layout/BottomNav';
 
 function Home() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('primary');
   const [primaryPlans, setPrimaryPlans] = useState([]);
   const [vipPlans, setVipPlans] = useState([]);
   const [purchasedPlans, setPurchasedPlans] = useState([]);
-  const [user, setUser] = useState(null);
-  const [balance, setBalance] = useState(0);
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    checkAuth();
-    loadPlans();
-    loadUserInvestments();
-
-    // Tab switching
-    const tabButtons = document.querySelectorAll('.tab-button');
-    tabButtons.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const tab = e.target.dataset.tab;
-        setActiveTab(tab);
-        tabButtons.forEach(b => b.classList.remove('active'));
-        e.target.classList.add('active');
-      });
-    });
+    checkAuthAndLoad();
   }, []);
 
-  const checkAuth = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      // Only redirect if trying to access purchased tab
-      if (window.location.hash.includes('purchased')) {
-        navigate('/login');
-      }
-      return;
-    }
-    setUser(session.user);
-    loadUserBalance(session.user.id);
-  };
-
-  const loadUserBalance = async (userId) => {
-    const { data } = await supabase
-      .from('users')
-      .select('balance')
-      .eq('id', userId)
-      .single();
-    if (data) setBalance(data.balance);
-  };
-
-  const loadPlans = async () => {
+  async function checkAuthAndLoad() {
     try {
-      const { data, error } = await supabase
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // 1. Fix: Redirect if not logged in
+      if (!session) {
+        navigate('/login');
+        return;
+      }
+
+      // 2. Load Plans
+      const { data: plans, error } = await supabase
         .from('plans')
         .select('*')
         .eq('is_active', true)
         .order('min_amount', { ascending: true });
-      
-      if (error) throw error;
-      
-      const primary = data.filter(p => !p.is_vip);
-      const vip = data.filter(p => p.is_vip);
-      
-      setPrimaryPlans(primary);
-      setVipPlans(vip);
-    } catch (error) {
-      console.error('Error loading plans:', error);
-    }
-  };
 
-  const loadUserInvestments = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    
-    try {
-      const { data, error } = await supabase
+      if (plans) {
+        setPrimaryPlans(plans.filter(p => !p.is_vip));
+        setVipPlans(plans.filter(p => p.is_vip));
+      }
+
+      // 3. Load Purchased Plans
+      const { data: investments } = await supabase
         .from('user_investments')
-        .select(`
-          *,
-          plans (*)
-        `)
-        .eq('user_id', user.id)
-        .eq('status', 'active');
+        .select('*, plans(*)')
+        .eq('user_id', session.user.id);
       
-      if (error) throw error;
-      setPurchasedPlans(data || []);
-    } catch (error) {
-      console.error('Error loading investments:', error);
-    }
-  };
+      if (investments) {
+        setPurchasedPlans(investments);
+      }
 
-  const buyPlan = async (plan) => {
+    } catch (error) {
+      console.error("Error loading home:", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const handleBuyPlan = async (plan) => {
     const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      alert('Please login to purchase a plan');
-      navigate('/login');
-      return;
-    }
-    
-    if (balance < plan.min_amount) {
-      alert(`Insufficient balance. You need ₹${plan.min_amount}. Available: ₹${balance}`);
-      return;
-    }
-    
-    if (confirm(`Confirm purchase of ${plan.name} for ₹${plan.min_amount}?`)) {
-      try {
-        // Start transaction
-        const { error: investError } = await supabase
-          .from('user_investments')
-          .insert({
-            user_id: user.id,
-            plan_id: plan.id,
-            amount: plan.min_amount,
-            daily_return: plan.daily_return,
-            total_days: plan.duration,
-            remaining_days: plan.duration,
-            status: 'active'
-          });
-        
-        if (investError) throw investError;
-        
+    if (!user) return navigate('/login');
+
+    if (window.confirm(`Confirm purchase of ${plan.name} for ₹${plan.min_amount}?`)) {
+      
+      // Check Balance first (Optional but recommended)
+      const { data: profile } = await supabase.from('profiles').select('balance').eq('id', user.id).single();
+      
+      if (profile.balance < plan.min_amount) {
+        alert("Insufficient balance! Please recharge.");
+        navigate('/recharge'); // Assuming you have a recharge route
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_investments')
+        .insert({
+          user_id: user.id,
+          plan_id: plan.id,
+          amount: plan.min_amount,
+          status: 'active',
+          daily_income: (plan.min_amount * plan.daily_return) / 100
+        });
+
+      if (!error) {
         // Deduct balance
-        const { error: balanceError } = await supabase
-          .from('users')
-          .update({ balance: balance - plan.min_amount })
-          .eq('id', user.id);
-        
-        if (balanceError) throw balanceError;
-        
-        // Add transaction record
-        await supabase
-          .from('transactions')
-          .insert({
-            user_id: user.id,
-            amount: -plan.min_amount,
-            type: 'plan_purchase',
-            description: `Purchased ${plan.name} plan`,
-            status: 'completed'
-          });
-        
+        await supabase.from('profiles').update({ 
+          balance: profile.balance - plan.min_amount 
+        }).eq('id', user.id);
+
         alert('Plan purchased successfully!');
-        setBalance(balance - plan.min_amount);
-        loadUserInvestments();
-      } catch (error) {
-        console.error('Purchase error:', error);
-        alert('Failed to purchase plan: ' + error.message);
+        checkAuthAndLoad(); // Refresh data
+        setActiveTab('purchased');
+      } else {
+        alert('Error purchasing plan: ' + error.message);
       }
     }
   };
 
-  const renderPlanCard = (plan, isPurchased = false) => (
-    <div key={plan.id} className={`plan-card ${plan.is_vip ? 'vip' : ''}`}>
-      <div className="plan-card-header">
-        <h3>{plan.name} {plan.is_vip && <span className="vip-badge">VIP</span>}</h3>
+  const PlanCard = ({ plan }) => (
+    <div className="plan-card">
+      <div className="plan-header">
+        <div className="plan-title">
+          {plan.name} {plan.is_vip && <span className="vip-badge">VIP</span>}
+        </div>
         <div className="plan-price">₹{plan.min_amount}</div>
       </div>
-      <div className="plan-card-body">
-        <div className="plan-detail">
-          <div className="plan-label">Daily Return</div>
-          <div className="plan-value">{plan.daily_return}%</div>
-        </div>
-        <div className="plan-detail">
-          <div className="plan-label">Duration</div>
-          <div className="plan-value">{plan.duration} Days</div>
-        </div>
-        <div className="plan-detail">
-          <div className="plan-label">Total Return</div>
-          <div className="plan-value">{plan.total_return}%</div>
-        </div>
-        <div className="plan-detail">
-          <div className="plan-label">Min. Amount</div>
-          <div className="plan-value">₹{plan.min_amount}</div>
-        </div>
+      <div className="plan-details">
+        <div><strong>Daily Return</strong>{plan.daily_return}%</div>
+        <div><strong>Duration</strong>{plan.duration} Days</div>
+        <div><strong>Total Return</strong>{plan.total_return}%</div>
       </div>
-      <div className="plan-card-footer">
-        {!isPurchased ? (
-          <button 
-            className="buy-button" 
-            onClick={() => buyPlan(plan)}
-            disabled={user && balance < plan.min_amount}
-          >
-            {user ? (balance < plan.min_amount ? 'Insufficient Balance' : 'Buy Now') : 'Login to Buy'}
-          </button>
-        ) : (
-          <div className="plan-progress">
-            <div className="progress-label">
-              <span>Progress</span>
-              <span>{plan.remaining_days}/{plan.total_days} days</span>
-            </div>
-            <div className="progress-bar-container">
-              <div 
-                className="progress-bar-fill" 
-                style={{ 
-                  width: `${((plan.total_days - plan.remaining_days) / plan.total_days) * 100}%` 
-                }}
-              ></div>
-            </div>
-          </div>
-        )}
+      <button className="buy-plan-btn" onClick={() => handleBuyPlan(plan)}>Buy Now</button>
+    </div>
+  );
+
+  const PurchasedCard = ({ investment }) => (
+    <div className="plan-card">
+      <div className="plan-header">
+        <div className="plan-title">{investment.plans?.name}</div>
+        <div className="plan-price" style={{color: '#4caf50'}}>Active</div>
+      </div>
+      <div className="plan-details">
+        <div><strong>Invested</strong>₹{investment.amount}</div>
+        <div><strong>Daily</strong>₹{investment.plans?.daily_return}%</div>
+        <div><strong>Date</strong>{new Date(investment.created_at).toLocaleDateString()}</div>
       </div>
     </div>
   );
 
+  if (loading) return <div className="loading-screen">Loading...</div>;
+
   return (
     <>
-      <div id="sidebarOverlay" className="sidebar-overlay"></div>
-      <Sidebar />
-      <TopBar title="Uzumaki" />
+      <div 
+        id="sidebarOverlay" 
+        className={`sidebar-overlay ${sidebarOpen ? 'active' : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      ></div>
+      
+      {/* Pass state to Sidebar if needed, or handle sidebar logic internally in Sidebar component */}
+      <Sidebar isOpen={sidebarOpen} close={() => setSidebarOpen(false)} />
+      
+      <TopBar title="Adani Corp" onMenuClick={() => setSidebarOpen(true)} />
       
       <main>
-        <img src="/assets/img/banner.jpg" alt="Uzumaki banner" className="banner-img" />
+        <img src="/assets/img/banner.jpg" alt="Banner" className="banner-img" />
+        
         <nav className="tabs">
           <button 
             className={`tab-button ${activeTab === 'primary' ? 'active' : ''}`} 
-            data-tab="primary"
             onClick={() => setActiveTab('primary')}
           >
             Primary
           </button>
           <button 
             className={`tab-button ${activeTab === 'vip' ? 'active' : ''}`} 
-            data-tab="vip"
             onClick={() => setActiveTab('vip')}
           >
             VIP
           </button>
           <button 
             className={`tab-button ${activeTab === 'purchased' ? 'active' : ''}`} 
-            data-tab="purchased"
-            onClick={() => {
-              if (!user) {
-                alert('Please login to view purchased plans');
-                navigate('/login');
-              } else {
-                setActiveTab('purchased');
-              }
-            }}
+            onClick={() => setActiveTab('purchased')}
           >
             Purchased
           </button>
         </nav>
         
-        <section id="primary" className={`tab-content ${activeTab === 'primary' ? 'active' : ''}`}>
-          {primaryPlans.length === 0 ? (
-            <p className="no-plans">No primary plans available</p>
-          ) : (
-            primaryPlans.map(plan => renderPlanCard(plan))
-          )}
+        <section className={`tab-content ${activeTab === 'primary' ? 'active' : ''}`}>
+          {primaryPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
         </section>
-        
-        <section id="vip" className={`tab-content ${activeTab === 'vip' ? 'active' : ''}`}>
-          {vipPlans.length === 0 ? (
-            <p className="no-plans">No VIP plans available</p>
-          ) : (
-            vipPlans.map(plan => renderPlanCard(plan))
-          )}
+
+        <section className={`tab-content ${activeTab === 'vip' ? 'active' : ''}`}>
+          {vipPlans.map(plan => <PlanCard key={plan.id} plan={plan} />)}
         </section>
-        
-        <section id="purchased" className={`tab-content ${activeTab === 'purchased' ? 'active' : ''}`}>
-          {!user ? (
-            <div className="login-prompt">
-              <p>Please login to view your purchased plans</p>
-              <button onClick={() => navigate('/login')} className="submit-btn">Login</button>
-            </div>
-          ) : purchasedPlans.length === 0 ? (
-            <p className="no-plans">You haven't purchased any plans yet</p>
+
+        <section className={`tab-content ${activeTab === 'purchased' ? 'active' : ''}`}>
+          {purchasedPlans.length > 0 ? (
+            purchasedPlans.map(inv => <PurchasedCard key={inv.id} investment={inv} />)
           ) : (
-            purchasedPlans.map(investment => (
-              <div key={investment.id} className="purchased-plan-card">
-                <div className="plan-card-header">
-                  <h3>{investment.plans?.name} {investment.plans?.is_vip && <span className="vip-badge">VIP</span>}</h3>
-                  <div className="plan-status active">Active</div>
-                </div>
-                <div className="plan-card-body">
-                  <div className="plan-detail">
-                    <div className="plan-label">Invested Amount</div>
-                    <div className="plan-value">₹{investment.amount}</div>
-                  </div>
-                  <div className="plan-detail">
-                    <div className="plan-label">Daily Return</div>
-                    <div className="plan-value">{investment.daily_return}%</div>
-                  </div>
-                  <div className="plan-detail">
-                    <div className="plan-label">Days Left</div>
-                    <div className="plan-value">{investment.remaining_days}/{investment.total_days}</div>
-                  </div>
-                  <div className="plan-detail">
-                    <div className="plan-label">Total Return</div>
-                    <div className="plan-value">₹{(investment.amount * (investment.plans?.total_return || 0) / 100).toFixed(2)}</div>
-                  </div>
-                </div>
-                <div className="plan-progress">
-                  <div className="progress-label">
-                    <span>Progress</span>
-                    <span>{investment.total_days - investment.remaining_days}/{investment.total_days} days</span>
-                  </div>
-                  <div className="progress-bar-container">
-                    <div 
-                      className="progress-bar-fill" 
-                      style={{ 
-                        width: `${((investment.total_days - investment.remaining_days) / investment.total_days) * 100}%` 
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            ))
+            <div className="empty-state">No plans purchased yet.</div>
           )}
         </section>
       </main>
@@ -322,3 +191,4 @@ function Home() {
 }
 
 export default Home;
+      
