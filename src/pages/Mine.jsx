@@ -1,321 +1,477 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Layout/Sidebar';
 import TopBar from '../components/Layout/TopBar';
 import BottomNav from '../components/Layout/BottomNav';
 import { supabase } from '../lib/supabase';
 
 function Mine() {
-  const navigate = useNavigate();
-  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
-  const [transactions, setTransactions] = useState([]);
-  
-  // Modals State
-  const [showWithdraw, setShowWithdraw] = useState(false);
-  const [showBank, setShowBank] = useState(false);
-  const [showHistory, setShowHistory] = useState(false);
-  
-  // Form States
-  const [withdrawAmount, setWithdrawAmount] = useState('');
-  const [bankForm, setBankForm] = useState({
-    name: '', account: '', ifsc: '', upi: ''
+  const [bankDetails, setBankDetails] = useState({
+    name: '',
+    bank_account: '',
+    bank_ifsc: '',
+    upi_id: ''
   });
-  const [isBankLocked, setIsBankLocked] = useState(false);
+  const [withdrawalInfo, setWithdrawalInfo] = useState({
+    amount: '',
+    tds: 0,
+    payout: 0
+  });
+  const [modalOpen, setModalOpen] = useState({
+    bank: false,
+    withdraw: false,
+    transactions: false
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadData();
+    loadUserProfile();
   }, []);
 
-  async function loadData() {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    setUser(user);
-
-    const { data: profileData } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    setProfile(profileData);
-
-    // Setup Bank Form
-    if (profileData) {
-      setBankForm({
-        name: profileData.name || '',
-        account: profileData.bank_account || '',
-        ifsc: profileData.bank_ifsc || '',
-        upi: profileData.upi_id || ''
-      });
-      // Lock if account details exist
-      if (profileData.bank_account && profileData.bank_account.length > 5) {
-        setIsBankLocked(true);
+  async function loadUserProfile() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = '/login';
+        return;
       }
-    }
 
-    // Load Transactions
-    const { data: txData } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-    
-    if (txData) setTransactions(txData);
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (error) throw error;
+
+      if (profile) {
+        setProfile(profile);
+        // Update bank details form
+        setBankDetails({
+          name: profile.name || '',
+          bank_account: profile.bank_account || '',
+          bank_ifsc: profile.bank_ifsc || '',
+          upi_id: profile.upi_id || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error loading profile:', error);
+    }
   }
 
-  const handleBankSubmit = async (e) => {
+  const handleBankDetailsSubmit = async (e) => {
     e.preventDefault();
-    if (isBankLocked) return;
+    setLoading(true);
 
-    const { error } = await supabase
-      .from('profiles')
-      .update({
-        name: bankForm.name,
-        bank_account: bankForm.account,
-        bank_ifsc: bankForm.ifsc.toUpperCase(),
-        upi_id: bankForm.upi,
-        bank_details_updated_at: new Date().toISOString()
-      })
-      .eq('id', user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-    if (error) {
-      alert(error.message);
-    } else {
-      alert('Bank details saved! They are now locked.');
-      setIsBankLocked(true);
-      setShowBank(false);
-      loadData();
+      // Validate account numbers match
+      const accountInput = e.target.bankAccount.value;
+      const confirmAccount = e.target.bankConfirmAccount.value;
+
+      if (accountInput !== confirmAccount) {
+        alert('Account numbers do not match');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: e.target.bankRealName.value,
+          bank_account: accountInput,
+          bank_ifsc: e.target.bankIFSC.value.toUpperCase(),
+          upi_id: e.target.bankUPI.value,
+          bank_details_updated_at: new Date().toISOString()
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      alert('Bank details saved successfully!');
+      setModalOpen({ ...modalOpen, bank: false });
+      loadUserProfile(); // Refresh profile
+    } catch (error) {
+      alert('Error saving bank details: ' + error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleWithdrawSubmit = async (e) => {
+  const handleWithdrawalSubmit = async (e) => {
     e.preventDefault();
-    const amount = parseFloat(withdrawAmount);
+    setLoading(true);
 
-    if (amount < 130) return alert('Minimum withdrawal is ₹130');
-    if (amount > profile.balance) return alert('Insufficient balance');
-    if (!profile.bank_account) return alert('Please add bank details first');
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        alert('Please login first');
+        return;
+      }
 
-    const tds = amount * 0.18; // 18% TDS (Check if this is correct for your logic)
-    const payout = amount - tds;
-
-    const { error } = await supabase
-      .from('withdrawal_requests')
-      .insert({
-        user_id: user.id,
-        user_email: user.email,
-        amount: amount,
-        tds: tds,
-        payout_amount: payout,
-        bank_details: `${profile.bank_account} | ${profile.bank_ifsc}`,
-        status: 'pending'
-      });
-
-    if (!error) {
-      // Deduct balance immediately
-      await supabase.from('profiles').update({ balance: profile.balance - amount }).eq('id', user.id);
+      const amount = parseFloat(withdrawalInfo.amount);
       
-      // Add record to transactions table for history visibility
-      await supabase.from('transactions').insert({
-        user_id: user.id,
-        amount: -amount,
-        type: 'withdrawal',
-        status: 'pending',
-        description: 'Withdrawal Request'
-      });
+      // Validation
+      if (amount < 130) {
+        alert('Minimum withdrawal amount is ₹130');
+        return;
+      }
 
-      alert('Withdrawal request submitted');
-      setShowWithdraw(false);
-      loadData();
-    } else {
-      alert(error.message);
+      if (!profile?.bank_account || !profile?.bank_ifsc) {
+        alert('Please add bank details first');
+        setModalOpen({ withdraw: false, bank: true });
+        return;
+      }
+
+      if (profile.balance < amount) {
+        alert('Insufficient balance');
+        return;
+      }
+
+      const tds = amount * 0.18;
+      const payout = amount - tds;
+
+      // Create withdrawal request
+      const { error: withdrawError } = await supabase
+        .from('withdrawal_requests')
+        .insert({
+          user_id: user.id,
+          user_email: user.email,
+          amount: amount,
+          tds: tds,
+          payout_amount: payout,
+          bank_name: profile.bank_name || 'Bank',
+          bank_account: profile.bank_account,
+          bank_ifsc: profile.bank_ifsc,
+          upi_id: profile.upi_id,
+          status: 'pending'
+        });
+
+      if (withdrawError) throw withdrawError;
+
+      // Update user balance
+      const { error: balanceError } = await supabase
+        .from('profiles')
+        .update({ balance: profile.balance - amount })
+        .eq('id', user.id);
+
+      if (balanceError) throw balanceError;
+
+      alert('Withdrawal request submitted successfully! It will be processed within 24-48 hours.');
+      setModalOpen({ ...modalOpen, withdraw: false });
+      loadUserProfile(); // Refresh balance
+      setWithdrawalInfo({ amount: '', tds: 0, payout: 0 });
+    } catch (error) {
+      alert('Error submitting withdrawal: ' + error.message);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const calculateWithdrawal = (amount) => {
+    const numAmount = parseFloat(amount) || 0;
+    const tds = numAmount * 0.18;
+    const payout = numAmount - tds;
+    
+    setWithdrawalInfo({
+      amount: amount,
+      tds: tds,
+      payout: payout
+    });
   };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    localStorage.clear();
-    navigate('/login');
+    localStorage.removeItem('uid');
+    window.location.href = '/login';
+  };
+
+  const handleChangePassword = async () => {
+    const currentPassword = prompt('Enter current password:');
+    const newPassword = prompt('Enter new password:');
+    const confirmPassword = prompt('Confirm new password:');
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert('Passwords do not match');
+      return;
+    }
+
+    try {
+      // First verify current password
+      const { data: { user } } = await supabase.auth.getUser();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: currentPassword
+      });
+
+      if (signInError) {
+        alert('Current password is incorrect');
+        return;
+      }
+
+      // Update password
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+      alert('Password changed successfully!');
+    } catch (error) {
+      alert('Error: ' + error.message);
+    }
+  };
+
+  const isBankDetailsLocked = () => {
+    if (!profile?.bank_details_updated_at) return false;
+    const updateDate = new Date(profile.bank_details_updated_at);
+    const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+    return daysSinceUpdate < 7;
   };
 
   return (
     <>
+      <div id="sidebarOverlay" className="sidebar-overlay"></div>
       <Sidebar />
       <TopBar title="My Account" />
       
       <main className="page-container">
-        {/* PROFILE HEADER */}
         <div className="card profile-header-card">
           <div className="profile-avatar">👤</div>
           <div className="profile-info">
-            <div className="profile-name">{profile?.name || 'User'}</div>
-            <div className="profile-id">ID: {user?.id.slice(0, 8)}</div>
-            <div className="profile-email">{user?.email}</div>
+            <div id="profileId" className="profile-id">
+              ID: {profile?.id ? profile.id.slice(0, 8) + '...' : 'Loading...'}
+            </div>
+            <div id="profileEmail" className="profile-email">
+              {profile?.email || 'Loading...'}
+            </div>
           </div>
         </div>
         
-        {/* BALANCE CARD */}
         <div className="card balance-card">
           <div className="balance-label">Available Balance</div>
-          <div className="balance-amount">₹{profile?.balance?.toFixed(2) || '0.00'}</div>
+          <div id="profileBalance" className="balance-amount">
+            ₹{profile?.balance?.toFixed(2) || '0.00'}
+          </div>
           <div className="action-buttons">
-            <button onClick={() => setShowWithdraw(true)} className="action-btn"><span>⬆️</span>Withdraw</button>
-            <button onClick={() => navigate('/recharge')} className="action-btn"><span>⬇️</span>Recharge</button>
+            <button 
+              id="withdrawBtn" 
+              className="action-btn"
+              onClick={() => setModalOpen({ ...modalOpen, withdraw: true })}
+            >
+              <span>⬆️</span>Withdraw
+            </button>
+            <button 
+              id="rechargeBtn" 
+              className="action-btn"
+              onClick={() => window.location.href = '/recharge'}
+            >
+              <span>⬇️</span>Recharge
+            </button>
           </div>
         </div>
         
-        {/* MENU OPTIONS */}
         <div className="card options-list-card">
-          <div className="option-item" onClick={() => setShowBank(true)}>
+          <a 
+            href="#" 
+            className="option-item" 
+            onClick={(e) => {
+              e.preventDefault();
+              setModalOpen({ ...modalOpen, bank: true });
+            }}
+          >
             <div className="option-icon">🏦</div>
             <span>Bank Account Details</span>
             <div className="option-chevron">&gt;</div>
-          </div>
+          </a>
           
-          <div className="option-item" onClick={() => setShowHistory(true)}>
+          <a 
+            href="/transactions" 
+            className="option-item"
+          >
             <div className="option-icon">📜</div>
             <span>Transaction History</span>
             <div className="option-chevron">&gt;</div>
-          </div>
+          </a>
           
-          <div className="option-item" onClick={async () => {
-             // Simple password reset trigger
-             const email = prompt("Enter your email to send password reset link:");
-             if(email) {
-               const { error } = await supabase.auth.resetPasswordForEmail(email);
-               alert(error ? error.message : "Password reset email sent!");
-             }
-          }}>
+          <a 
+            href="#" 
+            className="option-item" 
+            onClick={(e) => {
+              e.preventDefault();
+              handleChangePassword();
+            }}
+          >
             <div className="option-icon">🔒</div>
             <span>Change Password</span>
             <div className="option-chevron">&gt;</div>
-          </div>
+          </a>
         </div>
         
         <div className="card logout-card">
-          <button onClick={handleLogout} className="logout-btn">Log Out</button>
+          <button 
+            id="logoutBtn" 
+            className="logout-btn"
+            onClick={handleLogout}
+          >
+            Log Out
+          </button>
         </div>
       </main>
       
       <div className="bottom-nav-spacer"></div>
       <BottomNav active="mine" />
       
-      {/* --- MODALS --- */}
-
-      {/* TRANSACTION HISTORY MODAL */}
-      {showHistory && (
-        <div className="modal-overlay active">
-          <div className="modal-container active">
-            <div className="modal-header">
-              <h3>History</h3>
-              <button onClick={() => setShowHistory(false)}>&times;</button>
-            </div>
-            <div className="modal-content scrollable">
-              {transactions.length > 0 ? transactions.map(tx => (
-                <div key={tx.id} className={`transaction-item ${tx.type}`}>
-                  <div className="transaction-header">
-                    <span className="transaction-type">{tx.type.toUpperCase()}</span>
-                    <span className={`transaction-amount ${tx.amount > 0 ? 'positive' : 'negative'}`}>
-                      {tx.amount > 0 ? '+' : ''}₹{Math.abs(tx.amount)}
-                    </span>
-                  </div>
-                  <div className="transaction-details">
-                    <span>{new Date(tx.created_at).toLocaleDateString()}</span>
-                    <span>{tx.status}</span>
-                  </div>
-                </div>
-              )) : <p>No transactions found</p>}
-            </div>
-          </div>
+      {/* Bank Details Modal */}
+      <div className={`modal-overlay ${modalOpen.bank ? 'active' : ''}`} 
+           onClick={() => setModalOpen({ ...modalOpen, bank: false })}></div>
+      <div className={`modal-container ${modalOpen.bank ? 'active' : ''}`}>
+        <div className="modal-header">
+          <h3>Bank Account Details</h3>
+          <button onClick={() => setModalOpen({ ...modalOpen, bank: false })}>&times;</button>
         </div>
-      )}
+        <div className="modal-content">
+          <form id="bankDetailsForm" onSubmit={handleBankDetailsSubmit} noValidate>
+            <div className="input-group icon-input">
+              <label htmlFor="bankRealName">Your Real Name</label>
+              <span className="input-icon">👤</span>
+              <input 
+                type="text" 
+                id="bankRealName" 
+                placeholder="Enter your full name" 
+                required 
+                minLength="3"
+                defaultValue={bankDetails.name}
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            <div className="input-group icon-input">
+              <label htmlFor="bankAccount">Bank Account No.</label>
+              <span className="input-icon">🏦</span>
+              <input 
+                type="text" 
+                id="bankAccount" 
+                placeholder="Min. 9 digits" 
+                required 
+                pattern="[0-9]{9,18}"
+                defaultValue={bankDetails.bank_account}
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            <div className="input-group icon-input">
+              <label htmlFor="bankConfirmAccount">Confirm Account No.</label>
+              <span className="input-icon">🏦</span>
+              <input 
+                type="text" 
+                id="bankConfirmAccount" 
+                placeholder="Re-enter account number" 
+                required 
+                pattern="[0-9]{9,18}"
+                defaultValue={bankDetails.bank_account}
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            <div className="input-group icon-input">
+              <label htmlFor="bankIFSC">IFSC Code</label>
+              <span className="input-icon">💳</span>
+              <input 
+                type="text" 
+                id="bankIFSC" 
+                placeholder="E.g., SBIN0001234" 
+                required 
+                pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                defaultValue={bankDetails.bank_ifsc}
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            <div className="input-group icon-input">
+              <label htmlFor="bankUPI">UPI ID (Optional)</label>
+              <span className="input-icon">🌐</span>
+              <input 
+                type="text" 
+                id="bankUPI" 
+                placeholder="E.g., user@bank" 
+                pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                defaultValue={bankDetails.upi_id}
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            {isBankDetailsLocked() && (
+              <div className="form-locked-info">
+                ⚠️ Bank details are locked for 7 days after update. 
+                Contact customer support to change them.
+              </div>
+            )}
+            
+            <button 
+              type="submit" 
+              className="submit-btn" 
+              id="saveBankBtn"
+              disabled={loading || isBankDetailsLocked()}
+            >
+              {loading ? 'Saving...' : 'Save Details'}
+            </button>
+          </form>
+        </div>
+      </div>
       
-      {/* BANK DETAILS MODAL */}
-      {showBank && (
-        <div className="modal-overlay active">
-          <div className="modal-container active">
-            <div className="modal-header">
-              <h3>Bank Details</h3>
-              <button onClick={() => setShowBank(false)}>&times;</button>
-            </div>
-            <div className="modal-content">
-              <form onSubmit={handleBankSubmit}>
-                <div className="input-group">
-                  <label>Real Name</label>
-                  <input type="text" value={bankForm.name} 
-                    onChange={e => setBankForm({...bankForm, name: e.target.value})}
-                    readOnly={isBankLocked} required />
-                </div>
-                <div className="input-group">
-                  <label>Account Number</label>
-                  <input type="text" value={bankForm.account} 
-                    onChange={e => setBankForm({...bankForm, account: e.target.value})}
-                    readOnly={isBankLocked} required />
-                </div>
-                <div className="input-group">
-                  <label>IFSC Code</label>
-                  <input type="text" value={bankForm.ifsc} 
-                    onChange={e => setBankForm({...bankForm, ifsc: e.target.value})}
-                    readOnly={isBankLocked} required />
-                </div>
-                <div className="input-group">
-                  <label>UPI ID</label>
-                  <input type="text" value={bankForm.upi} 
-                    onChange={e => setBankForm({...bankForm, upi: e.target.value})}
-                    readOnly={isBankLocked} required />
-                </div>
-                
-                {isBankLocked ? (
-                  <div className="form-locked-info" style={{color: 'red', margin: '10px 0'}}>
-                    Bank details are locked for security. Contact Admin to change.
-                  </div>
-                ) : (
-                  <button type="submit" className="submit-btn">Save (Lock Forever)</button>
-                )}
-              </form>
-            </div>
-          </div>
+      {/* Withdrawal Modal */}
+      <div className={`modal-overlay ${modalOpen.withdraw ? 'active' : ''}`}
+           onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}></div>
+      <div className={`modal-container ${modalOpen.withdraw ? 'active' : ''}`}>
+        <div className="modal-header">
+          <h3>Withdrawal</h3>
+          <button onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}>&times;</button>
         </div>
-      )}
-
-      {/* WITHDRAW MODAL */}
-      {showWithdraw && (
-        <div className="modal-overlay active">
-          <div className="modal-container active">
-            <div className="modal-header">
-              <h3>Withdraw Funds</h3>
-              <button onClick={() => setShowWithdraw(false)}>&times;</button>
+        <div className="modal-content">
+          <form id="withdrawForm" onSubmit={handleWithdrawalSubmit} noValidate>
+            <div className="withdraw-balance-display">
+              <span>Available Balance</span>
+              <strong id="withdrawBalance">₹{profile?.balance?.toFixed(2) || '0.00'}</strong>
             </div>
-            <div className="modal-content">
-              <form onSubmit={handleWithdrawSubmit}>
-                <div className="withdraw-info">
-                  <p>Balance: <strong>₹{profile?.balance.toFixed(2)}</strong></p>
-                </div>
-                <div className="input-group">
-                  <label>Amount (Min 130)</label>
-                  <input type="number" value={withdrawAmount} 
-                    onChange={e => setWithdrawAmount(e.target.value)}
-                    min="130" required />
-                </div>
-                {withdrawAmount > 0 && (
-                  <div className="withdraw-calc">
-                    <p>TDS (18%): ₹{(withdrawAmount * 0.18).toFixed(2)}</p>
-                    <p>Receive: ₹{(withdrawAmount * 0.82).toFixed(2)}</p>
-                  </div>
-                )}
-                <button type="submit" className="submit-btn">Submit Request</button>
-              </form>
+            
+            <div className="input-group">
+              <label htmlFor="withdrawAmount">Amount to Withdraw (Min: ₹130)</label>
+              <input 
+                type="number" 
+                id="withdrawAmount" 
+                placeholder="Enter amount" 
+                required 
+                min="130"
+                step="1"
+                value={withdrawalInfo.amount}
+                onChange={(e) => calculateWithdrawal(e.target.value)}
+              />
             </div>
-          </div>
+            
+            <div className="withdraw-info">
+              <p>Minimum Withdrawal: <strong>₹130.00</strong></p>
+              <p>TDS (18%): <strong id="withdrawTDS">₹{withdrawalInfo.tds.toFixed(2)}</strong></p>
+              <p>You Will Receive: <strong id="withdrawReceive">₹{withdrawalInfo.payout.toFixed(2)}</strong></p>
+            </div>
+            
+            <button 
+              type="submit" 
+              className="submit-btn" 
+              id="submitWithdrawBtn"
+              disabled={loading || !withdrawalInfo.amount || parseFloat(withdrawalInfo.amount) < 130}
+            >
+              {loading ? 'Processing...' : 'Submit Withdrawal Request'}
+            </button>
+          </form>
         </div>
-      )}
+      </div>
     </>
   );
 }
 
 export default Mine;
-      
