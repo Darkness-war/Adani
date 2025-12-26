@@ -1,41 +1,53 @@
 import { useEffect } from 'react';
 
-function TopBar({ title }) {
+function TopBar({ title, showBackButton = false }) {
   useEffect(() => {
-    const menuBtn = document.getElementById('menuBtn');
-    const closeBtn = document.getElementById('closeBtn');
+    // Setup hamburger menu click
+    const menuBtn = document.querySelector('.menu-btn');
     const sideMenu = document.getElementById('sideMenu');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
     
     if (menuBtn) {
       menuBtn.addEventListener('click', () => {
-        sideMenu?.classList.add('open');
-        sidebarOverlay?.classList.add('active');
+        if (sideMenu) sideMenu.classList.add('open');
+        if (sidebarOverlay) sidebarOverlay.classList.add('active');
+        document.body.classList.add('sidebar-open');
       });
     }
     
+    // Setup close button
+    const closeBtn = document.getElementById('closeBtn');
     if (closeBtn) {
       closeBtn.addEventListener('click', () => {
-        sideMenu?.classList.remove('open');
-        sidebarOverlay?.classList.remove('active');
+        if (sideMenu) sideMenu.classList.remove('open');
+        if (sidebarOverlay) sidebarOverlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
       });
     }
     
+    // Setup overlay click
     if (sidebarOverlay) {
       sidebarOverlay.addEventListener('click', () => {
-        sideMenu?.classList.remove('open');
-        sidebarOverlay?.classList.remove('active');
+        sideMenu.classList.remove('open');
+        sidebarOverlay.classList.remove('active');
+        document.body.classList.remove('sidebar-open');
       });
     }
   }, []);
   
   return (
     <header className="top-bar">
-      <div id="menuBtn" className="menu-btn">
-        <span></span>
-        <span></span>
-        <span></span>
-      </div>
+      {showBackButton ? (
+        <a href="javascript:history.back()" className="header-back-btn">
+          <i className="fas fa-arrow-left"></i>
+        </a>
+      ) : (
+        <div className="menu-btn">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      )}
       {title}
     </header>
   );
