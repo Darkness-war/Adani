@@ -1,0 +1,514 @@
+/* Mine Page Specific Styles */
+
+.mine-page {
+  background-color: #f4f6f9;
+  min-height: calc(100vh - 130px);
+}
+
+/* Profile Header */
+.profile-header-card {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  margin: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.profile-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin-right: 15px;
+}
+
+.profile-info {
+  flex: 1;
+}
+
+.profile-id {
+  font-weight: 600;
+  color: #333;
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.profile-email {
+  color: #666;
+  font-size: 13px;
+  word-break: break-all;
+}
+
+/* Balance Card */
+.balance-card {
+  text-align: center;
+  padding: 20px;
+  margin: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.balance-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.balance-amount {
+  font-size: 32px;
+  font-weight: 700;
+  color: #1e3c72;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.action-btn {
+  flex: 1;
+  max-width: 140px;
+  padding: 12px 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s;
+}
+
+.withdraw-btn {
+  background: #e3f2fd;
+  color: #1e3c72;
+  border: 1px solid #bbdefb;
+}
+
+.withdraw-btn:hover {
+  background: #bbdefb;
+}
+
+.recharge-btn {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.recharge-btn:hover {
+  background: #c8e6c9;
+}
+
+/* Options List */
+.options-list-card {
+  padding: 0;
+  margin: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  overflow: hidden;
+}
+
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  text-decoration: none;
+  color: #333;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s;
+}
+
+.option-item:last-child {
+  border-bottom: none;
+}
+
+.option-item:hover {
+  background: #f8f9fa;
+}
+
+.option-icon {
+  font-size: 20px;
+  margin-right: 15px;
+  width: 24px;
+  text-align: center;
+}
+
+.option-chevron {
+  margin-left: auto;
+  color: #999;
+  font-size: 18px;
+}
+
+/* Withdrawal History */
+.withdrawal-history-card {
+  margin: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.history-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 15px 0;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+.withdrawal-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.withdrawal-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #f8f9fa;
+}
+
+.withdrawal-item:last-child {
+  border-bottom: none;
+}
+
+.withdrawal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.withdrawal-amount {
+  font-weight: 600;
+  color: #333;
+  font-size: 15px;
+}
+
+.withdrawal-status {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 12px;
+  text-transform: uppercase;
+}
+
+.withdrawal-status.pending {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.withdrawal-status.processing {
+  background: #e3f2fd;
+  color: #1e3c72;
+}
+
+.withdrawal-status.completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.withdrawal-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #666;
+}
+
+/* Logout Card */
+.logout-card {
+  margin: 15px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 15px;
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 12px;
+  background: #fbebeb;
+  color: #c53030;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.logout-btn:hover {
+  background: #f5d0d0;
+}
+
+/* Modal Styles */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  width: 90%;
+  max-width: 400px;
+  background: white;
+  border-radius: 16px;
+  z-index: 1001;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+}
+
+.modal-container.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.modal-header button:hover {
+  color: #333;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+/* Balance Display */
+.balance-display {
+  background: #e8f5e9;
+  padding: 15px;
+  border-radius: 10px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.balance-label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.balance-value {
+  font-size: 28px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: border 0.2s;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1e3c72;
+}
+
+.form-group input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Amount Input */
+.amount-input {
+  position: relative;
+}
+
+.amount-input .currency {
+  position: absolute;
+  left: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.amount-input input {
+  padding-left: 40px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* Withdrawal Calculations */
+.withdrawal-calculations {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.calculation-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.calculation-row.total {
+  font-weight: 600;
+  color: #333;
+  border-top: 1px solid #eee;
+  margin-top: 8px;
+  padding-top: 12px;
+}
+
+.tds-amount {
+  color: #ef6c00;
+}
+
+.payout-amount {
+  color: #2e7d32;
+  font-size: 18px;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-cancel, .btn-submit {
+  flex: 1;
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-submit {
+  background: #1e3c72;
+  color: white;
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: #2a5298;
+}
+
+.btn-submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Warning Message */
+.warning-message {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  padding: 12px;
+  border-radius: 8px;
+  color: #ef6c00;
+  font-size: 13px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .balance-amount {
+    font-size: 28px;
+  }
+  
+  .action-btn {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+  
+  .modal-container {
+    width: 95%;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
+  }
+  
+  .btn-cancel, .btn-submit {
+    width: 100%;
+  }
+}
