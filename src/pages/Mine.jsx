@@ -3,9 +3,10 @@ import Sidebar from '../components/Layout/Sidebar';
 import TopBar from '../components/Layout/TopBar';
 import BottomNav from '../components/Layout/BottomNav';
 import { supabase } from '../lib/supabase';
-import '../styles/Mine.css';
+import '../styles/style.css';
 
 function Mine() {
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [bankDetails, setBankDetails] = useState({
     name: '',
@@ -32,19 +33,24 @@ function Mine() {
 
   async function loadUserProfile() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: { user: authUser } } = await supabase.auth.getUser();
+      if (!authUser) {
         window.location.href = '/login';
         return;
       }
+      
+      setUser(authUser);
 
       const { data: profile, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', authUser.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error loading profile:', error);
+        return;
+      }
 
       if (profile) {
         setProfile(profile);
@@ -140,13 +146,9 @@ function Mine() {
 
       alert('✅ Withdrawal request submitted successfully! It will be processed within 10-15 minutes.');
       setModalOpen({ ...modalOpen, withdraw: false });
-      loadUserProfile(); // Refresh balance
-      loadWithdrawalHistory(); // Refresh history
+      loadUserProfile();
+      loadWithdrawalHistory();
       setWithdrawal({ amount: '', tds: 0, payout: 0 });
-      
-      // Simulate automatic status updates
-      setTimeout(() => updateWithdrawalStatus('processing'), 600000); // 10 minutes
-      setTimeout(() => updateWithdrawalStatus('completed'), 900000); // 15 minutes
       
     } catch (error) {
       alert('❌ Error: ' + error.message);
@@ -154,34 +156,6 @@ function Mine() {
       setLoading(false);
     }
   };
-
-  async function updateWithdrawalStatus(status) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get latest withdrawal
-      const { data: latestWithdrawal } = await supabase
-        .from('withdrawal_requests')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (latestWithdrawal) {
-        await supabase
-          .from('withdrawal_requests')
-          .update({ status: status })
-          .eq('id', latestWithdrawal.id);
-        
-        loadWithdrawalHistory(); // Refresh
-      }
-    } catch (error) {
-      console.error('Error updating withdrawal status:', error);
-    }
-  }
 
   const handleBankDetailsSubmit = async (e) => {
     e.preventDefault();
@@ -260,7 +234,6 @@ function Mine() {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       
-      // Verify current password
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email,
         password: currentPassword
@@ -271,7 +244,6 @@ function Mine() {
         return;
       }
 
-      // Update password
       const { error } = await supabase.auth.updateUser({
         password: newPassword
       });
@@ -297,16 +269,21 @@ function Mine() {
       <TopBar title="My Account" />
       
       <main className="page-container mine-page">
-        {/* Profile Header */}
+        {/* Profile Header - Fixed Display */}
         <div className="card profile-header-card">
           <div className="profile-avatar">👤</div>
           <div className="profile-info">
-            <div className="profile-id">
-              ID: {profile?.id ? profile.id.slice(0, 8) + '...' : 'Loading...'}
-            </div>
-            <div className="profile-email">
-              {profile?.email || 'Loading email...'}
-            </div>
+            {user ? (
+              <>
+                <div className="profile-email">{user.email}</div>
+                <div className="profile-id">ID: {user.id.slice(0, 8)}...</div>
+              </>
+            ) : (
+              <>
+                <div className="profile-email">Loading...</div>
+                <div className="profile-id">ID: Loading...</div>
+              </>
+            )}
           </div>
         </div>
         
@@ -413,13 +390,13 @@ function Mine() {
           <button onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}>&times;</button>
         </div>
         <div className="modal-content">
-          <div className="balance-display">
-            <span className="balance-label">Available Balance</span>
-            <span className="balance-value">₹{profile?.balance?.toFixed(2) || '0.00'}</span>
+          <div className="withdraw-balance-display">
+            <span>Available Balance</span>
+            <strong>₹{profile?.balance?.toFixed(2) || '0.00'}</strong>
           </div>
           
           <form onSubmit={handleWithdrawalSubmit} className="withdrawal-form">
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="withdrawAmount">Enter Amount (Min: ₹130)</label>
               <div className="amount-input">
                 <span className="currency">₹</span>
@@ -436,19 +413,10 @@ function Mine() {
               </div>
             </div>
             
-            <div className="withdrawal-calculations">
-              <div className="calculation-row">
-                <span>Amount</span>
-                <span>₹{withdrawal.amount || '0.00'}</span>
-              </div>
-              <div className="calculation-row">
-                <span>TDS (18%)</span>
-                <span className="tds-amount">₹{withdrawal.tds.toFixed(2)}</span>
-              </div>
-              <div className="calculation-row total">
-                <span>You Will Receive</span>
-                <span className="payout-amount">₹{withdrawal.payout.toFixed(2)}</span>
-              </div>
+            <div className="withdraw-info">
+              <p>Minimum Withdrawal: <strong>₹130.00</strong></p>
+              <p>TDS (18%): <strong>₹{withdrawal.tds.toFixed(2)}</strong></p>
+              <p>You Will Receive: <strong>₹{withdrawal.payout.toFixed(2)}</strong></p>
             </div>
             
             <div className="modal-actions">
@@ -461,7 +429,7 @@ function Mine() {
               </button>
               <button
                 type="submit"
-                className="btn-submit"
+                className="submit-btn"
                 disabled={loading || !withdrawal.amount || parseFloat(withdrawal.amount) < 130}
               >
                 {loading ? 'Processing...' : 'Submit Request'}
@@ -482,7 +450,7 @@ function Mine() {
         </div>
         <div className="modal-content">
           <form onSubmit={handleBankDetailsSubmit} className="bank-form">
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="bankRealName">Account Holder Name</label>
               <input
                 type="text"
@@ -496,7 +464,7 @@ function Mine() {
               />
             </div>
             
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="bankAccount">Bank Account Number</label>
               <input
                 type="text"
@@ -510,7 +478,7 @@ function Mine() {
               />
             </div>
             
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="bankConfirmAccount">Confirm Account Number</label>
               <input
                 type="text"
@@ -524,7 +492,7 @@ function Mine() {
               />
             </div>
             
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="bankIFSC">IFSC Code</label>
               <input
                 type="text"
@@ -538,7 +506,7 @@ function Mine() {
               />
             </div>
             
-            <div className="form-group">
+            <div className="input-group">
               <label htmlFor="bankUPI">UPI ID (Optional)</label>
               <input
                 type="text"
@@ -552,7 +520,7 @@ function Mine() {
             </div>
             
             {isBankDetailsLocked() && (
-              <div className="warning-message">
+              <div className="form-locked-info">
                 ⚠️ Bank details are locked for 7 days after update.
                 Contact customer support to change them.
               </div>
@@ -568,7 +536,7 @@ function Mine() {
               </button>
               <button
                 type="submit"
-                className="btn-submit"
+                className="submit-btn"
                 disabled={loading || isBankDetailsLocked()}
               >
                 {loading ? 'Saving...' : 'Save Details'}
