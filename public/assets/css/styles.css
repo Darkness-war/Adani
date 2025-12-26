@@ -454,3 +454,277 @@ body.sidebar-open .side-menu { transform: translateX(0); }
   border: none;
   padding: 8px 15px;
   border-radi
+
+    /* Transaction History Styles */
+.transaction-page {
+  padding: 15px;
+}
+
+.transaction-card {
+  background: white;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  border-left: 4px solid #4CAF50;
+}
+
+.transaction-card.withdrawal {
+  border-left-color: #FF9800;
+}
+
+.transaction-card.deposit {
+  border-left-color: #4CAF50;
+}
+
+.transaction-card.bonus {
+  border-left-color: #9C27B0;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.transaction-type-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.transaction-type-badge.deposit {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.transaction-type-badge.withdrawal {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.transaction-type-badge.bonus {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.transaction-amount {
+  font-size: 1.2em;
+  font-weight: 700;
+}
+
+.transaction-amount.positive {
+  color: #2e7d32;
+}
+
+.transaction-amount.negative {
+  color: #d32f2f;
+}
+
+.transaction-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85em;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.transaction-status {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 0.8em;
+  font-weight: 600;
+}
+
+.status-completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-pending {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-failed {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.transaction-note {
+  font-size: 0.9em;
+  color: #555;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px solid #eee;
+}
+
+.transaction-id {
+  font-size: 0.8em;
+  color: #888;
+  margin-top: 5px;
+}
+
+.transaction-bank-info {
+  font-size: 0.8em;
+  color: #666;
+  margin-top: 5px;
+  padding-top: 5px;
+  border-top: 1px dashed #eee;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+/* Modal improvements */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.modal-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.9);
+  background: white;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+}
+
+.modal-container.active {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 1.2em;
+}
+
+.modal-header button {
+  background: none;
+  border: none;
+  font-size: 1.5em;
+  cursor: pointer;
+  color: #666;
+}
+
+.modal-content {
+  padding: 20px;
+}
+
+/* Withdrawal info */
+.withdraw-balance-display {
+  background: #e8f5e9;
+  padding: 15px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.withdraw-balance-display span {
+  display: block;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.withdraw-balance-display strong {
+  font-size: 1.8em;
+  color: #2e7d32;
+}
+
+.withdraw-info {
+  background: #f5f5f5;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 20px 0;
+}
+
+.withdraw-info p {
+  margin: 8px 0;
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Form locked info */
+.form-locked-info {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  padding: 12px;
+  border-radius: 8px;
+  color: #ef6c00;
+  font-size: 0.9em;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+/* Profile info in Mine page */
+.profile-id {
+  font-weight: 600;
+  color: #333;
+  font-size: 1.1em;
+  word-break: break-all;
+}
+
+.profile-email {
+  color: #666;
+  font-size: 0.9em;
+  word-break: break-all;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .transaction-card {
+    padding: 12px;
+  }
+  
+  .transaction-amount {
+    font-size: 1.1em;
+  }
+  
+  .modal-container {
+    width: 95%;
+  }
+      }
