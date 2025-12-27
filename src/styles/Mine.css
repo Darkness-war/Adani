@@ -512,3 +512,24 @@
     width: 100%;
   }
 }
+
+/* Import transaction styles */
+@import './transaction.css';
+
+/* Adjust modal container for transaction history */
+.transaction-history-modal {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Transaction list specific styles */
+.transaction-card {
+  margin-bottom: 10px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .transaction-history-modal {
+    padding: 5px;
+  }
+}
