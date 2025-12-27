@@ -625,4 +625,228 @@ function Mine() {
             <div className="form-group">
               <label htmlFor="bankIFSC">IFSC Code</label>
               <input
-                ty
+                type="text"
+                id="bankIFSC"
+                name="bankIFSC"
+                placeholder="E.g., SBIN0001234"
+                defaultValue={bankDetails.bank_ifsc}
+                required
+                pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            <div className="form-group">
+              <label htmlFor="bankUPI">UPI ID (Optional)</label>
+              <input
+                type="text"
+                id="bankUPI"
+                name="bankUPI"
+                placeholder="E.g., user@bank"
+                defaultValue={bankDetails.upi_id}
+                pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                disabled={isBankDetailsLocked()}
+              />
+            </div>
+            
+            {isBankDetailsLocked() && (
+              <div className="warning-message">
+                ⚠️ Bank details are locked for 7 days after update.
+                Contact customer support to change them.
+              </div>
+            )}
+            
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn-cancel"
+                onClick={() => setModalOpen({ ...modalOpen, bank: false })}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="btn-submit"
+                disabled={loading || isBankDetailsLocked()}
+              >
+                {loading ? 'Saving...' : 'Save Details'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      {/* Transaction History Modal */}
+      {modalOpen.transactions && (
+        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, transactions: false })}></div>
+      )}
+      <div className={`modal-container ${modalOpen.transactions ? 'active' : ''}`}>
+        <div className="modal-header">
+          <h3>Transaction History</h3>
+          <button onClick={() => setModalOpen({ ...modalOpen, transactions: false })}>&times;</button>
+        </div>
+        <div className="modal-content transaction-history-modal">
+          {transactions.length === 0 ? (
+            <div className="empty-state">
+              <p>No transactions found</p>
+            </div>
+          ) : (
+            <div className="transactions-list">
+              {transactions.map(tx => (
+                <div 
+                  key={`${tx.type}-${tx.id}`} 
+                  className="transaction-card clickable"
+                  onClick={() => openTransactionDetails(tx)}
+                >
+                  <div className="transaction-header">
+                    <div className="transaction-icon-type">
+                      <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
+                      <div className={`transaction-type-badge ${tx.type}`}>
+                        {tx.displayType}
+                      </div>
+                    </div>
+                    <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                      {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  <div className="transaction-details">
+                    <div className="transaction-date">
+                      {formatDate(tx.created_at)}
+                    </div>
+                    <div className={`transaction-status ${getStatusColor(tx.status)}`}>
+                      {tx.status || 'completed'}
+                    </div>
+                  </div>
+                  
+                  {tx.description && (
+                    <div className="transaction-note">{tx.description}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Transaction Details Modal */}
+      {transactionDetailsModal && selectedTransaction && (
+        <>
+          <div className="modal-overlay active" onClick={() => setTransactionDetailsModal(false)}></div>
+          <div className="modal-container active">
+            <div className="modal-header">
+              <h3>Transaction Details</h3>
+              <button onClick={() => setTransactionDetailsModal(false)}>&times;</button>
+            </div>
+            <div className="modal-content transaction-details-modal">
+              <div className="transaction-summary">
+                <div className="transaction-icon-large">
+                  {getTypeIcon(selectedTransaction.type)}
+                </div>
+                <div className="transaction-summary-info">
+                  <div className={`transaction-type-large ${selectedTransaction.type}`}>
+                    {selectedTransaction.displayType}
+                  </div>
+                  <div className={`transaction-amount-large ${selectedTransaction.amount >= 0 ? 'positive' : 'negative'}`}>
+                    {selectedTransaction.amount >= 0 ? '+' : ''}₹{Math.abs(selectedTransaction.amount).toFixed(2)}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="details-grid">
+                <div className="detail-row">
+                  <span className="detail-label">Date & Time</span>
+                  <span className="detail-value">{formatDate(selectedTransaction.created_at)}</span>
+                </div>
+                
+                <div className="detail-row">
+                  <span className="detail-label">Status</span>
+                  <span className={`detail-value status-badge ${getStatusColor(selectedTransaction.status)}`}>
+                    {selectedTransaction.status?.toUpperCase() || 'COMPLETED'}
+                  </span>
+                </div>
+                
+                {selectedTransaction.description && (
+                  <div className="detail-row">
+                    <span className="detail-label">Description</span>
+                    <span className="detail-value">{selectedTransaction.description}</span>
+                  </div>
+                )}
+                
+                {selectedTransaction.order_id && (
+                  <div className="detail-row">
+                    <span className="detail-label">Reference ID</span>
+                    <span className="detail-value ref-id">{selectedTransaction.order_id.slice(0, 8)}...</span>
+                  </div>
+                )}
+                
+                {/* Withdrawal Specific Details */}
+                {selectedTransaction.type === 'withdrawal' && (
+                  <>
+                    <div className="detail-row">
+                      <span className="detail-label">Request Amount</span>
+                      <span className="detail-value">₹{Math.abs(selectedTransaction.amount).toFixed(2)}</span>
+                    </div>
+                    
+                    <div className="detail-row">
+                      <span className="detail-label">TDS (18%)</span>
+                      <span className="detail-value tds-amount">-₹{selectedTransaction.tds?.toFixed(2) || '0.00'}</span>
+                    </div>
+                    
+                    <div className="detail-row total-row">
+                      <span className="detail-label">Payout Amount</span>
+                      <span className="detail-value payout-amount">
+                        ₹{selectedTransaction.payout_amount?.toFixed(2) || (Math.abs(selectedTransaction.amount) - (selectedTransaction.tds || 0)).toFixed(2)}
+                      </span>
+                    </div>
+                    
+                    {selectedTransaction.bank_account && (
+                      <div className="detail-row">
+                        <span className="detail-label">Bank Account</span>
+                        <span className="detail-value bank-info">
+                          ••••{selectedTransaction.bank_account.slice(-4)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {selectedTransaction.bank_ifsc && (
+                      <div className="detail-row">
+                        <span className="detail-label">IFSC Code</span>
+                        <span className="detail-value">{selectedTransaction.bank_ifsc}</span>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+              
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={() => setTransactionDetailsModal(false)}
+                >
+                  Close
+                </button>
+                {selectedTransaction.type === 'withdrawal' && selectedTransaction.status === 'pending' && (
+                  <button
+                    type="button"
+                    className="btn-submit"
+                    onClick={() => {
+                      alert('Contact support to cancel this withdrawal request');
+                      setTransactionDetailsModal(false);
+                    }}
+                  >
+                    Cancel Request
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
+  );
+}
+
+export default Mine;
+```
