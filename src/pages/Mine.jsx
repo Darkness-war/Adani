@@ -24,9 +24,11 @@ function Mine() {
     transactions: false
   });
   const [loading, setLoading] = useState(false);
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
     loadUserProfile();
+    loadTransactions();
   }, []);
 
   async function loadUserProfile() {
@@ -56,6 +58,57 @@ function Mine() {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
+    }
+  }
+
+  async function loadTransactions() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // Get all types of transactions
+      const { data: txData, error: txError } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (txError) throw txError;
+
+      // Get withdrawal requests
+      const { data: withdrawalData, error: withdrawalError } = await supabase
+        .from('withdrawal_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (withdrawalError) throw withdrawalError;
+
+      // Combine and format all transactions
+      const allTransactions = [
+        ...(txData || []).map(tx => ({
+          ...tx,
+          type: tx.type || 'transaction',
+          displayType: tx.type?.toUpperCase() || 'TRANSACTION'
+        })),
+        ...(withdrawalData || []).map(wd => ({
+          ...wd,
+          id: wd.id,
+          amount: -wd.amount,
+          type: 'withdrawal',
+          displayType: 'WITHDRAWAL',
+          description: `Withdrawal Request`,
+          status: wd.status,
+          created_at: wd.created_at,
+          order_id: wd.id
+        }))
+      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+      setTransactions(allTransactions);
+    } catch (error) {
+      console.error('Error loading transactions:', error);
     }
   }
 
@@ -121,6 +174,7 @@ function Mine() {
       alert('✅ Withdrawal request submitted successfully!');
       setModalOpen({ ...modalOpen, withdraw: false });
       loadUserProfile();
+      loadTransactions();
       setWithdrawal({ amount: '', tds: 0, payout: 0 });
       
     } catch (error) {
@@ -147,6 +201,18 @@ function Mine() {
         return;
       }
 
+      // Check if bank details already exist and are locked
+      if (profile?.bank_details_updated_at) {
+        const updateDate = new Date(profile.bank_details_updated_at);
+        const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (daysSinceUpdate < 7) {
+          alert('❌ Bank details can only be updated once every 7 days. If you made a mistake, please contact HR/support.');
+          setLoading(false);
+          return;
+        }
+      }
+
       const { error } = await supabase
         .from('profiles')
         .update({
@@ -160,7 +226,7 @@ function Mine() {
 
       if (error) throw error;
 
-      alert('✅ Bank details saved successfully!');
+      alert('✅ Bank details saved successfully!\n\n⚠️ Note: Bank details can only be updated once every 7 days. If you made a mistake, contact HR/support immediately.');
       setModalOpen({ ...modalOpen, bank: false });
       loadUserProfile();
     } catch (error) {
@@ -237,6 +303,37 @@ function Mine() {
     return daysSinceUpdate < 7;
   };
 
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'completed': return 'status-completed';
+      case 'success': return 'status-completed';
+      case 'pending': return 'status-pending';
+      case 'processing': return 'status-processing';
+      case 'failed': return 'status-failed';
+      default: return 'status-completed';
+    }
+  };
+
+  const getTypeIcon = (type) => {
+    switch (type?.toLowerCase()) {
+      case 'deposit': return '💳';
+      case 'withdrawal': return '💰';
+      case 'bonus': return '🎁';
+      case 'referral': return '👥';
+      default: return '📄';
+    }
+  };
+
   return (
     <>
       <div id="sidebarOverlay" className="sidebar-overlay"></div>
@@ -244,10 +341,18 @@ function Mine() {
       <TopBar title="My Account" />
       
       <main className="page-container mine-page">
-        {/* Profile Header - Simple Email Display */}
+        {/* Profile Header - Fixed with Name, ID, Email */}
         <div className="card profile-header-card">
-          <div className="profile-email">
-            {profile?.email || 'Loading email...'}
+          <div className="profile-info">
+            <div className="profile-name">
+              {profile?.name || profile?.email?.split('@')[0] || 'User'}
+            </div>
+            <div className="profile-id">
+              ID: {profile?.id ? profile.id.slice(0, 10) + '...' : 'Loading...'}
+            </div>
+            <div className="profile-email">
+              {profile?.email || 'Loading email...'}
+            </div>
           </div>
         </div>
         
@@ -286,7 +391,7 @@ function Mine() {
           
           <div 
             className="option-item"
-            onClick={() => window.location.href = '/transactions'}
+            onClick={() => setModalOpen({ ...modalOpen, transactions: true })}
           >
             <div className="option-icon">📜</div>
             <div className="option-text">Transaction History</div>
@@ -317,7 +422,7 @@ function Mine() {
       <div className="bottom-nav-spacer"></div>
       <BottomNav active="mine" />
       
-      {/* Withdrawal Modal */}
+      {/* Modern Withdrawal Modal */}
       {modalOpen.withdraw && (
         <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}></div>
       )}
@@ -352,12 +457,12 @@ function Mine() {
             
             <div className="withdrawal-calculations">
               <div className="calculation-row">
-                <span>Amount</span>
+                <span>Withdrawal Amount</span>
                 <span>₹{withdrawal.amount || '0.00'}</span>
               </div>
               <div className="calculation-row">
                 <span>TDS (18%)</span>
-                <span className="tds-amount">₹{withdrawal.tds.toFixed(2)}</span>
+                <span className="tds-amount">- ₹{withdrawal.tds.toFixed(2)}</span>
               </div>
               <div className="calculation-row total">
                 <span>You Will Receive</span>
@@ -376,7 +481,7 @@ function Mine() {
               <button
                 type="submit"
                 className="btn-submit"
-                disabled={loading || !withdrawal.amount || parseFloat(withdrawal.amount) < 130}
+                disabled={loading || !withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > (profile?.balance || 0)}
               >
                 {loading ? 'Processing...' : 'Submit Request'}
               </button>
@@ -385,7 +490,7 @@ function Mine() {
         </div>
       </div>
       
-      {/* Bank Details Modal */}
+      {/* Bank Details Modal with 7-day lock */}
       {modalOpen.bank && (
         <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, bank: false })}></div>
       )}
@@ -395,14 +500,21 @@ function Mine() {
           <button onClick={() => setModalOpen({ ...modalOpen, bank: false })}>&times;</button>
         </div>
         <div className="modal-content">
+          {isBankDetailsLocked() && (
+            <div className="warning-message">
+              ⚠️ <strong>Bank details are locked for 7 days after update.</strong><br/>
+              If you made a mistake, please contact HR/support immediately.
+            </div>
+          )}
+          
           <form onSubmit={handleBankDetailsSubmit} className="bank-form">
             <div className="form-group">
-              <label htmlFor="bankRealName">Account Holder Name</label>
+              <label htmlFor="bankRealName">Account Holder Name *</label>
               <input
                 type="text"
                 id="bankRealName"
                 name="bankRealName"
-                placeholder="Enter your full name"
+                placeholder="Enter your full name as per bank"
                 defaultValue={bankDetails.name}
                 required
                 minLength="3"
@@ -411,12 +523,12 @@ function Mine() {
             </div>
             
             <div className="form-group">
-              <label htmlFor="bankAccount">Bank Account Number</label>
+              <label htmlFor="bankAccount">Bank Account Number *</label>
               <input
                 type="text"
                 id="bankAccount"
                 name="bankAccount"
-                placeholder="Min. 9 digits"
+                placeholder="Enter 9-18 digit account number"
                 defaultValue={bankDetails.bank_account}
                 required
                 pattern="[0-9]{9,18}"
@@ -425,7 +537,7 @@ function Mine() {
             </div>
             
             <div className="form-group">
-              <label htmlFor="bankConfirmAccount">Confirm Account Number</label>
+              <label htmlFor="bankConfirmAccount">Confirm Account Number *</label>
               <input
                 type="text"
                 id="bankConfirmAccount"
@@ -439,7 +551,7 @@ function Mine() {
             </div>
             
             <div className="form-group">
-              <label htmlFor="bankIFSC">IFSC Code</label>
+              <label htmlFor="bankIFSC">IFSC Code *</label>
               <input
                 type="text"
                 id="bankIFSC"
@@ -458,19 +570,17 @@ function Mine() {
                 type="text"
                 id="bankUPI"
                 name="bankUPI"
-                placeholder="E.g., user@bank"
+                placeholder="E.g., username@upi"
                 defaultValue={bankDetails.upi_id}
                 pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
                 disabled={isBankDetailsLocked()}
               />
             </div>
             
-            {isBankDetailsLocked() && (
-              <div className="warning-message">
-                ⚠️ Bank details are locked for 7 days after update.
-                Contact customer support to change them.
-              </div>
-            )}
+            <div className="warning-message">
+              ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
+              Please verify all details before submitting. If incorrect, contact HR/support.
+            </div>
             
             <div className="modal-actions">
               <button
@@ -485,14 +595,23 @@ function Mine() {
                 className="btn-submit"
                 disabled={loading || isBankDetailsLocked()}
               >
-                {loading ? 'Saving...' : 'Save Details'}
+                {loading ? 'Saving...' : 'Save Bank Details'}
               </button>
             </div>
           </form>
         </div>
       </div>
-    </>
-  );
-}
-
-export default Mine;
+      
+      {/* Transaction History Modal - Same style as withdrawal */}
+      {modalOpen.transactions && (
+        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, transactions: false })}></div>
+      )}
+      <div className={`modal-container ${modalOpen.transactions ? 'active' : ''}`}>
+        <div className="modal-header">
+          <h3>Transaction History</h3>
+          <button onClick={() => setModalOpen({ ...modalOpen, transactions: false })}>&times;</button>
+        </div>
+        <div className="modal-content transaction-history-modal">
+          {transactions.length === 0 ? (
+            <div className="empty-state">
+       
