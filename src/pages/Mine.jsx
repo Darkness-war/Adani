@@ -29,6 +29,7 @@ function Mine() {
   });
   const [transactions, setTransactions] = useState([]);
   const [bankLocked, setBankLocked] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   useEffect(() => {
     loadUserProfile();
@@ -130,6 +131,11 @@ function Mine() {
   // Handle Withdrawal Modal
   const openWithdrawModal = () => {
     setModalOpen({ withdraw: true, bank: false, transactions: false });
+    setWithdrawal({
+      amount: '',
+      tds: 0,
+      payout: 0
+    });
   };
 
   const closeWithdrawModal = () => {
@@ -197,7 +203,7 @@ function Mine() {
           payout_amount: payout,
           bank_account: profile.bank_account,
           bank_ifsc: profile.bank_ifsc,
-          upi_id: profile.upi_id,
+          upi_id: profile.upi_id || '',
           status: 'pending',
           created_at: new Date().toISOString()
         });
@@ -264,7 +270,7 @@ function Mine() {
           name: formData.get('bankRealName'),
           bank_account: account,
           bank_ifsc: formData.get('bankIFSC').toUpperCase(),
-          upi_id: formData.get('bankUPI'),
+          upi_id: formData.get('bankUPI') || '',
           bank_details_updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -288,6 +294,11 @@ function Mine() {
 
   const closeTransactionsModal = () => {
     setModalOpen({ withdraw: false, bank: false, transactions: false });
+    setSelectedTransaction(null);
+  };
+
+  const openTransactionDetails = (tx) => {
+    setSelectedTransaction(tx);
   };
 
   const handleLogout = async () => {
@@ -388,14 +399,19 @@ function Mine() {
       <main className="page-container mine-page">
         {/* Profile Header - Fixed with Name, ID, Email */}
         <div className="card profile-header-card">
-          <div className="profile-name">
-            {getUserDisplayName()}
+          <div className="profile-avatar">
+            {getUserDisplayName().charAt(0).toUpperCase()}
           </div>
-          <div className="profile-id">
-            ID: {profile?.id ? `${profile.id.slice(0, 8)}-${profile.id.slice(-4)}` : 'Loading...'}
-          </div>
-          <div className="profile-email">
-            {profile?.email || 'Loading...'}
+          <div className="profile-info">
+            <div className="profile-name">
+              {getUserDisplayName()}
+            </div>
+            <div className="profile-id">
+              ID: {profile?.id ? `${profile.id.slice(0, 8)}-${profile.id.slice(-4)}` : 'Loading...'}
+            </div>
+            <div className="profile-email">
+              {profile?.email || 'Loading...'}
+            </div>
           </div>
         </div>
         
@@ -469,7 +485,7 @@ function Mine() {
       {modalOpen.withdraw && (
         <>
           <div className="modal-overlay active" onClick={closeWithdrawModal}></div>
-          <div className="modal-container active">
+          <div className="modal-container active withdrawal-modal">
             <div className="modal-header">
               <h3>Withdrawal Request</h3>
               <button className="modal-close-btn" onClick={closeWithdrawModal}>&times;</button>
@@ -540,7 +556,7 @@ function Mine() {
       {modalOpen.bank && (
         <>
           <div className="modal-overlay active" onClick={closeBankModal}></div>
-          <div className="modal-container active">
+          <div className="modal-container active bank-modal">
             <div className="modal-header">
               <h3>Bank Account Details</h3>
               <button className="modal-close-btn" onClick={closeBankModal}>&times;</button>
@@ -623,9 +639,9 @@ function Mine() {
                   />
                 </div>
 
-            <div className="warning-message">
+                <div className="warning-message">
                   ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
-                  Please verify all details before submitting.
+                  Please verify all details before submitting. If you submit wrong details, contact HR to change.
                 </div>
                 
                 <div className="modal-actions">
@@ -654,7 +670,7 @@ function Mine() {
       {modalOpen.transactions && (
         <>
           <div className="modal-overlay active" onClick={closeTransactionsModal}></div>
-          <div className="modal-container active">
+          <div className="modal-container active transaction-modal">
             <div className="modal-header">
               <h3>Transaction History</h3>
               <button className="modal-close-btn" onClick={closeTransactionsModal}>&times;</button>
@@ -669,16 +685,15 @@ function Mine() {
                   {transactions.map(tx => (
                     <div 
                       key={`${tx.type}-${tx.id}`} 
-                      className="transaction-card"
-                      onClick={() => {
-                        // You can add detailed view here
-                        alert(`Transaction ID: ${tx.id}\nAmount: ₹${Math.abs(tx.amount).toFixed(2)}\nType: ${tx.displayType}\nDate: ${formatDate(tx.created_at)}\nStatus: ${tx.status}`);
-                      }}
+                      className={`transaction-card ${selectedTransaction?.id === tx.id ? 'selected' : ''}`}
+                      onClick={() => openTransactionDetails(tx)}
                     >
                       <div className="transaction-header">
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="transaction-icon-type">
                           <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
-                          <div className="transaction-type">{tx.displayType}</div>
+                          <div className={`transaction-type-badge ${tx.type}`}>
+                            {tx.displayType}
+                          </div>
                         </div>
                         <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
                           {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
