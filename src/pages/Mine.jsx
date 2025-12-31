@@ -23,8 +23,12 @@ function Mine() {
     bank: false,
     transactions: false
   });
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState({
+    withdraw: false,
+    bank: false
+  });
   const [transactions, setTransactions] = useState([]);
+  const [bankLocked, setBankLocked] = useState(false);
 
   useEffect(() => {
     loadUserProfile();
@@ -55,6 +59,13 @@ function Mine() {
           bank_ifsc: profile.bank_ifsc || '',
           upi_id: profile.upi_id || ''
         });
+        
+        // Check if bank details are locked
+        if (profile.bank_details_updated_at) {
+          const updateDate = new Date(profile.bank_details_updated_at);
+          const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+          setBankLocked(daysSinceUpdate < 7);
+        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -90,19 +101,23 @@ function Mine() {
       const allTransactions = [
         ...(txData || []).map(tx => ({
           ...tx,
+          id: tx.id,
           type: tx.type || 'transaction',
-          displayType: tx.type?.toUpperCase() || 'TRANSACTION'
+          displayType: tx.type === 'deposit' ? 'Deposit' : 
+                      tx.type === 'bonus' ? 'Bonus' : 
+                      tx.type === 'referral' ? 'Referral' : 'Transaction',
+          amount: tx.amount,
+          status: 'completed',
+          created_at: tx.created_at
         })),
         ...(withdrawalData || []).map(wd => ({
           ...wd,
           id: wd.id,
-          amount: -wd.amount,
           type: 'withdrawal',
-          displayType: 'WITHDRAWAL',
-          description: `Withdrawal Request`,
+          displayType: 'Withdrawal',
+          amount: -wd.amount,
           status: wd.status,
-          created_at: wd.created_at,
-          order_id: wd.id
+          created_at: wd.created_at
         }))
       ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
@@ -112,9 +127,32 @@ function Mine() {
     }
   }
 
+  // Handle Withdrawal Modal
+  const openWithdrawModal = () => {
+    setModalOpen({ withdraw: true, bank: false, transactions: false });
+  };
+
+  const closeWithdrawModal = () => {
+    setModalOpen({ withdraw: false, bank: false, transactions: false });
+    setWithdrawal({ amount: '', tds: 0, payout: 0 });
+  };
+
+  const handleWithdrawalChange = (e) => {
+    const amount = e.target.value;
+    const numAmount = parseFloat(amount) || 0;
+    const tds = numAmount * 0.18;
+    const payout = numAmount - tds;
+    
+    setWithdrawal({
+      amount: amount,
+      tds: tds,
+      payout: payout
+    });
+  };
+
   const handleWithdrawalSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading({ ...loading, withdraw: true });
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -128,17 +166,20 @@ function Mine() {
       // Validation
       if (amount < 130) {
         alert('Minimum withdrawal amount is ₹130');
+        setLoading({ ...loading, withdraw: false });
         return;
       }
 
       if (!profile?.bank_account || !profile?.bank_ifsc) {
         alert('Please add bank details first');
-        setModalOpen({ withdraw: false, bank: true });
+        setModalOpen({ withdraw: false, bank: true, transactions: false });
+        setLoading({ ...loading, withdraw: false });
         return;
       }
 
       if (profile.balance < amount) {
         alert('Insufficient balance');
+        setLoading({ ...loading, withdraw: false });
         return;
       }
 
@@ -172,21 +213,29 @@ function Mine() {
       if (balanceError) throw balanceError;
 
       alert('✅ Withdrawal request submitted successfully!');
-      setModalOpen({ ...modalOpen, withdraw: false });
+      closeWithdrawModal();
       loadUserProfile();
       loadTransactions();
-      setWithdrawal({ amount: '', tds: 0, payout: 0 });
       
     } catch (error) {
       alert('❌ Error: ' + error.message);
     } finally {
-      setLoading(false);
+      setLoading({ ...loading, withdraw: false });
     }
+  };
+
+  // Handle Bank Details Modal
+  const openBankModal = () => {
+    setModalOpen({ withdraw: false, bank: true, transactions: false });
+  };
+
+  const closeBankModal = () => {
+    setModalOpen({ withdraw: false, bank: false, transactions: false });
   };
 
   const handleBankDetailsSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
+    setLoading({ ...loading, bank: true });
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -198,19 +247,15 @@ function Mine() {
 
       if (account !== confirmAccount) {
         alert('Account numbers do not match');
+        setLoading({ ...loading, bank: false });
         return;
       }
 
       // Check if bank details already exist and are locked
-      if (profile?.bank_details_updated_at) {
-        const updateDate = new Date(profile.bank_details_updated_at);
-        const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-        
-        if (daysSinceUpdate < 7) {
-          alert('❌ Bank details can only be updated once every 7 days. If you made a mistake, please contact HR/support.');
-          setLoading(false);
-          return;
-        }
+      if (bankLocked) {
+        alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
+        setLoading({ ...loading, bank: false });
+        return;
       }
 
       const { error } = await supabase
@@ -226,32 +271,31 @@ function Mine() {
 
       if (error) throw error;
 
-      alert('✅ Bank details saved successfully!\n\n⚠️ Note: Bank details can only be updated once every 7 days. If you made a mistake, contact HR/support immediately.');
-      setModalOpen({ ...modalOpen, bank: false });
+      alert('✅ Bank details saved successfully!');
+      closeBankModal();
       loadUserProfile();
     } catch (error) {
       alert('❌ Error: ' + error.message);
     } finally {
-      setLoading(false);
+      setLoading({ ...loading, bank: false });
     }
   };
 
-  const calculateWithdrawal = (amount) => {
-    const numAmount = parseFloat(amount) || 0;
-    const tds = numAmount * 0.18;
-    const payout = numAmount - tds;
-    
-    setWithdrawal({
-      amount: amount,
-      tds: tds,
-      payout: payout
-    });
+  // Handle Transaction History Modal
+  const openTransactionsModal = () => {
+    setModalOpen({ withdraw: false, bank: false, transactions: true });
+  };
+
+  const closeTransactionsModal = () => {
+    setModalOpen({ withdraw: false, bank: false, transactions: false });
   };
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
-    localStorage.removeItem('uid');
-    window.location.href = '/login';
+    if (window.confirm('Are you sure you want to log out?')) {
+      await supabase.auth.signOut();
+      localStorage.removeItem('uid');
+      window.location.href = '/login';
+    }
   };
 
   const handleChangePassword = async () => {
@@ -296,18 +340,10 @@ function Mine() {
     }
   };
 
-  const isBankDetailsLocked = () => {
-    if (!profile?.bank_details_updated_at) return false;
-    const updateDate = new Date(profile.bank_details_updated_at);
-    const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-    return daysSinceUpdate < 7;
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('en-IN', {
       day: '2-digit',
       month: 'short',
-      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
@@ -334,6 +370,15 @@ function Mine() {
     }
   };
 
+  // Get user display name
+  const getUserDisplayName = () => {
+    if (profile?.name) return profile.name;
+    if (profile?.email) {
+      return profile.email.split('@')[0];
+    }
+    return 'User';
+  };
+
   return (
     <>
       <div id="sidebarOverlay" className="sidebar-overlay"></div>
@@ -343,16 +388,14 @@ function Mine() {
       <main className="page-container mine-page">
         {/* Profile Header - Fixed with Name, ID, Email */}
         <div className="card profile-header-card">
-          <div className="profile-info">
-            <div className="profile-name">
-              {profile?.name || profile?.email?.split('@')[0] || 'User'}
-            </div>
-            <div className="profile-id">
-              ID: {profile?.id ? profile.id.slice(0, 10) + '...' : 'Loading...'}
-            </div>
-            <div className="profile-email">
-              {profile?.email || 'Loading email...'}
-            </div>
+          <div className="profile-name">
+            {getUserDisplayName()}
+          </div>
+          <div className="profile-id">
+            ID: {profile?.id ? `${profile.id.slice(0, 8)}-${profile.id.slice(-4)}` : 'Loading...'}
+          </div>
+          <div className="profile-email">
+            {profile?.email || 'Loading...'}
           </div>
         </div>
         
@@ -365,7 +408,7 @@ function Mine() {
           <div className="action-buttons">
             <button 
               className="action-btn withdraw-btn"
-              onClick={() => setModalOpen({ ...modalOpen, withdraw: true })}
+              onClick={openWithdrawModal}
             >
               <span>💰</span> Withdraw
             </button>
@@ -382,20 +425,20 @@ function Mine() {
         <div className="card options-list-card">
           <div 
             className="option-item" 
-            onClick={() => setModalOpen({ ...modalOpen, bank: true })}
+            onClick={openBankModal}
           >
             <div className="option-icon">🏦</div>
             <div className="option-text">Bank Account Details</div>
-            <div>&gt;</div>
+            <div className="option-arrow">&gt;</div>
           </div>
           
           <div 
             className="option-item"
-            onClick={() => setModalOpen({ ...modalOpen, transactions: true })}
+            onClick={openTransactionsModal}
           >
             <div className="option-icon">📜</div>
             <div className="option-text">Transaction History</div>
-            <div>&gt;</div>
+            <div className="option-arrow">&gt;</div>
           </div>
           
           <div 
@@ -404,7 +447,7 @@ function Mine() {
           >
             <div className="option-icon">🔒</div>
             <div className="option-text">Change Password</div>
-            <div>&gt;</div>
+            <div className="option-arrow">&gt;</div>
           </div>
         </div>
         
@@ -424,230 +467,240 @@ function Mine() {
       
       {/* Modern Withdrawal Modal */}
       {modalOpen.withdraw && (
-        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}></div>
-      )}
-      <div className={`modal-container ${modalOpen.withdraw ? 'active' : ''}`}>
-        <div className="modal-header">
-          <h3>Withdrawal Request</h3>
-          <button onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}>&times;</button>
-        </div>
-        <div className="modal-content">
-          <div className="balance-display">
-            <span className="balance-label">Available Balance</span>
-            <span className="balance-value">₹{profile?.balance?.toFixed(2) || '0.00'}</span>
+        <>
+          <div className="modal-overlay active" onClick={closeWithdrawModal}></div>
+          <div className="modal-container active">
+            <div className="modal-header">
+              <h3>Withdrawal Request</h3>
+              <button className="modal-close-btn" onClick={closeWithdrawModal}>&times;</button>
+            </div>
+            <div className="modal-content">
+              <div className="balance-display">
+                <span className="modal-balance-label">Available Balance</span>
+                <span className="modal-balance-value">₹{profile?.balance?.toFixed(2) || '0.00'}</span>
+              </div>
+              
+              <form onSubmit={handleWithdrawalSubmit} className="withdrawal-form">
+                <div className="form-group">
+                  <label htmlFor="withdrawAmount">Enter Amount (Min: ₹130)</label>
+                  <div className="amount-input">
+                    <span className="currency">₹</span>
+                    <input
+                      type="number"
+                      id="withdrawAmount"
+                      value={withdrawal.amount}
+                      onChange={handleWithdrawalChange}
+                      placeholder="0.00"
+                      min="130"
+                      step="1"
+                      required
+                      autoFocus
+                    />
+                  </div>
+                </div>
+                
+                <div className="withdrawal-calculations">
+                  <div className="calculation-row">
+                    <span>Withdrawal Amount</span>
+                    <span>₹{withdrawal.amount || '0.00'}</span>
+                  </div>
+                  <div className="calculation-row">
+                    <span>TDS (18%)</span>
+                    <span className="tds-amount">- ₹{withdrawal.tds.toFixed(2)}</span>
+                  </div>
+                  <div className="calculation-row total">
+                    <span>You Will Receive</span>
+                    <span className="payout-amount">₹{withdrawal.payout.toFixed(2)}</span>
+                  </div>
+                </div>
+                
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={closeWithdrawModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-submit"
+                    disabled={loading.withdraw || !withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > (profile?.balance || 0)}
+                  >
+                    {loading.withdraw ? 'Processing...' : 'Submit Request'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-          
-          <form onSubmit={handleWithdrawalSubmit} className="withdrawal-form">
-            <div className="form-group">
-              <label htmlFor="withdrawAmount">Enter Amount (Min: ₹130)</label>
-              <div className="amount-input">
-                <span className="currency">₹</span>
-                <input
-                  type="number"
-                  id="withdrawAmount"
-                  value={withdrawal.amount}
-                  onChange={(e) => calculateWithdrawal(e.target.value)}
-                  placeholder="0.00"
-                  min="130"
-                  step="1"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="withdrawal-calculations">
-              <div className="calculation-row">
-                <span>Withdrawal Amount</span>
-                <span>₹{withdrawal.amount || '0.00'}</span>
-              </div>
-              <div className="calculation-row">
-                <span>TDS (18%)</span>
-                <span className="tds-amount">- ₹{withdrawal.tds.toFixed(2)}</span>
-              </div>
-              <div className="calculation-row total">
-                <span>You Will Receive</span>
-                <span className="payout-amount">₹{withdrawal.payout.toFixed(2)}</span>
-              </div>
-            </div>
-            
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setModalOpen({ ...modalOpen, withdraw: false })}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn-submit"
-                disabled={loading || !withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > (profile?.balance || 0)}
-              >
-                {loading ? 'Processing...' : 'Submit Request'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+        </>
+      )}
       
       {/* Bank Details Modal with 7-day lock */}
       {modalOpen.bank && (
-        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, bank: false })}></div>
-      )}
-      <div className={`modal-container ${modalOpen.bank ? 'active' : ''}`}>
-        <div className="modal-header">
-          <h3>Bank Account Details</h3>
-          <button onClick={() => setModalOpen({ ...modalOpen, bank: false })}>&times;</button>
-        </div>
-        <div className="modal-content">
-          {isBankDetailsLocked() && (
-            <div className="warning-message">
-              ⚠️ <strong>Bank details are locked for 7 days after update.</strong><br/>
-              If you made a mistake, please contact HR/support immediately.
+        <>
+          <div className="modal-overlay active" onClick={closeBankModal}></div>
+          <div className="modal-container active">
+            <div className="modal-header">
+              <h3>Bank Account Details</h3>
+              <button className="modal-close-btn" onClick={closeBankModal}>&times;</button>
             </div>
-          )}
-          
-          <form onSubmit={handleBankDetailsSubmit} className="bank-form">
-            <div className="form-group">
-              <label htmlFor="bankRealName">Account Holder Name *</label>
-              <input
-                type="text"
-                id="bankRealName"
-                name="bankRealName"
-                placeholder="Enter your full name as per bank"
-                defaultValue={bankDetails.name}
-                required
-                minLength="3"
-                disabled={isBankDetailsLocked()}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="bankAccount">Bank Account Number *</label>
-              <input
-                type="text"
-                id="bankAccount"
-                name="bankAccount"
-                placeholder="Enter 9-18 digit account number"
-                defaultValue={bankDetails.bank_account}
-                required
-                pattern="[0-9]{9,18}"
-                disabled={isBankDetailsLocked()}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="bankConfirmAccount">Confirm Account Number *</label>
-              <input
-                type="text"
-                id="bankConfirmAccount"
-                name="bankConfirmAccount"
-                placeholder="Re-enter account number"
-                defaultValue={bankDetails.bank_account}
-                required
-                pattern="[0-9]{9,18}"
-                disabled={isBankDetailsLocked()}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="bankIFSC">IFSC Code *</label>
-              <input
-                type="text"
-                id="bankIFSC"
-                name="bankIFSC"
-                placeholder="E.g., SBIN0001234"
-                defaultValue={bankDetails.bank_ifsc}
-                required
-                pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
-                disabled={isBankDetailsLocked()}
-              />
-            </div>
-            
-            <div className="form-group">
-              <label htmlFor="bankUPI">UPI ID (Optional)</label>
-              <input
-                type="text"
-                id="bankUPI"
-                name="bankUPI"
-                placeholder="E.g., username@upi"
-                defaultValue={bankDetails.upi_id}
-                pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
-                disabled={isBankDetailsLocked()}
-              />
-            </div>
-            
-            <div className="warning-message">
-              ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
-              Please verify all details before submitting. If incorrect, contact HR/support.
-            </div>
-            
-            <div className="modal-actions">
-              <button
-                type="button"
-                className="btn-cancel"
-                onClick={() => setModalOpen({ ...modalOpen, bank: false })}
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="btn-submit"
-                disabled={loading || isBankDetailsLocked()}
-              >
-                {loading ? 'Saving...' : 'Save Bank Details'}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-      
-           {/* Transaction History Modal - Same style as withdrawal */}
-      {modalOpen.transactions && (
-        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, transactions: false })}></div>
-      )}
-      <div className={`modal-container ${modalOpen.transactions ? 'active' : ''}`}>
-        <div className="modal-header">
-          <h3>Transaction History</h3>
-          <button onClick={() => setModalOpen({ ...modalOpen, transactions: false })}>&times;</button>
-        </div>
-        <div className="modal-content transaction-history-modal">
-          {transactions.length === 0 ? (
-            <div className="empty-state">
-              <p>No transactions found</p>
-            </div>
-          ) : (
-            <div className="transactions-list">
-              {transactions.map(tx => (
-                <div 
-                  key={`${tx.type}-${tx.id}`} 
-                  className="transaction-card"
-                  onClick={() => window.location.href = `/transactions/${tx.id}`}
-                >
-                  <div className="transaction-header">
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
-                      <div className="transaction-type">{tx.displayType}</div>
-                    </div>
-                    <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
-                      {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
-                    </div>
-                  </div>
-                  
-                  <div className="transaction-details">
-                    <div className="transaction-date">
-                      {formatDate(tx.created_at)}
-                    </div>
-                    <div className={`transaction-status ${getStatusColor(tx.status)}`}>
-                      {tx.status || 'completed'}
-                    </div>
-                  </div>
+            <div className="modal-content">
+              {bankLocked && (
+                <div className="warning-message">
+                  ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
+                  If you made a mistake, contact HR/support immediately.
                 </div>
-              ))}
+              )}
+              
+              <form onSubmit={handleBankDetailsSubmit} className="bank-form">
+                <div className="form-group">
+                  <label htmlFor="bankRealName">Account Holder Name *</label>
+                  <input
+                    type="text"
+                    id="bankRealName"
+                    name="bankRealName"
+                    placeholder="Enter your full name as per bank"
+                    defaultValue={bankDetails.name}
+                    required
+                    minLength="3"
+                    disabled={bankLocked}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="bankAccount">Bank Account Number *</label>
+                  <input
+                    type="text"
+                    id="bankAccount"
+                    name="bankAccount"
+                    placeholder="Enter 9-18 digit account number"
+                    defaultValue={bankDetails.bank_account}
+                    required
+                    pattern="[0-9]{9,18}"
+                    disabled={bankLocked}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="bankConfirmAccount">Confirm Account Number *</label>
+                  <input
+                    type="text"
+                    id="bankConfirmAccount"
+                    name="bankConfirmAccount"
+                    placeholder="Re-enter account number"
+                    defaultValue={bankDetails.bank_account}
+                    required
+                    pattern="[0-9]{9,18}"
+                    disabled={bankLocked}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="bankIFSC">IFSC Code *</label>
+                  <input
+                    type="text"
+                    id="bankIFSC"
+                    name="bankIFSC"
+                    placeholder="E.g., SBIN0001234"
+                    defaultValue={bankDetails.bank_ifsc}
+                    required
+                    pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                    disabled={bankLocked}
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="bankUPI">UPI ID (Optional)</label>
+                  <input
+                    type="text"
+                    id="bankUPI"
+                    name="bankUPI"
+                    placeholder="E.g., username@upi"
+                    defaultValue={bankDetails.upi_id}
+                    pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                    disabled={bankLocked}
+                  />
+                </div>
+
+            <div className="warning-message">
+                  ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
+                  Please verify all details before submitting.
+                </div>
+                
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn-cancel"
+                    onClick={closeBankModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="btn-submit"
+                    disabled={loading.bank || bankLocked}
+                  >
+                    {loading.bank ? 'Saving...' : 'Save Bank Details'}
+                  </button>
+                </div>
+              </form>
             </div>
-          )}
-        </div>
-      </div>
+          </div>
+        </>
+      )}
+      
+      {/* Transaction History Modal - Modern Popup */}
+      {modalOpen.transactions && (
+        <>
+          <div className="modal-overlay active" onClick={closeTransactionsModal}></div>
+          <div className="modal-container active">
+            <div className="modal-header">
+              <h3>Transaction History</h3>
+              <button className="modal-close-btn" onClick={closeTransactionsModal}>&times;</button>
+            </div>
+            <div className="modal-content transaction-history-modal">
+              {transactions.length === 0 ? (
+                <div className="empty-state">
+                  <p>No transactions found</p>
+                </div>
+              ) : (
+                <div className="transactions-list">
+                  {transactions.map(tx => (
+                    <div 
+                      key={`${tx.type}-${tx.id}`} 
+                      className="transaction-card"
+                      onClick={() => {
+                        // You can add detailed view here
+                        alert(`Transaction ID: ${tx.id}\nAmount: ₹${Math.abs(tx.amount).toFixed(2)}\nType: ${tx.displayType}\nDate: ${formatDate(tx.created_at)}\nStatus: ${tx.status}`);
+                      }}
+                    >
+                      <div className="transaction-header">
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
+                          <div className="transaction-type">{tx.displayType}</div>
+                        </div>
+                        <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                          {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
+                        </div>
+                      </div>
+                      
+                      <div className="transaction-details">
+                        <div className="transaction-date">
+                          {formatDate(tx.created_at)}
+                        </div>
+                        <div className={`transaction-status ${getStatusColor(tx.status)}`}>
+                          {tx.status}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
