@@ -602,7 +602,7 @@ function Mine() {
         </div>
       </div>
       
-      {/* Transaction History Modal - Same style as withdrawal */}
+           {/* Transaction History Modal - Same style as withdrawal */}
       {modalOpen.transactions && (
         <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, transactions: false })}></div>
       )}
@@ -614,4 +614,43 @@ function Mine() {
         <div className="modal-content transaction-history-modal">
           {transactions.length === 0 ? (
             <div className="empty-state">
-       
+              <p>No transactions found</p>
+            </div>
+          ) : (
+            <div className="transactions-list">
+              {transactions.map(tx => (
+                <div 
+                  key={`${tx.type}-${tx.id}`} 
+                  className="transaction-card"
+                  onClick={() => window.location.href = `/transactions/${tx.id}`}
+                >
+                  <div className="transaction-header">
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
+                      <div className="transaction-type">{tx.displayType}</div>
+                    </div>
+                    <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                      {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
+                    </div>
+                  </div>
+                  
+                  <div className="transaction-details">
+                    <div className="transaction-date">
+                      {formatDate(tx.created_at)}
+                    </div>
+                    <div className={`transaction-status ${getStatusColor(tx.status)}`}>
+                      {tx.status || 'completed'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+export default Mine;
+```
