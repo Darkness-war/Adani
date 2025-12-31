@@ -6,9 +6,8 @@
   padding: 15px;
 }
 
-/* Profile Header */
+/* Profile Header - Fixed */
 .profile-header-card {
-  text-align: center;
   padding: 20px;
   margin-bottom: 20px;
   background: white;
@@ -16,11 +15,28 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
 
-.profile-email {
-  font-size: 16px;
-  font-weight: 500;
+.profile-info {
+  text-align: center;
+}
+
+.profile-name {
+  font-size: 18px;
+  font-weight: 600;
   color: #333;
-  margin: 0;
+  margin-bottom: 5px;
+}
+
+.profile-id {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 5px;
+  font-family: 'Courier New', monospace;
+}
+
+.profile-email {
+  font-size: 14px;
+  color: #888;
+  word-break: break-all;
 }
 
 /* Balance Card */
@@ -69,25 +85,25 @@
 }
 
 .withdraw-btn {
-  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  background: #1e3c72;
   color: white;
   box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
 }
 
 .withdraw-btn:hover {
-  background: linear-gradient(135deg, #2a5298, #3a62a8);
+  background: #2a5298;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(30, 60, 114, 0.3);
 }
 
 .recharge-btn {
-  background: linear-gradient(135deg, #2e7d32, #4caf50);
+  background: #2e7d32;
   color: white;
   box-shadow: 0 4px 12px rgba(46, 125, 50, 0.2);
 }
 
 .recharge-btn:hover {
-  background: linear-gradient(135deg, #4caf50, #66bb6a);
+  background: #4caf50;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(46, 125, 50, 0.3);
 }
@@ -144,7 +160,7 @@
 .logout-btn {
   width: 100%;
   padding: 16px;
-  background: linear-gradient(135deg, #dc2626, #ef4444);
+  background: #dc2626;
   color: white;
   border: none;
   border-radius: 8px;
@@ -156,17 +172,12 @@
 }
 
 .logout-btn:hover {
-  background: linear-gradient(135deg, #ef4444, #f87171);
+  background: #ef4444;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3);
 }
 
-/* Remove the Withdrawal History section */
-.withdrawal-history-card {
-  display: none;
-}
-
-/* Modal Styles - Keep existing */
+/* Modal Styles - Modern Popup */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -191,14 +202,15 @@
   left: 50%;
   transform: translate(-50%, -50%) scale(0.9);
   width: 90%;
-  max-width: 400px;
+  max-width: 450px;
   background: white;
-  border-radius: 16px;
+  border-radius: 20px;
   z-index: 1001;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  overflow: hidden;
 }
 
 .modal-container.active {
@@ -211,33 +223,326 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border-bottom: 1px solid #eee;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
 }
 
 .modal-header h3 {
   margin: 0;
   font-size: 18px;
   font-weight: 600;
-  color: #333;
 }
 
 .modal-header button {
-  background: none;
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  font-size: 24px;
-  color: #999;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 20px;
+  color: white;
   cursor: pointer;
   padding: 0;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
 }
 
 .modal-header button:hover {
-  color: #333;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .modal-content {
+  padding: 24px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+/* Balance Display in Modal */
+.balance-display {
+  background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
   padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 24px;
+  border: 1px solid #c8e6c9;
+}
+
+.balance-label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.balance-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: #2e7d32;
+}
+
+/* Form Styles */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  font-weight: 500;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  font-size: 16px;
+  box-sizing: border-box;
+  transition: all 0.2s;
+  background: #f9f9f9;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #1e3c72;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+}
+
+.form-group input:disabled {
+  background: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
+/* Amount Input */
+.amount-input {
+  position: relative;
+}
+
+.amount-input .currency {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.amount-input input {
+  padding-left: 50px;
+  font-size: 20px;
+  font-weight: 600;
+  text-align: right;
+  padding-right: 16px;
+}
+
+/* Withdrawal Calculations */
+.withdrawal-calculations {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  border: 1px solid #eee;
+}
+
+.calculation-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 15px;
+  color: #666;
+  border-bottom: 1px solid #eee;
+}
+
+.calculation-row:last-child {
+  border-bottom: none;
+}
+
+.calculation-row.total {
+  font-weight: 600;
+  color: #333;
+  border-top: 2px solid #ddd;
+  margin-top: 10px;
+  padding-top: 12px;
+  font-size: 16px;
+}
+
+.tds-amount {
+  color: #ef6c00;
+  font-weight: 600;
+}
+
+.payout-amount {
+  color: #2e7d32;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-cancel, .btn-submit {
+  flex: 1;
+  padding: 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-cancel {
+  background: #f5f5f5;
+  color: #666;
+}
+
+.btn-cancel:hover {
+  background: #e0e0e0;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  box-shadow: 0 4px 12px rgba(30, 60, 114, 0.2);
+}
+
+.btn-submit:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2a5298, #3a62a8);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(30, 60, 114, 0.3);
+}
+
+.btn-submit:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* Warning Message */
+.warning-message {
+  background: #fff3e0;
+  border: 1px solid #ffcc80;
+  padding: 14px;
+  border-radius: 10px;
+  color: #ef6c00;
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.warning-message strong {
+  color: #d84315;
+}
+
+/* Transaction History Modal */
+.transaction-history-modal {
+  padding: 10px;
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.transaction-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  border: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.transaction-card:hover {
+  border-color: #1e3c72;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.transaction-icon {
+  font-size: 24px;
+  margin-right: 12px;
+}
+
+.transaction-type {
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.transaction-amount {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.transaction-amount.positive {
+  color: #2e7d32;
+}
+
+.transaction-amount.negative {
+  color: #c62828;
+}
+
+.transaction-details {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+}
+
+.transaction-status {
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.status-pending {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-processing {
+  background: #e3f2fd;
+  color: #1e3c72;
+}
+
+.status-completed {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state p {
+  margin: 0;
+  font-size: 16px;
 }
 
 /* Responsive */
@@ -261,5 +566,14 @@
   
   .logout-btn {
     padding: 14px;
+  }
+  
+  .modal-container {
+    width: 95%;
+    max-width: 380px;
+  }
+  
+  .modal-actions {
+    flex-direction: column;
   }
   }
