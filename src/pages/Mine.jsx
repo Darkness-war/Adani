@@ -21,18 +21,12 @@ function Mine() {
   const [modalOpen, setModalOpen] = useState({
     withdraw: false,
     bank: false,
-    transactions: false // Added transaction modal state
+    transactions: false
   });
   const [loading, setLoading] = useState(false);
-  const [withdrawalHistory, setWithdrawalHistory] = useState([]);
-  const [transactions, setTransactions] = useState([]); // Added transactions state
-  const [selectedTransaction, setSelectedTransaction] = useState(null); // Added selected transaction state
-  const [transactionDetailsModal, setTransactionDetailsModal] = useState(false); // Added transaction details modal
 
   useEffect(() => {
     loadUserProfile();
-    loadWithdrawalHistory();
-    loadTransactions(); // Load transactions
   }, []);
 
   async function loadUserProfile() {
@@ -62,80 +56,6 @@ function Mine() {
       }
     } catch (error) {
       console.error('Error loading profile:', error);
-    }
-  }
-
-  async function loadWithdrawalHistory() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('withdrawal_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      setWithdrawalHistory(data || []);
-    } catch (error) {
-      console.error('Error loading withdrawal history:', error);
-    }
-  }
-
-  async function loadTransactions() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get all types of transactions
-      const { data: txData, error: txError } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (txError) throw txError;
-
-      // Get withdrawal requests
-      const { data: withdrawalData, error: withdrawalError } = await supabase
-        .from('withdrawal_requests')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (withdrawalError) throw withdrawalError;
-
-      // Combine and format all transactions
-      const allTransactions = [
-        ...(txData || []).map(tx => ({
-          ...tx,
-          type: tx.type || 'transaction',
-          displayType: tx.type?.toUpperCase() || 'TRANSACTION'
-        })),
-        ...(withdrawalData || []).map(wd => ({
-          ...wd,
-          id: wd.id,
-          amount: -wd.amount,
-          type: 'withdrawal',
-          displayType: 'WITHDRAWAL',
-          description: `Withdrawal Request`,
-          status: wd.status,
-          created_at: wd.created_at,
-          order_id: wd.id,
-          bank_account: wd.bank_account,
-          bank_ifsc: wd.bank_ifsc,
-          payout_amount: wd.payout_amount,
-          tds: wd.tds
-        }))
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-
-      setTransactions(allTransactions);
-    } catch (error) {
-      console.error('Error loading transactions:', error);
     }
   }
 
@@ -198,16 +118,10 @@ function Mine() {
 
       if (balanceError) throw balanceError;
 
-      alert('✅ Withdrawal request submitted successfully! It will be processed within 10-15 minutes.');
+      alert('✅ Withdrawal request submitted successfully!');
       setModalOpen({ ...modalOpen, withdraw: false });
-      loadUserProfile(); // Refresh balance
-      loadWithdrawalHistory(); // Refresh history
-      loadTransactions(); // Refresh transactions
+      loadUserProfile();
       setWithdrawal({ amount: '', tds: 0, payout: 0 });
-      
-      // Simulate automatic status updates
-      setTimeout(() => updateWithdrawalStatus('processing'), 600000); // 10 minutes
-      setTimeout(() => updateWithdrawalStatus('completed'), 900000); // 15 minutes
       
     } catch (error) {
       alert('❌ Error: ' + error.message);
@@ -215,35 +129,6 @@ function Mine() {
       setLoading(false);
     }
   };
-
-  async function updateWithdrawalStatus(status) {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get latest withdrawal
-      const { data: latestWithdrawal } = await supabase
-        .from('withdrawal_requests')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (latestWithdrawal) {
-        await supabase
-          .from('withdrawal_requests')
-          .update({ status: status })
-          .eq('id', latestWithdrawal.id);
-        
-        loadWithdrawalHistory(); // Refresh
-        loadTransactions(); // Refresh transactions
-      }
-    } catch (error) {
-      console.error('Error updating withdrawal status:', error);
-    }
-  }
 
   const handleBankDetailsSubmit = async (e) => {
     e.preventDefault();
@@ -352,43 +237,6 @@ function Mine() {
     return daysSinceUpdate < 7;
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'completed': return 'status-completed';
-      case 'success': return 'status-completed';
-      case 'pending': return 'status-pending';
-      case 'processing': return 'status-processing';
-      case 'failed': return 'status-failed';
-      case 'rejected': return 'status-failed';
-      default: return 'status-completed';
-    }
-  };
-
-  const getTypeIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'deposit': return '💳';
-      case 'withdrawal': return '💰';
-      case 'bonus': return '🎁';
-      case 'referral': return '👥';
-      default: return '📄';
-    }
-  };
-
-  const openTransactionDetails = (tx) => {
-    setSelectedTransaction(tx);
-    setTransactionDetailsModal(true);
-  };
-
   return (
     <>
       <div id="sidebarOverlay" className="sidebar-overlay"></div>
@@ -396,19 +244,14 @@ function Mine() {
       <TopBar title="My Account" />
       
       <main className="page-container mine-page">
-        {/* Profile Header - Fixed Layout */}
+        {/* Profile Header - Simple Email Display */}
         <div className="card profile-header-card">
-          <div className="profile-info">
-            <div className="profile-id">
-              ID: {profile?.id ? profile.id.slice(0, 8) + '...' : 'Loading...'}
-            </div>
-            <div className="profile-email">
-              {profile?.email || 'Loading email...'}
-            </div>
+          <div className="profile-email">
+            {profile?.email || 'Loading email...'}
           </div>
         </div>
         
-        {/* Balance Card */}
+        {/* Balance Card with Buttons */}
         <div className="card balance-card">
           <div className="balance-label">Available Balance</div>
           <div className="balance-amount">
@@ -419,13 +262,13 @@ function Mine() {
               className="action-btn withdraw-btn"
               onClick={() => setModalOpen({ ...modalOpen, withdraw: true })}
             >
-              <span>⬆️</span> Withdraw
+              <span>💰</span> Withdraw
             </button>
             <button 
               className="action-btn recharge-btn"
               onClick={() => window.location.href = '/recharge'}
             >
-              <span>⬇️</span> Recharge
+              <span>💳</span> Recharge
             </button>
           </div>
         </div>
@@ -437,17 +280,17 @@ function Mine() {
             onClick={() => setModalOpen({ ...modalOpen, bank: true })}
           >
             <div className="option-icon">🏦</div>
-            <span>Bank Account Details</span>
-            <div className="option-chevron">&gt;</div>
+            <div className="option-text">Bank Account Details</div>
+            <div>&gt;</div>
           </div>
           
           <div 
             className="option-item"
-            onClick={() => setModalOpen({ ...modalOpen, transactions: true })}
+            onClick={() => window.location.href = '/transactions'}
           >
             <div className="option-icon">📜</div>
-            <span>Transaction History</span>
-            <div className="option-chevron">&gt;</div>
+            <div className="option-text">Transaction History</div>
+            <div>&gt;</div>
           </div>
           
           <div 
@@ -455,37 +298,10 @@ function Mine() {
             onClick={handleChangePassword}
           >
             <div className="option-icon">🔒</div>
-            <span>Change Password</span>
-            <div className="option-chevron">&gt;</div>
+            <div className="option-text">Change Password</div>
+            <div>&gt;</div>
           </div>
         </div>
-        
-        {/* Withdrawal History */}
-        {withdrawalHistory.length > 0 && (
-          <div className="card withdrawal-history-card">
-            <h3 className="history-title">Recent Withdrawals</h3>
-            <div className="withdrawal-list">
-              {withdrawalHistory.map(wd => (
-                <div key={wd.id} className="withdrawal-item">
-                  <div className="withdrawal-header">
-                    <span className="withdrawal-amount">₹{wd.amount.toFixed(2)}</span>
-                    <span className={`withdrawal-status ${wd.status}`}>
-                      {wd.status.toUpperCase()}
-                    </span>
-                  </div>
-                  <div className="withdrawal-details">
-                    <span className="withdrawal-date">
-                      {new Date(wd.created_at).toLocaleDateString()}
-                    </span>
-                    <span className="withdrawal-payout">
-                      Payout: ₹{wd.payout_amount.toFixed(2)}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
         
         {/* Logout Button */}
         <div className="card logout-card">
@@ -675,175 +491,6 @@ function Mine() {
           </form>
         </div>
       </div>
-      
-      {/* Transaction History Modal */}
-      {modalOpen.transactions && (
-        <div className="modal-overlay active" onClick={() => setModalOpen({ ...modalOpen, transactions: false })}></div>
-      )}
-      <div className={`modal-container ${modalOpen.transactions ? 'active' : ''}`}>
-        <div className="modal-header">
-          <h3>Transaction History</h3>
-          <button onClick={() => setModalOpen({ ...modalOpen, transactions: false })}>&times;</button>
-        </div>
-        <div className="modal-content transaction-history-modal">
-          {transactions.length === 0 ? (
-            <div className="empty-state">
-              <p>No transactions found</p>
-            </div>
-          ) : (
-            <div className="transactions-list">
-              {transactions.map(tx => (
-                <div 
-                  key={`${tx.type}-${tx.id}`} 
-                  className="transaction-card clickable"
-                  onClick={() => openTransactionDetails(tx)}
-                >
-                  <div className="transaction-header">
-                    <div className="transaction-icon-type">
-                      <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
-                      <div className={`transaction-type-badge ${tx.type}`}>
-                        {tx.displayType}
-                      </div>
-                    </div>
-                    <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
-                      {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
-                    </div>
-                  </div>
-                  
-                  <div className="transaction-details">
-                    <div className="transaction-date">
-                      {formatDate(tx.created_at)}
-                    </div>
-                    <div className={`transaction-status ${getStatusColor(tx.status)}`}>
-                      {tx.status || 'completed'}
-                    </div>
-                  </div>
-                  
-                  {tx.description && (
-                    <div className="transaction-note">{tx.description}</div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Transaction Details Modal */}
-      {transactionDetailsModal && selectedTransaction && (
-        <>
-          <div className="modal-overlay active" onClick={() => setTransactionDetailsModal(false)}></div>
-          <div className="modal-container active">
-            <div className="modal-header">
-              <h3>Transaction Details</h3>
-              <button onClick={() => setTransactionDetailsModal(false)}>&times;</button>
-            </div>
-            <div className="modal-content transaction-details-modal">
-              <div className="transaction-summary">
-                <div className="transaction-icon-large">
-                  {getTypeIcon(selectedTransaction.type)}
-                </div>
-                <div className="transaction-summary-info">
-                  <div className={`transaction-type-large ${selectedTransaction.type}`}>
-                    {selectedTransaction.displayType}
-                  </div>
-                  <div className={`transaction-amount-large ${selectedTransaction.amount >= 0 ? 'positive' : 'negative'}`}>
-                    {selectedTransaction.amount >= 0 ? '+' : ''}₹{Math.abs(selectedTransaction.amount).toFixed(2)}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="details-grid">
-                <div className="detail-row">
-                  <span className="detail-label">Date & Time</span>
-                  <span className="detail-value">{formatDate(selectedTransaction.created_at)}</span>
-                </div>
-                
-                <div className="detail-row">
-                  <span className="detail-label">Status</span>
-                  <span className={`detail-value status-badge ${getStatusColor(selectedTransaction.status)}`}>
-                    {selectedTransaction.status?.toUpperCase() || 'COMPLETED'}
-                  </span>
-                </div>
-                
-                {selectedTransaction.description && (
-                  <div className="detail-row">
-                    <span className="detail-label">Description</span>
-                    <span className="detail-value">{selectedTransaction.description}</span>
-                  </div>
-                )}
-                
-                {selectedTransaction.order_id && (
-                  <div className="detail-row">
-                    <span className="detail-label">Reference ID</span>
-                    <span className="detail-value ref-id">{selectedTransaction.order_id.slice(0, 8)}...</span>
-                  </div>
-                )}
-                
-                {/* Withdrawal Specific Details */}
-                {selectedTransaction.type === 'withdrawal' && (
-                  <>
-                    <div className="detail-row">
-                      <span className="detail-label">Request Amount</span>
-                      <span className="detail-value">₹{Math.abs(selectedTransaction.amount).toFixed(2)}</span>
-                    </div>
-                    
-                    <div className="detail-row">
-                      <span className="detail-label">TDS (18%)</span>
-                      <span className="detail-value tds-amount">-₹{selectedTransaction.tds?.toFixed(2) || '0.00'}</span>
-                    </div>
-                    
-                    <div className="detail-row total-row">
-                      <span className="detail-label">Payout Amount</span>
-                      <span className="detail-value payout-amount">
-                        ₹{selectedTransaction.payout_amount?.toFixed(2) || (Math.abs(selectedTransaction.amount) - (selectedTransaction.tds || 0)).toFixed(2)}
-                      </span>
-                    </div>
-                    
-                    {selectedTransaction.bank_account && (
-                      <div className="detail-row">
-                        <span className="detail-label">Bank Account</span>
-                        <span className="detail-value bank-info">
-                          ••••{selectedTransaction.bank_account.slice(-4)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    {selectedTransaction.bank_ifsc && (
-                      <div className="detail-row">
-                        <span className="detail-label">IFSC Code</span>
-                        <span className="detail-value">{selectedTransaction.bank_ifsc}</span>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-              
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-cancel"
-                  onClick={() => setTransactionDetailsModal(false)}
-                >
-                  Close
-                </button>
-                {selectedTransaction.type === 'withdrawal' && selectedTransaction.status === 'pending' && (
-                  <button
-                    type="button"
-                    className="btn-submit"
-                    onClick={() => {
-                      alert('Contact support to cancel this withdrawal request');
-                      setTransactionDetailsModal(false);
-                    }}
-                  >
-                    Cancel Request
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </>
-      )}
     </>
   );
 }
