@@ -13,9 +13,6 @@
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-}
-
-.profile-info {
   text-align: center;
 }
 
@@ -30,6 +27,10 @@
   font-size: 14px;
   color: #666;
   margin-bottom: 5px;
+  background: #f0f4f8;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-block;
   font-family: 'Courier New', monospace;
 }
 
@@ -149,6 +150,11 @@
   flex: 1;
 }
 
+.option-arrow {
+  color: #999;
+  font-size: 18px;
+}
+
 /* Logout Button */
 .logout-card {
   background: white;
@@ -188,7 +194,7 @@
   z-index: 1000;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s ease;
 }
 
 .modal-overlay.active {
@@ -208,7 +214,7 @@
   z-index: 1001;
   opacity: 0;
   visibility: hidden;
-  transition: all 0.3s;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   overflow: hidden;
 }
@@ -234,7 +240,7 @@
   font-weight: 600;
 }
 
-.modal-header button {
+.modal-close-btn {
   background: rgba(255, 255, 255, 0.2);
   border: none;
   width: 32px;
@@ -248,10 +254,12 @@
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
+  line-height: 1;
 }
 
-.modal-header button:hover {
+.modal-close-btn:hover {
   background: rgba(255, 255, 255, 0.3);
+  transform: rotate(90deg);
 }
 
 .modal-content {
@@ -270,7 +278,7 @@
   border: 1px solid #c8e6c9;
 }
 
-.balance-label {
+.modal-balance-label {
   display: block;
   font-size: 14px;
   color: #666;
@@ -278,7 +286,7 @@
   font-weight: 500;
 }
 
-.balance-value {
+.modal-balance-value {
   font-size: 32px;
   font-weight: 700;
   color: #2e7d32;
@@ -471,6 +479,7 @@
 .transaction-card:hover {
   border-color: #1e3c72;
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  transform: translateY(-2px);
 }
 
 .transaction-header {
@@ -576,4 +585,4 @@
   .modal-actions {
     flex-direction: column;
   }
-  }
+}
