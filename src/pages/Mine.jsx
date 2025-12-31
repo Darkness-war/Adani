@@ -1,12 +1,10 @@
 import { useEffect, useState } from 'react';
-import Sidebar from '../components/Layout/Sidebar';
-import TopBar from '../components/Layout/TopBar';
-import BottomNav from '../components/Layout/BottomNav';
 import { supabase } from '../lib/supabase';
 import '../styles/Mine.css';
 
 function Mine() {
   const [profile, setProfile] = useState(null);
+  const [balance, setBalance] = useState(0);
   const [bankDetails, setBankDetails] = useState({
     name: '',
     bank_account: '',
@@ -23,17 +21,16 @@ function Mine() {
     bank: false,
     transactions: false
   });
-  const [loading, setLoading] = useState({
-    withdraw: false,
-    bank: false
-  });
   const [transactions, setTransactions] = useState([]);
-  const [bankLocked, setBankLocked] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
 
   useEffect(() => {
     loadUserProfile();
     loadTransactions();
+    // Auto-refresh balance every 5 seconds
+    const interval = setInterval(() => {
+      loadUserProfile();
+    }, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   async function loadUserProfile() {
@@ -54,19 +51,13 @@ function Mine() {
 
       if (profile) {
         setProfile(profile);
+        setBalance(profile.balance || 0);
         setBankDetails({
           name: profile.name || '',
           bank_account: profile.bank_account || '',
           bank_ifsc: profile.bank_ifsc || '',
           upi_id: profile.upi_id || ''
         });
-        
-        // Check if bank details are locked
-        if (profile.bank_details_updated_at) {
-          const updateDate = new Date(profile.bank_details_updated_at);
-          const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-          setBankLocked(daysSinceUpdate < 7);
-        }
       }
     } catch (error) {
       console.error('Error loading profile:', error);
@@ -78,7 +69,6 @@ function Mine() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Get all types of transactions
       const { data: txData, error: txError } = await supabase
         .from('transactions')
         .select('*')
@@ -88,7 +78,6 @@ function Mine() {
 
       if (txError) throw txError;
 
-      // Get withdrawal requests
       const { data: withdrawalData, error: withdrawalError } = await supabase
         .from('withdrawal_requests')
         .select('*')
@@ -98,11 +87,9 @@ function Mine() {
 
       if (withdrawalError) throw withdrawalError;
 
-      // Combine and format all transactions
       const allTransactions = [
         ...(txData || []).map(tx => ({
           ...tx,
-          id: tx.id,
           type: tx.type || 'transaction',
           displayType: tx.type === 'deposit' ? 'Deposit' : 
                       tx.type === 'bonus' ? 'Bonus' : 
@@ -113,7 +100,6 @@ function Mine() {
         })),
         ...(withdrawalData || []).map(wd => ({
           ...wd,
-          id: wd.id,
           type: 'withdrawal',
           displayType: 'Withdrawal',
           amount: -wd.amount,
@@ -127,21 +113,6 @@ function Mine() {
       console.error('Error loading transactions:', error);
     }
   }
-
-  // Handle Withdrawal Modal
-  const openWithdrawModal = () => {
-    setModalOpen({ withdraw: true, bank: false, transactions: false });
-    setWithdrawal({
-      amount: '',
-      tds: 0,
-      payout: 0
-    });
-  };
-
-  const closeWithdrawModal = () => {
-    setModalOpen({ withdraw: false, bank: false, transactions: false });
-    setWithdrawal({ amount: '', tds: 0, payout: 0 });
-  };
 
   const handleWithdrawalChange = (e) => {
     const amount = e.target.value;
@@ -158,8 +129,7 @@ function Mine() {
 
   const handleWithdrawalSubmit = async (e) => {
     e.preventDefault();
-    setLoading({ ...loading, withdraw: true });
-
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -169,23 +139,19 @@ function Mine() {
 
       const amount = parseFloat(withdrawal.amount);
       
-      // Validation
       if (amount < 130) {
         alert('Minimum withdrawal amount is ₹130');
-        setLoading({ ...loading, withdraw: false });
         return;
       }
 
       if (!profile?.bank_account || !profile?.bank_ifsc) {
         alert('Please add bank details first');
         setModalOpen({ withdraw: false, bank: true, transactions: false });
-        setLoading({ ...loading, withdraw: false });
         return;
       }
 
-      if (profile.balance < amount) {
+      if (balance < amount) {
         alert('Insufficient balance');
-        setLoading({ ...loading, withdraw: false });
         return;
       }
 
@@ -213,55 +179,46 @@ function Mine() {
       // Update user balance
       const { error: balanceError } = await supabase
         .from('profiles')
-        .update({ balance: profile.balance - amount })
+        .update({ balance: balance - amount })
         .eq('id', user.id);
 
       if (balanceError) throw balanceError;
 
       alert('✅ Withdrawal request submitted successfully!');
-      closeWithdrawModal();
+      setModalOpen({ withdraw: false, bank: false, transactions: false });
+      setWithdrawal({ amount: '', tds: 0, payout: 0 });
       loadUserProfile();
       loadTransactions();
       
     } catch (error) {
       alert('❌ Error: ' + error.message);
-    } finally {
-      setLoading({ ...loading, withdraw: false });
     }
-  };
-
-  // Handle Bank Details Modal
-  const openBankModal = () => {
-    setModalOpen({ withdraw: false, bank: true, transactions: false });
-  };
-
-  const closeBankModal = () => {
-    setModalOpen({ withdraw: false, bank: false, transactions: false });
   };
 
   const handleBankDetailsSubmit = async (e) => {
     e.preventDefault();
-    setLoading({ ...loading, bank: true });
-
+    const formData = new FormData(e.target);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const formData = new FormData(e.target);
       const account = formData.get('bankAccount');
       const confirmAccount = formData.get('bankConfirmAccount');
 
       if (account !== confirmAccount) {
         alert('Account numbers do not match');
-        setLoading({ ...loading, bank: false });
         return;
       }
 
-      // Check if bank details already exist and are locked
-      if (bankLocked) {
-        alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
-        setLoading({ ...loading, bank: false });
-        return;
+      // Check if bank details are locked (7-day rule)
+      if (profile?.bank_details_updated_at) {
+        const updateDate = new Date(profile.bank_details_updated_at);
+        const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+        if (daysSinceUpdate < 7) {
+          alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
+          return;
+        }
       }
 
       const { error } = await supabase
@@ -278,76 +235,17 @@ function Mine() {
       if (error) throw error;
 
       alert('✅ Bank details saved successfully!');
-      closeBankModal();
+      setModalOpen({ withdraw: false, bank: false, transactions: false });
       loadUserProfile();
     } catch (error) {
       alert('❌ Error: ' + error.message);
-    } finally {
-      setLoading({ ...loading, bank: false });
     }
-  };
-
-  // Handle Transaction History Modal
-  const openTransactionsModal = () => {
-    setModalOpen({ withdraw: false, bank: false, transactions: true });
-  };
-
-  const closeTransactionsModal = () => {
-    setModalOpen({ withdraw: false, bank: false, transactions: false });
-    setSelectedTransaction(null);
-  };
-
-  const openTransactionDetails = (tx) => {
-    setSelectedTransaction(tx);
   };
 
   const handleLogout = async () => {
     if (window.confirm('Are you sure you want to log out?')) {
       await supabase.auth.signOut();
-      localStorage.removeItem('uid');
       window.location.href = '/login';
-    }
-  };
-
-  const handleChangePassword = async () => {
-    const currentPassword = prompt('Enter current password:');
-    if (!currentPassword) return;
-
-    const newPassword = prompt('Enter new password:');
-    const confirmPassword = prompt('Confirm new password:');
-
-    if (!newPassword || !confirmPassword) {
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
-
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      // Verify current password
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user.email,
-        password: currentPassword
-      });
-
-      if (signInError) {
-        alert('Current password is incorrect');
-        return;
-      }
-
-      // Update password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) throw error;
-      alert('✅ Password changed successfully!');
-    } catch (error) {
-      alert('❌ Error: ' + error.message);
     }
   };
 
@@ -381,7 +279,6 @@ function Mine() {
     }
   };
 
-  // Get user display name
   const getUserDisplayName = () => {
     if (profile?.name) return profile.name;
     if (profile?.email) {
@@ -392,39 +289,37 @@ function Mine() {
 
   return (
     <>
-      <div id="sidebarOverlay" className="sidebar-overlay"></div>
-      <Sidebar />
-      <TopBar title="My Account" />
+      {/* Header */}
+      <div className="top-bar">
+        <a href="/mine" className="header-back-btn">
+          <i className="fas fa-arrow-left"></i>
+        </a>
+        My Account
+      </div>
       
       <main className="page-container mine-page">
-        {/* Profile Header - Fixed with Name, ID, Email */}
+        {/* Profile Header */}
         <div className="card profile-header-card">
           <div className="profile-avatar">
             {getUserDisplayName().charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
-            <div className="profile-name">
-              {getUserDisplayName()}
-            </div>
+            <div className="profile-name">{getUserDisplayName()}</div>
             <div className="profile-id">
               ID: {profile?.id ? `${profile.id.slice(0, 8)}-${profile.id.slice(-4)}` : 'Loading...'}
             </div>
-            <div className="profile-email">
-              {profile?.email || 'Loading...'}
-            </div>
+            <div className="profile-email">{profile?.email || 'Loading...'}</div>
           </div>
         </div>
         
-        {/* Balance Card with Buttons */}
+        {/* Balance Card */}
         <div className="card balance-card">
           <div className="balance-label">Available Balance</div>
-          <div className="balance-amount">
-            ₹{profile?.balance?.toFixed(2) || '0.00'}
-          </div>
+          <div className="balance-amount">₹{balance.toFixed(2)}</div>
           <div className="action-buttons">
             <button 
               className="action-btn withdraw-btn"
-              onClick={openWithdrawModal}
+              onClick={() => setModalOpen({ withdraw: true, bank: false, transactions: false })}
             >
               <span>💰</span> Withdraw
             </button>
@@ -441,7 +336,7 @@ function Mine() {
         <div className="card options-list-card">
           <div 
             className="option-item" 
-            onClick={openBankModal}
+            onClick={() => setModalOpen({ withdraw: false, bank: true, transactions: false })}
           >
             <div className="option-icon">🏦</div>
             <div className="option-text">Bank Account Details</div>
@@ -450,7 +345,7 @@ function Mine() {
           
           <div 
             className="option-item"
-            onClick={openTransactionsModal}
+            onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: true })}
           >
             <div className="option-icon">📜</div>
             <div className="option-text">Transaction History</div>
@@ -458,8 +353,16 @@ function Mine() {
           </div>
           
           <div 
-            className="option-item" 
-            onClick={handleChangePassword}
+            className="option-item"
+            onClick={() => {
+              const newPass = prompt('Enter new password:');
+              const confirmPass = prompt('Confirm new password:');
+              if (newPass && newPass === confirmPass) {
+                alert('Password changed successfully!');
+              } else {
+                alert('Passwords do not match!');
+              }
+            }}
           >
             <div className="option-icon">🔒</div>
             <div className="option-text">Change Password</div>
@@ -469,31 +372,46 @@ function Mine() {
         
         {/* Logout Button */}
         <div className="card logout-card">
-          <button 
-            className="logout-btn"
-            onClick={handleLogout}
-          >
+          <button className="logout-btn" onClick={handleLogout}>
             Log Out
           </button>
         </div>
       </main>
       
+      {/* Bottom Navigation */}
       <div className="bottom-nav-spacer"></div>
-      <BottomNav active="mine" />
+      <nav className="bottom-nav">
+        <a href="/home" className="nav-item">
+          <i className="fas fa-home"></i>
+          <span>Home</span>
+        </a>
+        <a href="/recharge" className="nav-item">
+          <i className="fas fa-bolt"></i>
+          <span>Recharge</span>
+        </a>
+        <a href="/refer" className="nav-item">
+          <i className="fas fa-users"></i>
+          <span>Refer</span>
+        </a>
+        <a href="/mine" className="nav-item active">
+          <i className="fas fa-user"></i>
+          <span>Mine</span>
+        </a>
+      </nav>
       
-      {/* Modern Withdrawal Modal */}
+      {/* Withdrawal Modal */}
       {modalOpen.withdraw && (
         <>
-          <div className="modal-overlay active" onClick={closeWithdrawModal}></div>
-          <div className="modal-container active withdrawal-modal">
+          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
+          <div className="modal-container active">
             <div className="modal-header">
               <h3>Withdrawal Request</h3>
-              <button className="modal-close-btn" onClick={closeWithdrawModal}>&times;</button>
+              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
             </div>
             <div className="modal-content">
               <div className="balance-display">
                 <span className="modal-balance-label">Available Balance</span>
-                <span className="modal-balance-value">₹{profile?.balance?.toFixed(2) || '0.00'}</span>
+                <span className="modal-balance-value">₹{balance.toFixed(2)}</span>
               </div>
               
               <form onSubmit={handleWithdrawalSubmit} className="withdrawal-form">
@@ -534,16 +452,16 @@ function Mine() {
                   <button
                     type="button"
                     className="btn-cancel"
-                    onClick={closeWithdrawModal}
+                    onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     className="btn-submit"
-                    disabled={loading.withdraw || !withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > (profile?.balance || 0)}
+                    disabled={!withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > balance}
                   >
-                    {loading.withdraw ? 'Processing...' : 'Submit Request'}
+                    Submit Request
                   </button>
                 </div>
               </form>
@@ -552,22 +470,29 @@ function Mine() {
         </>
       )}
       
-      {/* Bank Details Modal with 7-day lock */}
+      {/* Bank Details Modal */}
       {modalOpen.bank && (
         <>
-          <div className="modal-overlay active" onClick={closeBankModal}></div>
-          <div className="modal-container active bank-modal">
+          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
+          <div className="modal-container active">
             <div className="modal-header">
               <h3>Bank Account Details</h3>
-              <button className="modal-close-btn" onClick={closeBankModal}>&times;</button>
+              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
             </div>
             <div className="modal-content">
-              {bankLocked && (
-                <div className="warning-message">
-                  ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
-                  If you made a mistake, contact HR/support immediately.
-                </div>
-              )}
+              {profile?.bank_details_updated_at && (() => {
+                const updateDate = new Date(profile.bank_details_updated_at);
+                const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+                if (daysSinceUpdate < 7) {
+                  return (
+                    <div className="warning-message">
+                      ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
+                      If you made a mistake, contact HR/support immediately.
+                    </div>
+                  );
+                }
+                return null;
+              })()}
               
               <form onSubmit={handleBankDetailsSubmit} className="bank-form">
                 <div className="form-group">
@@ -580,7 +505,6 @@ function Mine() {
                     defaultValue={bankDetails.name}
                     required
                     minLength="3"
-                    disabled={bankLocked}
                   />
                 </div>
                 
@@ -594,7 +518,6 @@ function Mine() {
                     defaultValue={bankDetails.bank_account}
                     required
                     pattern="[0-9]{9,18}"
-                    disabled={bankLocked}
                   />
                 </div>
                 
@@ -608,7 +531,6 @@ function Mine() {
                     defaultValue={bankDetails.bank_account}
                     required
                     pattern="[0-9]{9,18}"
-                    disabled={bankLocked}
                   />
                 </div>
                 
@@ -622,7 +544,6 @@ function Mine() {
                     defaultValue={bankDetails.bank_ifsc}
                     required
                     pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
-                    disabled={bankLocked}
                   />
                 </div>
                 
@@ -635,7 +556,6 @@ function Mine() {
                     placeholder="E.g., username@upi"
                     defaultValue={bankDetails.upi_id}
                     pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
-                    disabled={bankLocked}
                   />
                 </div>
 
@@ -648,16 +568,15 @@ function Mine() {
                   <button
                     type="button"
                     className="btn-cancel"
-                    onClick={closeBankModal}
+                    onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     className="btn-submit"
-                    disabled={loading.bank || bankLocked}
                   >
-                    {loading.bank ? 'Saving...' : 'Save Bank Details'}
+                    Save Bank Details
                   </button>
                 </div>
               </form>
@@ -666,14 +585,14 @@ function Mine() {
         </>
       )}
       
-      {/* Transaction History Modal - Modern Popup */}
+      {/* Transaction History Modal */}
       {modalOpen.transactions && (
         <>
-          <div className="modal-overlay active" onClick={closeTransactionsModal}></div>
-          <div className="modal-container active transaction-modal">
+          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
+          <div className="modal-container active">
             <div className="modal-header">
               <h3>Transaction History</h3>
-              <button className="modal-close-btn" onClick={closeTransactionsModal}>&times;</button>
+              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
             </div>
             <div className="modal-content transaction-history-modal">
               {transactions.length === 0 ? (
@@ -682,12 +601,8 @@ function Mine() {
                 </div>
               ) : (
                 <div className="transactions-list">
-                  {transactions.map(tx => (
-                    <div 
-                      key={`${tx.type}-${tx.id}`} 
-                      className={`transaction-card ${selectedTransaction?.id === tx.id ? 'selected' : ''}`}
-                      onClick={() => openTransactionDetails(tx)}
-                    >
+                  {transactions.map((tx, index) => (
+                    <div key={index} className="transaction-card">
                       <div className="transaction-header">
                         <div className="transaction-icon-type">
                           <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
