@@ -8,16 +8,36 @@
 
 /* Profile Header - Fixed */
 .profile-header-card {
+  display: flex;
+  align-items: center;
   padding: 20px;
   margin-bottom: 20px;
   background: white;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  text-align: center;
+}
+
+.profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 600;
+  margin-right: 20px;
+  flex-shrink: 0;
+}
+
+.profile-info {
+  flex: 1;
 }
 
 .profile-name {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: #333;
   margin-bottom: 5px;
@@ -217,6 +237,7 @@
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   box-shadow: 0 20px 60px rgba(0,0,0,0.3);
   overflow: hidden;
+  max-height: 90vh;
 }
 
 .modal-container.active {
@@ -264,7 +285,7 @@
 
 .modal-content {
   padding: 24px;
-  max-height: 70vh;
+  max-height: calc(90vh - 70px);
   overflow-y: auto;
 }
 
@@ -482,6 +503,11 @@
   transform: translateY(-2px);
 }
 
+.transaction-card.selected {
+  border-color: #1e3c72;
+  background-color: #f8f9ff;
+}
+
 .transaction-header {
   display: flex;
   justify-content: space-between;
@@ -489,15 +515,47 @@
   margin-bottom: 10px;
 }
 
-.transaction-icon {
-  font-size: 24px;
-  margin-right: 12px;
+.transaction-icon-type {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.transaction-type {
+.transaction-icon {
+  font-size: 24px;
+}
+
+.transaction-type-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
   font-weight: 600;
-  color: #333;
-  flex: 1;
+  text-transform: uppercase;
+}
+
+.transaction-type-badge.deposit {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.transaction-type-badge.withdrawal {
+  background: #ffebee;
+  color: #c62828;
+}
+
+.transaction-type-badge.bonus {
+  background: #fff3e0;
+  color: #ef6c00;
+}
+
+.transaction-type-badge.referral {
+  background: #e3f2fd;
+  color: #1565c0;
+}
+
+.transaction-type-badge.transaction {
+  background: #f3e5f5;
+  color: #7b1fa2;
 }
 
 .transaction-amount {
@@ -543,6 +601,11 @@
   color: #2e7d32;
 }
 
+.status-failed {
+  background: #ffebee;
+  color: #c62828;
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 20px;
@@ -558,6 +621,17 @@
 @media (max-width: 480px) {
   .mine-page {
     padding: 10px;
+  }
+  
+  .profile-avatar {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+    margin-right: 15px;
+  }
+  
+  .profile-name {
+    font-size: 18px;
   }
   
   .balance-amount {
