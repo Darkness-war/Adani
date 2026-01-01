@@ -17,7 +17,6 @@ function Mine() {
     upi_id: ''
   });
   const [bankLocked, setBankLocked] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     initialize();
@@ -280,26 +279,29 @@ function Mine() {
 
   return (
     <div className="mine-container">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      {/* Sidebar Overlay (same as Home.jsx) */}
+      <div id="sidebarOverlay" className="sidebar-overlay"></div>
       
-      {/* Header */}
+      {/* Sidebar Component (same as Home.jsx) */}
+      <Sidebar />
+      
+      {/* Header - Keep exactly as before but add sidebar toggle */}
       <header className="top-bar">
-        <div className="sidebar-toggle" onClick={() => setIsSidebarOpen(true)}>
+        <div className="sidebar-toggle" id="menuBtn">
           <i className="fas fa-bars"></i>
         </div>
         My Account
       </header>
 
-      {/* Main Content */}
-      <main className="mine-page">
+      {/* Main Content - Keep exactly as before */}
+      <main className="mine-content">
         {/* Profile Card */}
-        <div className="profile-header-card">
+        <div className="profile-card">
           <div className="profile-avatar">
             {getDisplayName().charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
-            <div className="profile-name">{getDisplayName()}</div>
+            <h2 className="profile-name">{getDisplayName()}</h2>
             <div className="profile-id">ID: {getUserId()}</div>
             <div className="profile-email">{user?.email}</div>
           </div>
@@ -309,31 +311,31 @@ function Mine() {
         <div className="balance-card">
           <div className="balance-label">Available Balance</div>
           <div className="balance-amount">₹{balance.toFixed(2)}</div>
-          <div className="action-buttons">
-            <button className="action-btn withdraw-btn" onClick={openWithdrawModal}>
+          <div className="balance-actions">
+            <button className="btn-withdraw" onClick={openWithdrawModal}>
               <span className="btn-icon">💰</span> Withdraw
             </button>
-            <button className="action-btn recharge-btn" onClick={() => window.location.href = '/recharge'}>
+            <button className="btn-recharge" onClick={() => window.location.href = '/recharge'}>
               <span className="btn-icon">💳</span> Recharge
             </button>
           </div>
         </div>
 
-        {/* Options List */}
-        <div className="options-list-card">
-          <a className="option-item" onClick={openBankModal}>
-            <div className="option-icon">🏦</div>
-            <div className="option-text">Bank Account Details</div>
-            <div className="option-arrow">&gt;</div>
-          </a>
+        {/* Menu Options */}
+        <div className="menu-card">
+          <div className="menu-item" onClick={openBankModal}>
+            <div className="menu-icon">🏦</div>
+            <div className="menu-text">Bank Account Details</div>
+            <div className="menu-arrow">&gt;</div>
+          </div>
           
-          <a className="option-item" onClick={openTxModal}>
-            <div className="option-icon">📜</div>
-            <div className="option-text">Transaction History</div>
-            <div className="option-arrow">&gt;</div>
-          </a>
+          <div className="menu-item" onClick={openTxModal}>
+            <div className="menu-icon">📜</div>
+            <div className="menu-text">Transaction History</div>
+            <div className="menu-arrow">&gt;</div>
+          </div>
           
-          <a className="option-item" onClick={() => {
+          <div className="menu-item" onClick={() => {
             const newPass = prompt('Enter new password:');
             const confirmPass = prompt('Confirm new password:');
             if (newPass && newPass === confirmPass) {
@@ -342,15 +344,15 @@ function Mine() {
               alert('Passwords do not match!');
             }
           }}>
-            <div className="option-icon">🔒</div>
-            <div className="option-text">Change Password</div>
-            <div className="option-arrow">&gt;</div>
-          </a>
+            <div className="menu-icon">🔒</div>
+            <div className="menu-text">Change Password</div>
+            <div className="menu-arrow">&gt;</div>
+          </div>
         </div>
 
         {/* Logout Button */}
         <div className="logout-card">
-          <button className="logout-btn" onClick={async () => {
+          <button className="btn-logout" onClick={async () => {
             if (confirm('Are you sure you want to log out?')) {
               await supabase.auth.signOut();
               window.location.href = '/login';
@@ -361,7 +363,7 @@ function Mine() {
         </div>
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - Keep exactly as before */}
       <nav className="bottom-nav">
         <a href="/home" className="nav-item">
           <i className="fas fa-home"></i> Home
@@ -379,19 +381,19 @@ function Mine() {
 
       {/* ================ MODALS ================ */}
       
-      {/* Withdrawal Modal */}
+      {/* Withdrawal Modal - FIXED: Added proper submit button */}
       {modal === 'withdraw' && (
         <div className="modal-overlay active" onClick={closeModal}>
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Withdrawal Request</h3>
-              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-content">
+            <div className="modal-body">
               <div className="balance-display">
-                <span className="modal-balance-label">Available Balance</span>
-                <span className="modal-balance-value">₹{balance.toFixed(2)}</span>
+                <span className="balance-label">Available Balance</span>
+                <span className="balance-value">₹{balance.toFixed(2)}</span>
               </div>
 
               <form onSubmit={handleWithdrawalSubmit} className="withdraw-form">
@@ -412,16 +414,16 @@ function Mine() {
                   </div>
                 </div>
 
-                <div className="withdrawal-calculations">
-                  <div className="calculation-row">
+                <div className="calculation-box">
+                  <div className="calc-row">
                     <span>Withdrawal Amount</span>
                     <span>₹{parseFloat(withdrawalAmount || 0).toFixed(2)}</span>
                   </div>
-                  <div className="calculation-row">
+                  <div className="calc-row">
                     <span>TDS (18%)</span>
                     <span className="tds-amount">- ₹{tds.toFixed(2)}</span>
                   </div>
-                  <div className="calculation-row total">
+                  <div className="calc-row total-row">
                     <span>You Will Receive</span>
                     <span className="payout-amount">₹{payout.toFixed(2)}</span>
                   </div>
@@ -445,16 +447,16 @@ function Mine() {
         </div>
       )}
 
-      {/* Bank Details Modal */}
+      {/* Bank Details Modal - FIXED: Added scroll and submit button */}
       {modal === 'bank' && (
         <div className="modal-overlay active" onClick={closeModal}>
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Bank Account Details</h3>
-              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-content">
+            <div className="modal-body">
               {bankLocked && (
                 <div className="warning-message">
                   ⚠️ <strong>Bank details are locked!</strong><br/>
@@ -463,6 +465,7 @@ function Mine() {
               )}
 
               <form onSubmit={handleBankSubmit} className="bank-form">
+                {/* Scrollable form content */}
                 <div className="form-scrollable">
                   <div className="form-group">
                     <label>Account Holder Name *</label>
@@ -534,6 +537,7 @@ function Mine() {
                   </div>
                 </div>
 
+                {/* Submit buttons - fixed at bottom */}
                 <div className="modal-actions">
                   <button type="button" className="btn-cancel" onClick={closeModal}>
                     Cancel
@@ -554,10 +558,10 @@ function Mine() {
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Transaction History</h3>
-              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-content transaction-history-modal">
+            <div className="modal-body tx-modal-body">
               {transactions.length === 0 ? (
                 <div className="empty-state">
                   <p>No transactions found</p>
@@ -565,26 +569,24 @@ function Mine() {
               ) : (
                 <div className="transactions-list">
                   {transactions.map(tx => (
-                    <div key={tx.id} className="transaction-card">
-                      <div className="transaction-header">
-                        <div className="transaction-icon-type">
-                          <span className="transaction-icon">{tx.icon}</span>
-                          <span className={`transaction-type-badge ${tx.type}`}>
-                            {tx.type}
-                          </span>
+                    <div key={tx.id} className="tx-card">
+                      <div className="tx-header">
+                        <div className="tx-icon-type">
+                          <span className="tx-icon">{tx.icon}</span>
+                          <span className="tx-type">{tx.type}</span>
                         </div>
-                        <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                        <div className={`tx-amount ${tx.color}`}>
                           {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
                         </div>
                       </div>
-                      <div className="transaction-details">
-                        <div className="transaction-date">{formatDate(tx.date)}</div>
-                        <div className={`transaction-status ${getStatusColor(tx.status)}`}>
+                      <div className="tx-details">
+                        <div className="tx-date">{formatDate(tx.date)}</div>
+                        <div className={`tx-status ${getStatusColor(tx.status)}`}>
                           {tx.status}
                         </div>
                       </div>
                       {tx.description && (
-                        <div className="transaction-description">{tx.description}</div>
+                        <div className="tx-description">{tx.description}</div>
                       )}
                     </div>
                   ))}
@@ -594,6 +596,583 @@ function Mine() {
           </div>
         </div>
       )}
+
+      <style jsx>{`
+        /* Keep ALL your original inline styles EXACTLY as they were */
+        .mine-container {
+          min-height: 100vh;
+          background: #f5f5f5;
+        }
+        
+        /* Top Bar - Added sidebar toggle */
+        .top-bar {
+          background: #1e3c72;
+          color: white;
+          padding: 15px;
+          text-align: center;
+          font-weight: 600;
+          font-size: 18px;
+          position: relative;
+        }
+        
+        .sidebar-toggle {
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: white;
+          cursor: pointer;
+          font-size: 20px;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        /* Main Content */
+        .mine-content {
+          padding: 15px;
+          padding-bottom: 80px;
+        }
+        
+        /* Profile Card */
+        .profile-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          display: flex;
+          align-items: center;
+        }
+        
+        .profile-avatar {
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, #1e3c72, #2a5298);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: bold;
+          margin-right: 15px;
+        }
+        
+        .profile-info {
+          flex: 1;
+        }
+        
+        .profile-name {
+          margin: 0 0 5px 0;
+          font-size: 18px;
+          color: #333;
+        }
+        
+        .profile-id {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 3px;
+          background: #f0f0f0;
+          padding: 3px 10px;
+          border-radius: 15px;
+          display: inline-block;
+          font-family: monospace;
+        }
+        
+        .profile-email {
+          font-size: 14px;
+          color: #888;
+        }
+        
+        /* Balance Card */
+        .balance-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 15px;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .balance-label {
+          color: #666;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+        
+        .balance-amount {
+          color: #1e3c72;
+          font-size: 36px;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+        
+        .balance-actions {
+          display: flex;
+          gap: 15px;
+          justify-content: center;
+        }
+        
+        .btn-withdraw, .btn-recharge {
+          flex: 1;
+          max-width: 160px;
+          padding: 12px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        
+        .btn-withdraw {
+          background: #1e3c72;
+          color: white;
+        }
+        
+        .btn-recharge {
+          background: #2e7d32;
+          color: white;
+        }
+        
+        .btn-icon {
+          font-size: 18px;
+        }
+        
+        /* Menu Card */
+        .menu-card {
+          background: white;
+          border-radius: 12px;
+          margin-bottom: 15px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .menu-item {
+          padding: 18px 20px;
+          display: flex;
+          align-items: center;
+          border-bottom: 1px solid #f0f0f0;
+          cursor: pointer;
+        }
+        
+        .menu-item:last-child {
+          border-bottom: none;
+        }
+        
+        .menu-item:hover {
+          background: #f9f9f9;
+        }
+        
+        .menu-icon {
+          font-size: 20px;
+          margin-right: 15px;
+          width: 24px;
+          text-align: center;
+        }
+        
+        .menu-text {
+          flex: 1;
+          font-size: 16px;
+          color: #333;
+        }
+        
+        .menu-arrow {
+          color: #999;
+          font-size: 18px;
+        }
+        
+        /* Logout Card */
+        .logout-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-logout {
+          width: 100%;
+          padding: 15px;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: white;
+          display: flex;
+          padding: 10px 0;
+          border-top: 1px solid #e0e0e0;
+          z-index: 100;
+        }
+        
+        .nav-item {
+          flex: 1;
+          text-align: center;
+          text-decoration: none;
+          color: #666;
+          font-size: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .nav-item.active {
+          color: #1e3c72;
+        }
+        
+        .nav-item i {
+          font-size: 20px;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 1000;
+          display: none;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .modal-overlay.active {
+          display: flex;
+        }
+        
+        .modal-container {
+          background: white;
+          border-radius: 16px;
+          width: 90%;
+          max-width: 450px;
+          max-height: 85vh;
+          overflow: hidden;
+          display: none;
+        }
+        
+        .modal-container.active {
+          display: block;
+        }
+        
+        .modal-header {
+          background: linear-gradient(135deg, #1e3c72, #2a5298);
+          color: white;
+          padding: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .modal-header h3 {
+          margin: 0;
+          font-size: 18px;
+        }
+        
+        .modal-close {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .modal-body {
+          padding: 20px;
+          max-height: calc(85vh - 70px);
+          overflow-y: auto;
+        }
+        
+        /* Withdraw Form */
+        .balance-display {
+          background: #e8f5e9;
+          padding: 15px;
+          border-radius: 10px;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        .balance-value {
+          font-size: 28px;
+          font-weight: bold;
+          color: #2e7d32;
+          display: block;
+          margin-top: 5px;
+        }
+        
+        .form-group {
+          margin-bottom: 20px;
+        }
+        
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          color: #555;
+          font-weight: 500;
+        }
+        
+        .amount-input {
+          position: relative;
+        }
+        
+        .amount-input .currency {
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 20px;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .amount-input input {
+          width: 100%;
+          padding: 15px 15px 15px 45px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          font-size: 20px;
+          font-weight: bold;
+          text-align: right;
+          box-sizing: border-box;
+        }
+        
+        .calculation-box {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 10px;
+          margin-bottom: 20px;
+        }
+        
+        .calc-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #eee;
+        }
+        
+        .calc-row:last-child {
+          border-bottom: none;
+        }
+        
+        .total-row {
+          border-top: 2px solid #ddd;
+          margin-top: 8px;
+          padding-top: 12px;
+          font-weight: bold;
+          font-size: 16px;
+        }
+        
+        .tds-amount {
+          color: #e67e22;
+        }
+        
+        .payout-amount {
+          color: #27ae60;
+          font-size: 18px;
+        }
+        
+        .modal-actions {
+          display: flex;
+          gap: 10px;
+          margin-top: 20px;
+        }
+        
+        .btn-cancel, .btn-submit {
+          flex: 1;
+          padding: 15px;
+          border: none;
+          border-radius: 10px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        .btn-cancel {
+          background: #f5f5f5;
+          color: #666;
+        }
+        
+        .btn-submit {
+          background: #1e3c72;
+          color: white;
+        }
+        
+        .btn-submit:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+        
+        /* Scrollable form for bank modal */
+        .form-scrollable {
+          max-height: 350px;
+          overflow-y: auto;
+          padding-right: 5px;
+          margin-bottom: 20px;
+        }
+        
+        .form-scrollable::-webkit-scrollbar {
+          width: 6px;
+        }
+        
+        .form-scrollable::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+        
+        .form-scrollable::-webkit-scrollbar-thumb {
+          background: #ccc;
+          border-radius: 3px;
+        }
+        
+        .form-scrollable::-webkit-scrollbar-thumb:hover {
+          background: #aaa;
+        }
+        
+        /* Warning Message */
+        .warning-message {
+          background: #fff3e0;
+          border: 1px solid #ffcc80;
+          padding: 12px;
+          border-radius: 8px;
+          color: #e67e22;
+          font-size: 14px;
+          margin-bottom: 20px;
+          text-align: center;
+          line-height: 1.5;
+        }
+        
+        /* Info Message */
+        .info-message {
+          background: #e3f2fd;
+          border: 1px solid #90caf9;
+          padding: 12px;
+          border-radius: 8px;
+          color: #1565c0;
+          font-size: 14px;
+          line-height: 1.5;
+        }
+        
+        /* Transaction List */
+        .tx-modal-body {
+          padding: 10px;
+        }
+        
+        .tx-card {
+          background: white;
+          border: 1px solid #eee;
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 10px;
+        }
+        
+        .tx-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        
+        .tx-icon-type {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .tx-icon {
+          font-size: 20px;
+        }
+        
+        .tx-type {
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        
+        .tx-amount {
+          font-size: 16px;
+          font-weight: bold;
+        }
+        
+        .tx-amount.green {
+          color: #27ae60;
+        }
+        
+        .tx-amount.red {
+          color: #e74c3c;
+        }
+        
+        .tx-details {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #666;
+        }
+        
+        .tx-status {
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        
+        .status-completed {
+          background: #d5f4e6;
+          color: #27ae60;
+        }
+        
+        .status-pending {
+          background: #fff3e0;
+          color: #e67e22;
+        }
+        
+        .status-processing {
+          background: #e3f2fd;
+          color: #1e3c72;
+        }
+        
+        .status-failed {
+          background: #ffebee;
+          color: #c62828;
+        }
+        
+        .tx-description {
+          margin-top: 8px;
+          font-size: 13px;
+          color: #666;
+          padding-top: 8px;
+          border-top: 1px solid #f0f0f0;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: #999;
+        }
+      `}</style>
     </div>
   );
 }
