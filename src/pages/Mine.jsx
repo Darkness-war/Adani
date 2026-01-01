@@ -71,32 +71,51 @@ function Mine() {
 
   async function loadTransactions(userId) {
     try {
-      const { data: txData } = await supabase
+      // Load all transaction types
+      const { data: deposits } = await supabase
         .from('transactions')
         .select('*')
         .eq('user_id', userId)
+        .eq('type', 'deposit')
         .order('created_at', { ascending: false })
-        .limit(20);
+        .limit(10);
 
-      const { data: withdrawalData } = await supabase
+      const { data: withdrawals } = await supabase
         .from('withdrawal_requests')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10);
 
+      const { data: bonuses } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('type', 'bonus')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      const { data: referrals } = await supabase
+        .from('transactions')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('type', 'referral')
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      // Combine all transactions
       const allTx = [
-        ...(txData || []).map(tx => ({
+        ...(deposits || []).map(tx => ({
           id: tx.id,
-          type: tx.type || 'transaction',
+          type: 'deposit',
           amount: tx.amount || 0,
           status: 'completed',
-          description: tx.description || '',
+          description: tx.description || 'Deposit',
           date: tx.created_at,
-          icon: getTxIcon(tx.type),
-          color: tx.amount >= 0 ? 'green' : 'red'
+          icon: '💳',
+          color: 'green'
         })),
-        ...(withdrawalData || []).map(wd => ({
+        ...(withdrawals || []).map(wd => ({
           id: wd.id,
           type: 'withdrawal',
           amount: -wd.amount,
@@ -105,6 +124,26 @@ function Mine() {
           date: wd.created_at,
           icon: '💰',
           color: 'red'
+        })),
+        ...(bonuses || []).map(tx => ({
+          id: tx.id,
+          type: 'bonus',
+          amount: tx.amount || 0,
+          status: 'completed',
+          description: tx.description || 'Bonus',
+          date: tx.created_at,
+          icon: '🎁',
+          color: 'green'
+        })),
+        ...(referrals || []).map(tx => ({
+          id: tx.id,
+          type: 'referral',
+          amount: tx.amount || 0,
+          status: 'completed',
+          description: tx.description || 'Referral Bonus',
+          date: tx.created_at,
+          icon: '👥',
+          color: 'green'
         }))
       ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
@@ -138,20 +177,24 @@ function Mine() {
     e.preventDefault();
     
     const amount = parseFloat(withdrawalAmount);
+    
+    // Check minimum amount
     if (amount < 130) {
       alert('Minimum withdrawal amount is ₹130');
       return;
     }
 
+    // Check if user has enough balance
     if (amount > balance) {
-      alert('Insufficient balance');
+      alert('Insufficient balance! Your available balance is ₹' + balance.toFixed(2));
       return;
     }
 
+    // Check if bank details are added
     if (!profile?.bank_account || !profile?.bank_ifsc) {
       alert('Please add bank details first');
       closeModal();
-      openBankModal();
+      setTimeout(() => openBankModal(), 100);
       return;
     }
 
@@ -159,6 +202,7 @@ function Mine() {
       const tds = amount * 0.18;
       const payout = amount - tds;
 
+      // 1. Create withdrawal request
       const { error: withdrawError } = await supabase
         .from('withdrawal_requests')
         .insert({
@@ -175,19 +219,39 @@ function Mine() {
 
       if (withdrawError) throw withdrawError;
 
+      // 2. Update user balance
+      const newBalance = balance - amount;
       const { error: balanceError } = await supabase
         .from('profiles')
-        .update({ balance: balance - amount })
+        .update({ balance: newBalance })
         .eq('id', user.id);
 
       if (balanceError) throw balanceError;
 
-      alert('✅ Withdrawal request submitted successfully!');
-      closeModal();
-      await loadProfile(user.id);
+      // 3. Create transaction record
+      const { error: txError } = await supabase
+        .from('transactions')
+        .insert({
+          user_id: user.id,
+          type: 'withdrawal',
+          amount: -amount,
+          description: 'Withdrawal Request',
+          status: 'pending'
+        });
+
+      if (txError) throw txError;
+
+      // Update local state
+      setBalance(newBalance);
+      
+      // Reload transactions
       await loadTransactions(user.id);
       
+      alert('✅ Withdrawal request submitted successfully!');
+      closeModal();
+      
     } catch (error) {
+      console.error('Withdrawal error:', error);
       alert('❌ Error: ' + error.message);
     }
   };
@@ -234,16 +298,6 @@ function Mine() {
   };
 
   // ================ HELPER FUNCTIONS ================
-  const getTxIcon = (type) => {
-    switch (type) {
-      case 'deposit': return '💳';
-      case 'withdrawal': return '💰';
-      case 'bonus': return '🎁';
-      case 'referral': return '👥';
-      default: return '📄';
-    }
-  };
-
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleString('en-IN', {
       day: '2-digit',
@@ -279,11 +333,13 @@ function Mine() {
 
   return (
     <div className="mine-container">
-      {/* 1. SIDEBAR FROM HOME.JSX */}
+      {/* Sidebar Overlay */}
       <div id="sidebarOverlay" className="sidebar-overlay"></div>
+      
+      {/* Sidebar Component */}
       <Sidebar />
       
-      {/* 2. HEADER - SAME AS BEFORE BUT WITH SIDEBAR TOGGLE */}
+      {/* Header - Fixed layout */}
       <header className="top-bar">
         <a href="/home" className="header-back-btn">
           <i className="fas fa-arrow-left"></i>
@@ -294,7 +350,7 @@ function Mine() {
         My Account
       </header>
 
-      {/* 3. MAIN CONTENT - EXACTLY SAME AS BEFORE */}
+      {/* Main Content - Exactly as in image */}
       <main className="mine-content">
         {/* Profile Card */}
         <div className="profile-card">
@@ -382,7 +438,7 @@ function Mine() {
 
       {/* ================ MODALS ================ */}
       
-      {/* 3. WITHDRAWAL MODAL - WITH FIXED SUBMIT BUTTON */}
+      {/* Withdrawal Modal - FIXED: Proper height and submit button */}
       {modal === 'withdraw' && (
         <div className="modal-overlay active" onClick={closeModal}>
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
@@ -391,7 +447,7 @@ function Mine() {
               <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-body">
+            <div className="modal-body" style={{ maxHeight: '450px', overflowY: 'auto' }}>
               <div className="balance-display">
                 <span className="balance-label">Available Balance</span>
                 <span className="balance-value">₹{balance.toFixed(2)}</span>
@@ -430,7 +486,7 @@ function Mine() {
                   </div>
                 </div>
 
-                <div className="modal-actions">
+                <div className="modal-actions" style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #eee' }}>
                   <button type="button" className="btn-cancel" onClick={closeModal}>
                     Cancel
                   </button>
@@ -438,6 +494,15 @@ function Mine() {
                     type="submit" 
                     className="btn-submit"
                     disabled={!withdrawalAmount || parseFloat(withdrawalAmount) < 130 || parseFloat(withdrawalAmount) > balance}
+                    style={{ 
+                      backgroundColor: (!withdrawalAmount || parseFloat(withdrawalAmount) < 130 || parseFloat(withdrawalAmount) > balance) ? '#ccc' : '#1e3c72',
+                      color: 'white',
+                      padding: '15px',
+                      borderRadius: '10px',
+                      fontSize: '16px',
+                      fontWeight: '600',
+                      cursor: (!withdrawalAmount || parseFloat(withdrawalAmount) < 130 || parseFloat(withdrawalAmount) > balance) ? 'not-allowed' : 'pointer'
+                    }}
                   >
                     Submit Request
                   </button>
@@ -448,7 +513,7 @@ function Mine() {
         </div>
       )}
 
-      {/* BANK DETAILS MODAL - WITH SCROLL AND SUBMIT BUTTON */}
+      {/* Bank Details Modal - FIXED: Scroll and submit button */}
       {modal === 'bank' && (
         <div className="modal-overlay active" onClick={closeModal}>
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
@@ -457,7 +522,7 @@ function Mine() {
               <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-body" style={{ maxHeight: '400px', overflowY: 'auto' }}>
+            <div className="modal-body" style={{ maxHeight: '500px', overflowY: 'auto', paddingBottom: '80px' }}>
               {bankLocked && (
                 <div className="warning-message">
                   ⚠️ <strong>Bank details are locked!</strong><br/>
@@ -535,7 +600,15 @@ function Mine() {
                   Please verify all details before submitting.
                 </div>
 
-                <div className="modal-actions" style={{ marginTop: '20px' }}>
+                <div className="modal-actions" style={{ 
+                  position: 'absolute', 
+                  bottom: '0', 
+                  left: '0', 
+                  right: '0', 
+                  padding: '20px', 
+                  backgroundColor: 'white',
+                  borderTop: '1px solid #eee'
+                }}>
                   <button type="button" className="btn-cancel" onClick={closeModal}>
                     Cancel
                   </button>
@@ -594,7 +667,6 @@ function Mine() {
         </div>
       )}
 
-      {/* KEEP ALL ORIGINAL STYLES EXACTLY AS BEFORE */}
       <style jsx>{`
         /* Basic Reset */
         .mine-container {
@@ -602,15 +674,19 @@ function Mine() {
           background: #f5f5f5;
         }
         
-        /* Top Bar */
+        /* Top Bar - FIXED LAYOUT */
         .top-bar {
           background: #1e3c72;
           color: white;
-          padding: 15px;
+          padding: 15px 50px;
           text-align: center;
           font-weight: 600;
           font-size: 18px;
           position: relative;
+          height: 50px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .header-back-btn {
@@ -621,6 +697,11 @@ function Mine() {
           color: white;
           text-decoration: none;
           font-size: 20px;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
         
         .sidebar-toggle {
@@ -631,8 +712,8 @@ function Mine() {
           color: white;
           cursor: pointer;
           font-size: 20px;
-          width: 30px;
-          height: 30px;
+          width: 40px;
+          height: 40px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -872,9 +953,10 @@ function Mine() {
           border-radius: 16px;
           width: 90%;
           max-width: 450px;
-          max-height: 85vh;
+          max-height: 600px;
           overflow: hidden;
           display: none;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.2);
         }
         
         .modal-container.active {
@@ -911,8 +993,6 @@ function Mine() {
         
         .modal-body {
           padding: 20px;
-          max-height: calc(85vh - 70px);
-          overflow-y: auto;
         }
         
         /* Withdraw Form */
@@ -1061,6 +1141,8 @@ function Mine() {
         /* Transaction List */
         .tx-modal-body {
           padding: 10px;
+          max-height: 500px;
+          overflow-y: auto;
         }
         
         .tx-card {
