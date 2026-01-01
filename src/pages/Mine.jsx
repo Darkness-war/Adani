@@ -8,365 +8,177 @@ function Mine() {
   const [profile, setProfile] = useState(null);
   const [balance, setBalance] = useState(0);
   
-  // 'withdraw', 'bank', 'transactions', null
-  const [modal, setModal] = useState(null);
-  const [isLoading, setIsLoading] = useState(false); // For button loading states
+  // Modal State
+  const [modalType, setModalType] = useState(null); // 'withdraw', 'bank', 'transactions', 'password'
+  const [loading, setLoading] = useState(false);
 
-  const [withdrawalAmount, setWithdrawalAmount] = useState('');
-  const [transactions, setTransactions] = useState([]);
+  // Form States
+  const [withdrawAmount, setWithdrawAmount] = useState('');
   const [bankData, setBankData] = useState({
-    name: '',
-    bank_account: '',
-    bank_ifsc: '',
-    upi_id: ''
+    name: '', account: '', confirmAccount: '', ifsc: '', upi: ''
   });
-  const [bankLocked, setBankLocked] = useState(false);
 
   useEffect(() => {
-    initialize();
-    setupSidebarEvents();
+    getProfile();
+    setupSidebar();
   }, []);
 
-  // --- Sidebar Logic (Same as Home) ---
-  function setupSidebarEvents() {
-    // If the sidebar has an ID of 'sideMenu' and overlay 'sidebarOverlay'
-    const openBtn = document.getElementById('menuBtn'); // If you add a menu button in header
-    const closeBtn = document.getElementById('closeBtn');
+  // --- 1. Sidebar Logic (Similar to Home) ---
+  const setupSidebar = () => {
     const overlay = document.getElementById('sidebarOverlay');
     const sideMenu = document.getElementById('sideMenu');
-
-    function openSidebar() {
-      if(sideMenu) sideMenu.classList.add('open');
-      if(overlay) overlay.classList.add('active');
-    }
-
-    function closeSidebar() {
-      if(sideMenu) sideMenu.classList.remove('open');
-      if(overlay) overlay.classList.remove('active');
-    }
-
-    // Attach to the Back/Menu button if desired, or keep generic
-    if (openBtn) openBtn.addEventListener('click', openSidebar);
-    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
-    if (overlay) overlay.addEventListener('click', closeSidebar);
-
-    return () => {
-      if (openBtn) openBtn.removeEventListener('click', openSidebar);
-      if (closeBtn) closeBtn.removeEventListener('click', closeSidebar);
-      if (overlay) overlay.removeEventListener('click', closeSidebar);
-    };
-  }
-
-  // Helper for Sidebar toggle via React if needed
-  const toggleSidebar = () => {
-    const sideMenu = document.getElementById('sideMenu');
-    const overlay = document.getElementById('sidebarOverlay');
-    if (sideMenu && overlay) {
-      sideMenu.classList.toggle('open');
-      overlay.classList.toggle('active');
+    
+    // Ensure overlay handles click to close
+    if (overlay) {
+      overlay.onclick = () => {
+        sideMenu?.classList.remove('open');
+        overlay.classList.remove('active');
+      };
     }
   };
 
-  async function initialize() {
+  const toggleSidebar = () => {
+    const sideMenu = document.getElementById('sideMenu');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (sideMenu && overlay) {
+      sideMenu.classList.add('open');
+      overlay.classList.add('active');
+    } else {
+      console.error("Sidebar elements not found. Check Layout components.");
+    }
+  };
+
+  // --- 2. Data Loading ---
+  async function getProfile() {
     try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData.user) {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
         window.location.href = '/login';
         return;
       }
-      setUser(authData.user);
-      await loadProfile(authData.user.id);
-      await loadTransactions(authData.user.id);
-    } catch (error) {
-      console.error('Init error:', error);
-    }
-  }
+      setUser(user);
 
-  async function loadProfile(userId) {
-    try {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', userId)
+        .eq('id', user.id)
         .single();
-      if (error) throw error;
 
       if (data) {
         setProfile(data);
         setBalance(data.balance || 0);
-        // Set bank data
         setBankData({
           name: data.name || '',
-          bank_account: data.bank_account || '',
-          bank_ifsc: data.bank_ifsc || '',
-          upi_id: data.upi_id || ''
+          account: data.bank_account || '',
+          confirmAccount: data.bank_account || '',
+          ifsc: data.bank_ifsc || '',
+          upi: data.upi_id || ''
         });
-        
-        // Check if bank details are locked (7 days)
-        if (data.bank_details_updated_at) {
-          const updateDate = new Date(data.bank_details_updated_at);
-          const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-          setBankLocked(daysSinceUpdate < 7);
-        }
       }
     } catch (error) {
-      console.error('Profile load error:', error);
+      console.error(error);
     }
   }
 
-  async function loadTransactions(userId) {
-    try {
-      // Load regular transactions
-      const { data: txData } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-        
-      // Load withdrawal requests
-      const { data: withdrawalData } = await supabase
-        .from('withdrawal_requests')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(10);
-        
-      // Combine and format
-      const allTx = [
-        ...(txData || []).map(tx => ({
-          id: tx.id,
-          type: tx.type || 'transaction',
-          amount: tx.amount || 0,
-          status: 'completed',
-          description: tx.description || '',
-          date: tx.created_at,
-          icon: getTxIcon(tx.type),
-          color: tx.amount >= 0 ? 'green' : 'red'
-        })),
-        ...(withdrawalData || []).map(wd => ({
-          id: wd.id,
-          type: 'withdrawal',
-          amount: -wd.amount,
-          status: wd.status || 'pending',
-          description: 'Withdrawal Request',
-          date: wd.created_at,
-          icon: '💰',
-          color: 'red'
-        }))
-      ].sort((a, b) => new Date(b.date) - new Date(a.date));
-      
-      setTransactions(allTx);
-    } catch (error) {
-      console.error('Tx load error:', error);
-    }
-  }
-
-  // ================ MODAL HANDLERS ================
-  const openWithdrawModal = () => {
-    setModal('withdraw');
-    setWithdrawalAmount('');
-  };
-
-  const openBankModal = () => {
-    setModal('bank');
-  };
-  
-  const openTxModal = () => {
-    setModal('transactions');
-  };
-  
-  const closeModal = () => {
-    setModal(null);
-    setWithdrawalAmount('');
-    setIsLoading(false);
-  };
-
-  // ================ WITHDRAWAL HANDLER ================
-  const handleWithdrawalSubmit = async (e) => {
+  // --- 3. Action Handlers ---
+  const handleWithdraw = async (e) => {
     e.preventDefault();
-    if (isLoading) return;
+    if (loading) return;
+    
+    const amount = parseFloat(withdrawAmount);
+    if (amount < 130) return alert('Minimum withdrawal is ₹130');
+    if (amount > balance) return alert('Insufficient balance');
 
-    const amount = parseFloat(withdrawalAmount);
-    if (isNaN(amount) || amount < 130) {
-      alert('Minimum withdrawal amount is ₹130');
-      return;
-    }
-
-    if (amount > balance) {
-      alert('Insufficient balance');
-      return;
-    }
-
-    if (!profile?.bank_account || !profile?.bank_ifsc) {
-      if(confirm('Please add bank details before withdrawing. Go to Bank Settings?')) {
-        closeModal();
-        openBankModal();
-      }
-      return;
-    }
-
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      const tds = amount * 0.18;
-      const payout = amount - tds;
+      // 1. Create Request
+      const { error: reqError } = await supabase.from('withdrawal_requests').insert({
+        user_id: user.id,
+        amount: amount,
+        status: 'pending',
+        bank_account: bankData.account,
+        bank_ifsc: bankData.ifsc
+      });
+      if (reqError) throw reqError;
 
-      // Create withdrawal request
-      const { error: withdrawError } = await supabase
-        .from('withdrawal_requests')
-        .insert({
-          user_id: user.id,
-          user_email: user.email,
-          amount: amount,
-          tds: tds,
-          payout_amount: payout,
-          bank_account: profile.bank_account,
-          bank_ifsc: profile.bank_ifsc,
-          upi_id: profile.upi_id || '',
-          status: 'pending'
-        });
-
-      if (withdrawError) throw withdrawError;
-
-      // Update balance locally and in DB
-      const { error: balanceError } = await supabase
-        .from('profiles')
+      // 2. Deduct Balance
+      const { error: balError } = await supabase.from('profiles')
         .update({ balance: balance - amount })
         .eq('id', user.id);
+      if (balError) throw balError;
 
-      if (balanceError) throw balanceError;
-
-      alert('✅ Withdrawal request submitted successfully!');
-      closeModal();
-      await loadProfile(user.id);
-      await loadTransactions(user.id);
-    } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Withdrawal request submitted!');
+      setModalType(null);
+      getProfile(); // Refresh
+    } catch (err) {
+      alert('Error: ' + err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // ================ BANK DETAILS HANDLER ================
-  const handleBankSubmit = async (e) => {
+  const handleBankSave = async (e) => {
     e.preventDefault();
-    if (isLoading) return;
-
-    const formData = new FormData(e.target);
+    if (loading) return;
     
-    // Check if locked
-    if (bankLocked) {
-      alert('❌ Bank details are locked. Contact support.');
-      return;
+    if (bankData.account !== bankData.confirmAccount) {
+      return alert('Account numbers do not match');
     }
 
-    // Validate account match
-    const account = formData.get('account');
-    const confirmAccount = formData.get('confirmAccount');
-    
-    if (account !== confirmAccount) {
-      alert('Account numbers do not match!');
-      return;
-    }
-
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          name: formData.get('name'),
-          bank_account: account,
-          bank_ifsc: formData.get('ifsc').toUpperCase(),
-          upi_id: formData.get('upi') || '',
-          bank_details_updated_at: new Date().toISOString()
-        })
-        .eq('id', user.id);
+      const { error } = await supabase.from('profiles').update({
+        name: bankData.name,
+        bank_account: bankData.account,
+        bank_ifsc: bankData.ifsc,
+        upi_id: bankData.upi
+      }).eq('id', user.id);
 
       if (error) throw error;
-
-      alert('✅ Bank details saved successfully!');
-      closeModal();
-      await loadProfile(user.id);
-      
-    } catch (error) {
-      alert('❌ Error: ' + error.message);
+      alert('Bank details saved!');
+      setModalType(null);
+      getProfile();
+    } catch (err) {
+      alert('Error: ' + err.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // ================ HELPER FUNCTIONS ================
-  const getTxIcon = (type) => {
-    switch (type) {
-      case 'deposit': return '💳';
-      case 'withdrawal': return '💰';
-      case 'bonus': return '🎁';
-      case 'referral': return '👥';
-      default: return '📄';
-    }
-  };
-  
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-IN', {
-      day: '2-digit',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const getStatusColor = (status) => {
-    switch (status?.toLowerCase()) {
-      case 'completed': return 'status-completed';
-      case 'pending': return 'status-pending';
-      case 'processing': return 'status-processing';
-      case 'failed': return 'status-failed';
-      default: return 'status-completed';
-    }
-  };
-
-  // ================ UI RENDER ================
+  // --- 4. Render Helpers ---
   const getDisplayName = () => {
-    return profile?.name || user?.email?.split('@')[0] || 'User';
+    if (profile?.name) return profile.name;
+    if (user?.email) return user.email.split('@')[0];
+    return 'User';
   };
-
-  const getUserId = () => {
-    if (!user?.id) return 'Loading...';
-    const id = user.id;
-    return `${id.slice(0, 8)}-${id.slice(-4)}`;
-  };
-
-  // Calculate TDS and payout for render
-  const calcTds = parseFloat(withdrawalAmount) * 0.18 || 0;
-  const calcPayout = parseFloat(withdrawalAmount) - calcTds || 0;
 
   return (
     <div className="mine-page">
-      {/* Sidebar Elements */}
+      {/* Sidebar Overlay specific for this page logic */}
       <div id="sidebarOverlay" className="sidebar-overlay"></div>
+      
+      {/* Sidebar Component */}
       <Sidebar />
 
-      {/* Header */}
+      {/* Top Header */}
       <header className="top-bar">
-        {/* Toggle Sidebar Button (Optional replacement for Back button if you want "Home-like" behavior) */}
-        <button className="header-back-btn" onClick={toggleSidebar} id="menuBtn">
-          <i className="fas fa-bars"></i>
+        <button className="menu-btn" onClick={toggleSidebar}>
+          {/* Using text icon if FontAwesome fails, or try <i className="fas fa-bars"></i> */}
+          <span style={{ fontSize: '24px', lineHeight: 1 }}>☰</span> 
         </button>
-        My Account
+        <div className="page-title">My Account</div>
       </header>
 
-      {/* Main Content */}
-      <main className="mine-content">
+      <div className="mine-content">
         {/* Profile Card */}
         <div className="profile-card">
           <div className="profile-avatar">
             {getDisplayName().charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
-            <h2 className="profile-name">{getDisplayName()}</h2>
-            <div className="profile-id">ID: {getUserId()}</div>
+            <div className="profile-name">{getDisplayName()}</div>
+            <div className="profile-id-badge">ID: {user?.id?.slice(0,8) || '...'}</div>
             <div className="profile-email">{user?.email}</div>
           </div>
         </div>
@@ -376,284 +188,128 @@ function Mine() {
           <div className="balance-label">Available Balance</div>
           <div className="balance-amount">₹{balance.toFixed(2)}</div>
           <div className="balance-actions">
-            <button className="btn-withdraw" onClick={openWithdrawModal}>
-              <span className="btn-icon">💰</span> Withdraw
+            <button className="action-btn btn-withdraw" onClick={() => setModalType('withdraw')}>
+              <span>💰</span> Withdraw
             </button>
-            <button className="btn-recharge" onClick={() => window.location.href = '/recharge'}>
-              <span className="btn-icon">💳</span> Recharge
+            <button className="action-btn btn-recharge" onClick={() => window.location.href = '/recharge'}>
+              <span>💳</span> Recharge
             </button>
           </div>
         </div>
 
-        {/* Menu Options */}
-        <div className="menu-card">
-          <div className="menu-item" onClick={openBankModal}>
-            <div className="menu-icon">🏦</div>
-            <div className="menu-text">Bank Account Details</div>
-            <div className="menu-arrow">&gt;</div>
+        {/* Menu List */}
+        <div className="menu-list">
+          <div className="menu-item" onClick={() => setModalType('bank')}>
+            <span className="menu-icon">🏦</span>
+            <span className="menu-text">Bank Account Details</span>
+            <span className="menu-arrow">&gt;</span>
           </div>
-          
-          <div className="menu-item" onClick={openTxModal}>
-            <div className="menu-icon">📜</div>
-            <div className="menu-text">Transaction History</div>
-            <div className="menu-arrow">&gt;</div>
+          <div className="menu-item" onClick={() => setModalType('transactions')}>
+            <span className="menu-icon">📜</span>
+            <span className="menu-text">Transaction History</span>
+            <span className="menu-arrow">&gt;</span>
           </div>
-          
-          <div className="menu-item" onClick={() => {
-            const newPass = prompt('Enter new password:');
-            if (!newPass) return;
-            const confirmPass = prompt('Confirm new password:');
-            if (newPass && newPass === confirmPass) {
-              // Call API to change password
-              supabase.auth.updateUser({ password: newPass })
-                .then(({ error }) => {
-                  if (error) alert('Error: ' + error.message);
-                  else alert('Password changed successfully!');
-                });
-            } else if (newPass) {
-              alert('Passwords do not match!');
-            }
-          }}>
-            <div className="menu-icon">🔒</div>
-            <div className="menu-text">Change Password</div>
-            <div className="menu-arrow">&gt;</div>
+          <div className="menu-item" onClick={() => setModalType('password')}>
+            <span className="menu-icon">🔒</span>
+            <span className="menu-text">Change Password</span>
+            <span className="menu-arrow">&gt;</span>
           </div>
         </div>
 
-        {/* Logout Button */}
-        <div className="logout-card">
-          <button className="btn-logout" onClick={async () => {
-            if (confirm('Are you sure you want to log out?')) {
-              await supabase.auth.signOut();
-              window.location.href = '/login';
+        <button className="logout-btn" onClick={async () => {
+            if(confirm('Logout?')) {
+                await supabase.auth.signOut();
+                window.location.href = '/login';
             }
-          }}>
-            Log Out
-          </button>
-        </div>
-      </main>
+        }}>Log Out</button>
+      </div>
 
-      {/* Bottom Navigation */}
-      <nav className="bottom-nav">
-        <a href="/home" className="nav-item">
-          <i className="fas fa-home"></i> Home
-        </a>
-        <a href="/recharge" className="nav-item">
-          <i className="fas fa-bolt"></i> Recharge
-        </a>
-        <a href="/refer" className="nav-item">
-          <i className="fas fa-users"></i> Refer
-        </a>
-        <a href="/mine" className="nav-item active">
-          <i className="fas fa-user"></i> Mine
-        </a>
-      </nav>
-
-      {/* ================ MODALS ================ */}
+      {/* ================= MODALS ================= */}
       
-      {/* Withdrawal Modal */}
-      <div className={`modal-overlay ${modal === 'withdraw' ? 'active' : ''}`} onClick={closeModal}>
-        <div className={`modal-container ${modal === 'withdraw' ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
+      {/* Withdraw Modal */}
+      <div className={`modal-overlay ${modalType === 'withdraw' ? 'active' : ''}`} onClick={() => setModalType(null)}>
+        <div className={`modal-container ${modalType === 'withdraw' ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Withdrawal Request</h3>
-            <button className="modal-close" onClick={closeModal}>&times;</button>
+            <h3>Withdraw Funds</h3>
+            <button className="modal-close" onClick={() => setModalType(null)}>&times;</button>
           </div>
-          
-          <div className="modal-body">
-            <div className="balance-display">
-              <span className="balance-label">Available Balance</span>
-              <span className="balance-value">₹{balance.toFixed(2)}</span>
+          <form onSubmit={handleWithdraw}>
+            <div className="modal-body">
+              <div className="form-group">
+                <label>Amount (Balance: ₹{balance})</label>
+                <input 
+                  type="number" 
+                  placeholder="Enter amount" 
+                  value={withdrawAmount}
+                  onChange={e => setWithdrawAmount(e.target.value)}
+                  required 
+                />
+              </div>
+              <p style={{fontSize:'12px', color:'red'}}>* 18% Tax applicable on withdrawal</p>
             </div>
-
-            <form onSubmit={handleWithdrawalSubmit}>
-              <div className="form-group">
-                <label>Enter Amount (Min: ₹130)</label>
-                <div className="amount-input">
-                  <span className="currency">₹</span>
-                  <input
-                    type="number"
-                    value={withdrawalAmount}
-                    onChange={e => setWithdrawalAmount(e.target.value)}
-                    placeholder="0.00"
-                    min="130"
-                    step="1"
-                    required
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              <div className="calculation-box">
-                <div className="calc-row">
-                  <span>Withdrawal Amount</span>
-                  <span>₹{parseFloat(withdrawalAmount || 0).toFixed(2)}</span>
-                </div>
-                <div className="calc-row">
-                  <span>TDS (18%)</span>
-                  <span className="tds-amount">- ₹{calcTds.toFixed(2)}</span>
-                </div>
-                <div className="calc-row total-row">
-                  <span>You Will Receive</span>
-                  <span className="payout-amount">₹{calcPayout.toFixed(2)}</span>
-                </div>
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeModal} disabled={isLoading}>
-                  Cancel
-                </button>
-                <button 
-                  type="submit" 
-                  className={`btn-submit ${isLoading ? 'loading' : ''}`}
-                  disabled={!withdrawalAmount || parseFloat(withdrawalAmount) < 130 || parseFloat(withdrawalAmount) > balance || isLoading}
-                >
-                  {isLoading ? 'Processing' : 'Submit Request'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Cancel</button>
+              <button type="submit" className="btn-submit" disabled={loading}>
+                {loading ? 'Processing...' : 'Withdraw'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
 
-      {/* Bank Details Modal */}
-      <div className={`modal-overlay ${modal === 'bank' ? 'active' : ''}`} onClick={closeModal}>
-        <div className={`modal-container ${modal === 'bank' ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
+      {/* Bank Modal */}
+      <div className={`modal-overlay ${modalType === 'bank' ? 'active' : ''}`} onClick={() => setModalType(null)}>
+        <div className={`modal-container ${modalType === 'bank' ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
           <div className="modal-header">
-            <h3>Bank Account Details</h3>
-            <button className="modal-close" onClick={closeModal}>&times;</button>
+            <h3>Bank Settings</h3>
+            <button className="modal-close" onClick={() => setModalType(null)}>&times;</button>
           </div>
-          
-          <div className="modal-body">
-            {bankLocked && (
-              <div className="warning-message">
-                ⚠️ <strong>Bank details are locked!</strong><br/>
-                If you made a mistake, contact HR/support to change details.
-              </div>
-            )}
-
-            <form onSubmit={handleBankSubmit}>
+          <form onSubmit={handleBankSave}>
+            <div className="modal-body">
               <div className="form-group">
-                <label>Account Holder Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  defaultValue={bankData.name}
-                  placeholder="Full Name"
-                  required
-                  minLength="3"
-                  disabled={bankLocked || isLoading}
+                <label>Full Name</label>
+                <input 
+                  type="text" value={bankData.name} 
+                  onChange={e => setBankData({...bankData, name: e.target.value})}
+                  required 
                 />
               </div>
-
               <div className="form-group">
-                <label>Bank Account Number *</label>
-                <input
-                  type="text"
-                  name="account"
-                  defaultValue={bankData.bank_account}
-                  placeholder="Enter Account No."
-                  required
-                  pattern="[0-9]{9,18}"
-                  disabled={bankLocked || isLoading}
+                <label>Account Number</label>
+                <input 
+                  type="text" value={bankData.account} 
+                  onChange={e => setBankData({...bankData, account: e.target.value})}
+                  required 
                 />
               </div>
-
               <div className="form-group">
-                <label>Confirm Account Number *</label>
-                <input
-                  type="text"
-                  name="confirmAccount"
-                  defaultValue={bankData.bank_account}
-                  placeholder="Re-enter Account No."
-                  required
-                  pattern="[0-9]{9,18}"
-                  disabled={bankLocked || isLoading}
+                <label>Confirm Account</label>
+                <input 
+                  type="text" value={bankData.confirmAccount} 
+                  onChange={e => setBankData({...bankData, confirmAccount: e.target.value})}
+                  required 
                 />
               </div>
-
               <div className="form-group">
-                <label>IFSC Code *</label>
-                <input
-                  type="text"
-                  name="ifsc"
-                  defaultValue={bankData.bank_ifsc}
-                  placeholder="E.g., SBIN0001234"
-                  required
-                  pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
-                  disabled={bankLocked || isLoading}
-                  style={{ textTransform: 'uppercase' }}
+                <label>IFSC Code</label>
+                <input 
+                  type="text" value={bankData.ifsc} 
+                  onChange={e => setBankData({...bankData, ifsc: e.target.value.toUpperCase()})}
+                  required 
                 />
               </div>
-
-              <div className="form-group">
-                <label>UPI ID (Optional)</label>
-                <input
-                  type="text"
-                  name="upi"
-                  defaultValue={bankData.upi_id}
-                  placeholder="username@upi"
-                  disabled={bankLocked || isLoading}
-                />
-              </div>
-
-              <div className="info-message">
-                ⚠️ <strong>Important:</strong> Please verify all details before submitting. Incorrect details may lead to payment failures.
-              </div>
-
-              <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={closeModal} disabled={isLoading}>
-                  Cancel
-                </button>
-                <button type="submit" className={`btn-submit ${isLoading ? 'loading' : ''}`} disabled={bankLocked || isLoading}>
-                  {isLoading ? 'Saving...' : 'Save Details'}
-                </button>
-              </div>
-            </form>
-          </div>
+            </div>
+            <div className="modal-footer">
+              <button type="button" className="btn-cancel" onClick={() => setModalType(null)}>Cancel</button>
+              <button type="submit" className="btn-submit" disabled={loading}>Save</button>
+            </div>
+          </form>
         </div>
       </div>
-
-      {/* Transaction History Modal */}
-      <div className={`modal-overlay ${modal === 'transactions' ? 'active' : ''}`} onClick={closeModal}>
-        <div className={`modal-container ${modal === 'transactions' ? 'active' : ''}`} onClick={e => e.stopPropagation()}>
-          <div className="modal-header">
-            <h3>Transaction History</h3>
-            <button className="modal-close" onClick={closeModal}>&times;</button>
-          </div>
-          
-          <div className="modal-body">
-            {transactions.length === 0 ? (
-              <div className="empty-state">
-                <p>No transactions found</p>
-              </div>
-            ) : (
-              <div className="transactions-list">
-                {transactions.map(tx => (
-                  <div key={tx.id} className="tx-card">
-                    <div className="tx-header">
-                      <div className="tx-icon-type">
-                        <span className="tx-icon">{tx.icon}</span>
-                        <span className="tx-type" style={{ textTransform: 'capitalize' }}>{tx.type}</span>
-                      </div>
-                      <div className={`tx-amount ${tx.color}`}>
-                        {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
-                      </div>
-                    </div>
-                    <div className="tx-details">
-                      <div className="tx-date">{formatDate(tx.date)}</div>
-                      <div className={`tx-status ${getStatusColor(tx.status)}`}>
-                        {tx.status}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      
     </div>
   );
 }
 
 export default Mine;
+              
