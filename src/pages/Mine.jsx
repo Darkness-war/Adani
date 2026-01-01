@@ -3,158 +3,163 @@ import { supabase } from '../lib/supabase';
 import '../styles/Mine.css';
 
 function Mine() {
+  const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [balance, setBalance] = useState(0);
-  const [bankDetails, setBankDetails] = useState({
+  const [modal, setModal] = useState(null); // 'withdraw', 'bank', 'transactions', null
+  const [withdrawalAmount, setWithdrawalAmount] = useState('');
+  const [transactions, setTransactions] = useState([]);
+  const [bankData, setBankData] = useState({
     name: '',
     bank_account: '',
     bank_ifsc: '',
     upi_id: ''
   });
-  const [withdrawal, setWithdrawal] = useState({
-    amount: '',
-    tds: 0,
-    payout: 0
-  });
-  const [modalOpen, setModalOpen] = useState({
-    withdraw: false,
-    bank: false,
-    transactions: false
-  });
-  const [transactions, setTransactions] = useState([]);
+  const [bankLocked, setBankLocked] = useState(false);
 
   useEffect(() => {
-    loadUserProfile();
-    loadTransactions();
-    // Auto-refresh balance every 5 seconds
-    const interval = setInterval(() => {
-      loadUserProfile();
-    }, 5000);
-    return () => clearInterval(interval);
+    initialize();
   }, []);
 
-  async function loadUserProfile() {
+  async function initialize() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData.user) {
         window.location.href = '/login';
         return;
       }
+      setUser(authData.user);
+      await loadProfile(authData.user.id);
+      await loadTransactions(authData.user.id);
+    } catch (error) {
+      console.error('Init error:', error);
+    }
+  }
 
-      const { data: profile, error } = await supabase
+  async function loadProfile(userId) {
+    try {
+      const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', userId)
         .single();
 
       if (error) throw error;
 
-      if (profile) {
-        setProfile(profile);
-        setBalance(profile.balance || 0);
-        setBankDetails({
-          name: profile.name || '',
-          bank_account: profile.bank_account || '',
-          bank_ifsc: profile.bank_ifsc || '',
-          upi_id: profile.upi_id || ''
+      if (data) {
+        setProfile(data);
+        setBalance(data.balance || 0);
+        
+        // Set bank data
+        setBankData({
+          name: data.name || '',
+          bank_account: data.bank_account || '',
+          bank_ifsc: data.bank_ifsc || '',
+          upi_id: data.upi_id || ''
         });
+
+        // Check if bank details are locked (7 days)
+        if (data.bank_details_updated_at) {
+          const updateDate = new Date(data.bank_details_updated_at);
+          const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
+          setBankLocked(daysSinceUpdate < 7);
+        }
       }
     } catch (error) {
-      console.error('Error loading profile:', error);
+      console.error('Profile load error:', error);
     }
   }
 
-  async function loadTransactions() {
+  async function loadTransactions(userId) {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data: txData, error: txError } = await supabase
+      // Load regular transactions
+      const { data: txData } = await supabase
         .from('transactions')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(20);
 
-      if (txError) throw txError;
-
-      const { data: withdrawalData, error: withdrawalError } = await supabase
+      // Load withdrawal requests
+      const { data: withdrawalData } = await supabase
         .from('withdrawal_requests')
         .select('*')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false })
         .limit(10);
 
-      if (withdrawalError) throw withdrawalError;
-
-      const allTransactions = [
+      // Combine and format
+      const allTx = [
         ...(txData || []).map(tx => ({
-          ...tx,
+          id: tx.id,
           type: tx.type || 'transaction',
-          displayType: tx.type === 'deposit' ? 'Deposit' : 
-                      tx.type === 'bonus' ? 'Bonus' : 
-                      tx.type === 'referral' ? 'Referral' : 'Transaction',
-          amount: tx.amount,
+          amount: tx.amount || 0,
           status: 'completed',
-          created_at: tx.created_at
+          description: tx.description || '',
+          date: tx.created_at,
+          icon: getTxIcon(tx.type),
+          color: tx.amount >= 0 ? 'green' : 'red'
         })),
         ...(withdrawalData || []).map(wd => ({
-          ...wd,
+          id: wd.id,
           type: 'withdrawal',
-          displayType: 'Withdrawal',
           amount: -wd.amount,
-          status: wd.status,
-          created_at: wd.created_at
+          status: wd.status || 'pending',
+          description: 'Withdrawal Request',
+          date: wd.created_at,
+          icon: '💰',
+          color: 'red'
         }))
-      ].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+      ].sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      setTransactions(allTransactions);
+      setTransactions(allTx);
     } catch (error) {
-      console.error('Error loading transactions:', error);
+      console.error('Tx load error:', error);
     }
   }
 
-  const handleWithdrawalChange = (e) => {
-    const amount = e.target.value;
-    const numAmount = parseFloat(amount) || 0;
-    const tds = numAmount * 0.18;
-    const payout = numAmount - tds;
-    
-    setWithdrawal({
-      amount: amount,
-      tds: tds,
-      payout: payout
-    });
+  // ================ MODAL HANDLERS ================
+  const openWithdrawModal = () => {
+    setModal('withdraw');
+    setWithdrawalAmount('');
   };
 
+  const openBankModal = () => {
+    setModal('bank');
+  };
+
+  const openTxModal = () => {
+    setModal('transactions');
+  };
+
+  const closeModal = () => {
+    setModal(null);
+    setWithdrawalAmount('');
+  };
+
+  // ================ WITHDRAWAL HANDLER ================
   const handleWithdrawalSubmit = async (e) => {
     e.preventDefault();
     
+    const amount = parseFloat(withdrawalAmount);
+    if (amount < 130) {
+      alert('Minimum withdrawal amount is ₹130');
+      return;
+    }
+
+    if (amount > balance) {
+      alert('Insufficient balance');
+      return;
+    }
+
+    if (!profile?.bank_account || !profile?.bank_ifsc) {
+      alert('Please add bank details first');
+      closeModal();
+      openBankModal();
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        alert('Please login first');
-        return;
-      }
-
-      const amount = parseFloat(withdrawal.amount);
-      
-      if (amount < 130) {
-        alert('Minimum withdrawal amount is ₹130');
-        return;
-      }
-
-      if (!profile?.bank_account || !profile?.bank_ifsc) {
-        alert('Please add bank details first');
-        setModalOpen({ withdraw: false, bank: true, transactions: false });
-        return;
-      }
-
-      if (balance < amount) {
-        alert('Insufficient balance');
-        return;
-      }
-
       const tds = amount * 0.18;
       const payout = amount - tds;
 
@@ -170,13 +175,12 @@ function Mine() {
           bank_account: profile.bank_account,
           bank_ifsc: profile.bank_ifsc,
           upi_id: profile.upi_id || '',
-          status: 'pending',
-          created_at: new Date().toISOString()
+          status: 'pending'
         });
 
       if (withdrawError) throw withdrawError;
 
-      // Update user balance
+      // Update balance
       const { error: balanceError } = await supabase
         .from('profiles')
         .update({ balance: balance - amount })
@@ -185,49 +189,43 @@ function Mine() {
       if (balanceError) throw balanceError;
 
       alert('✅ Withdrawal request submitted successfully!');
-      setModalOpen({ withdraw: false, bank: false, transactions: false });
-      setWithdrawal({ amount: '', tds: 0, payout: 0 });
-      loadUserProfile();
-      loadTransactions();
+      closeModal();
+      await loadProfile(user.id);
+      await loadTransactions(user.id);
       
     } catch (error) {
       alert('❌ Error: ' + error.message);
     }
   };
 
-  const handleBankDetailsSubmit = async (e) => {
+  // ================ BANK DETAILS HANDLER ================
+  const handleBankSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
     
+    // Check if locked
+    if (bankLocked) {
+      alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
+      return;
+    }
+
+    // Validate account match
+    const account = formData.get('account');
+    const confirmAccount = formData.get('confirmAccount');
+    
+    if (account !== confirmAccount) {
+      alert('Account numbers do not match!');
+      return;
+    }
+
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const account = formData.get('bankAccount');
-      const confirmAccount = formData.get('bankConfirmAccount');
-
-      if (account !== confirmAccount) {
-        alert('Account numbers do not match');
-        return;
-      }
-
-      // Check if bank details are locked (7-day rule)
-      if (profile?.bank_details_updated_at) {
-        const updateDate = new Date(profile.bank_details_updated_at);
-        const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysSinceUpdate < 7) {
-          alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
-          return;
-        }
-      }
-
       const { error } = await supabase
         .from('profiles')
         .update({
-          name: formData.get('bankRealName'),
+          name: formData.get('name'),
           bank_account: account,
-          bank_ifsc: formData.get('bankIFSC').toUpperCase(),
-          upi_id: formData.get('bankUPI') || '',
+          bank_ifsc: formData.get('ifsc').toUpperCase(),
+          upi_id: formData.get('upi') || '',
           bank_details_updated_at: new Date().toISOString()
         })
         .eq('id', user.id);
@@ -235,17 +233,22 @@ function Mine() {
       if (error) throw error;
 
       alert('✅ Bank details saved successfully!');
-      setModalOpen({ withdraw: false, bank: false, transactions: false });
-      loadUserProfile();
+      closeModal();
+      await loadProfile(user.id);
+      
     } catch (error) {
       alert('❌ Error: ' + error.message);
     }
   };
 
-  const handleLogout = async () => {
-    if (window.confirm('Are you sure you want to log out?')) {
-      await supabase.auth.signOut();
-      window.location.href = '/login';
+  // ================ HELPER FUNCTIONS ================
+  const getTxIcon = (type) => {
+    switch (type) {
+      case 'deposit': return '💳';
+      case 'withdrawal': return '💰';
+      case 'bonus': return '🎁';
+      case 'referral': return '👥';
+      default: return '📄';
     }
   };
 
@@ -261,7 +264,6 @@ function Mine() {
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
       case 'completed': return 'status-completed';
-      case 'success': return 'status-completed';
       case 'pending': return 'status-pending';
       case 'processing': return 'status-processing';
       case 'failed': return 'status-failed';
@@ -269,161 +271,143 @@ function Mine() {
     }
   };
 
-  const getTypeIcon = (type) => {
-    switch (type?.toLowerCase()) {
-      case 'deposit': return '💳';
-      case 'withdrawal': return '💰';
-      case 'bonus': return '🎁';
-      case 'referral': return '👥';
-      default: return '📄';
-    }
+  // ================ UI RENDER ================
+  const getDisplayName = () => {
+    return profile?.name || user?.email?.split('@')[0] || 'User';
   };
 
-  const getUserDisplayName = () => {
-    if (profile?.name) return profile.name;
-    if (profile?.email) {
-      return profile.email.split('@')[0];
-    }
-    return 'User';
+  const getUserId = () => {
+    if (!user?.id) return 'Loading...';
+    const id = user.id;
+    return `${id.slice(0, 8)}-${id.slice(-4)}`;
   };
+
+  // Calculate TDS and payout
+  const tds = parseFloat(withdrawalAmount) * 0.18 || 0;
+  const payout = parseFloat(withdrawalAmount) - tds || 0;
 
   return (
-    <>
+    <div className="mine-container">
       {/* Header */}
-      <div className="top-bar">
-        <a href="/mine" className="header-back-btn">
+      <header className="top-bar">
+        <a href="/home" className="header-back-btn">
           <i className="fas fa-arrow-left"></i>
         </a>
         My Account
-      </div>
-      
-      <main className="page-container mine-page">
-        {/* Profile Header */}
-        <div className="card profile-header-card">
+      </header>
+
+      {/* Main Content */}
+      <main className="mine-content">
+        {/* Profile Card */}
+        <div className="profile-card">
           <div className="profile-avatar">
-            {getUserDisplayName().charAt(0).toUpperCase()}
+            {getDisplayName().charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
-            <div className="profile-name">{getUserDisplayName()}</div>
-            <div className="profile-id">
-              ID: {profile?.id ? `${profile.id.slice(0, 8)}-${profile.id.slice(-4)}` : 'Loading...'}
-            </div>
-            <div className="profile-email">{profile?.email || 'Loading...'}</div>
+            <h2 className="profile-name">{getDisplayName()}</h2>
+            <div className="profile-id">ID: {getUserId()}</div>
+            <div className="profile-email">{user?.email}</div>
           </div>
         </div>
-        
+
         {/* Balance Card */}
-        <div className="card balance-card">
+        <div className="balance-card">
           <div className="balance-label">Available Balance</div>
           <div className="balance-amount">₹{balance.toFixed(2)}</div>
-          <div className="action-buttons">
-            <button 
-              className="action-btn withdraw-btn"
-              onClick={() => setModalOpen({ withdraw: true, bank: false, transactions: false })}
-            >
-              <span>💰</span> Withdraw
+          <div className="balance-actions">
+            <button className="btn-withdraw" onClick={openWithdrawModal}>
+              <span className="btn-icon">💰</span> Withdraw
             </button>
-            <button 
-              className="action-btn recharge-btn"
-              onClick={() => window.location.href = '/recharge'}
-            >
-              <span>💳</span> Recharge
+            <button className="btn-recharge" onClick={() => window.location.href = '/recharge'}>
+              <span className="btn-icon">💳</span> Recharge
             </button>
           </div>
         </div>
-        
-        {/* Options List */}
-        <div className="card options-list-card">
-          <div 
-            className="option-item" 
-            onClick={() => setModalOpen({ withdraw: false, bank: true, transactions: false })}
-          >
-            <div className="option-icon">🏦</div>
-            <div className="option-text">Bank Account Details</div>
-            <div className="option-arrow">&gt;</div>
+
+        {/* Menu Options */}
+        <div className="menu-card">
+          <div className="menu-item" onClick={openBankModal}>
+            <div className="menu-icon">🏦</div>
+            <div className="menu-text">Bank Account Details</div>
+            <div className="menu-arrow">&gt;</div>
           </div>
           
-          <div 
-            className="option-item"
-            onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: true })}
-          >
-            <div className="option-icon">📜</div>
-            <div className="option-text">Transaction History</div>
-            <div className="option-arrow">&gt;</div>
+          <div className="menu-item" onClick={openTxModal}>
+            <div className="menu-icon">📜</div>
+            <div className="menu-text">Transaction History</div>
+            <div className="menu-arrow">&gt;</div>
           </div>
           
-          <div 
-            className="option-item"
-            onClick={() => {
-              const newPass = prompt('Enter new password:');
-              const confirmPass = prompt('Confirm new password:');
-              if (newPass && newPass === confirmPass) {
-                alert('Password changed successfully!');
-              } else {
-                alert('Passwords do not match!');
-              }
-            }}
-          >
-            <div className="option-icon">🔒</div>
-            <div className="option-text">Change Password</div>
-            <div className="option-arrow">&gt;</div>
+          <div className="menu-item" onClick={() => {
+            const newPass = prompt('Enter new password:');
+            const confirmPass = prompt('Confirm new password:');
+            if (newPass && newPass === confirmPass) {
+              alert('Password change request sent!');
+            } else if (newPass) {
+              alert('Passwords do not match!');
+            }
+          }}>
+            <div className="menu-icon">🔒</div>
+            <div className="menu-text">Change Password</div>
+            <div className="menu-arrow">&gt;</div>
           </div>
         </div>
-        
+
         {/* Logout Button */}
-        <div className="card logout-card">
-          <button className="logout-btn" onClick={handleLogout}>
+        <div className="logout-card">
+          <button className="btn-logout" onClick={async () => {
+            if (confirm('Are you sure you want to log out?')) {
+              await supabase.auth.signOut();
+              window.location.href = '/login';
+            }
+          }}>
             Log Out
           </button>
         </div>
       </main>
-      
+
       {/* Bottom Navigation */}
-      <div className="bottom-nav-spacer"></div>
       <nav className="bottom-nav">
         <a href="/home" className="nav-item">
-          <i className="fas fa-home"></i>
-          <span>Home</span>
+          <i className="fas fa-home"></i> Home
         </a>
         <a href="/recharge" className="nav-item">
-          <i className="fas fa-bolt"></i>
-          <span>Recharge</span>
+          <i className="fas fa-bolt"></i> Recharge
         </a>
         <a href="/refer" className="nav-item">
-          <i className="fas fa-users"></i>
-          <span>Refer</span>
+          <i className="fas fa-users"></i> Refer
         </a>
         <a href="/mine" className="nav-item active">
-          <i className="fas fa-user"></i>
-          <span>Mine</span>
+          <i className="fas fa-user"></i> Mine
         </a>
       </nav>
+
+      {/* ================ MODALS ================ */}
       
       {/* Withdrawal Modal */}
-      {modalOpen.withdraw && (
-        <>
-          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
-          <div className="modal-container active">
+      {modal === 'withdraw' && (
+        <div className="modal-overlay active" onClick={closeModal}>
+          <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Withdrawal Request</h3>
-              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
-            <div className="modal-content">
+            
+            <div className="modal-body">
               <div className="balance-display">
-                <span className="modal-balance-label">Available Balance</span>
-                <span className="modal-balance-value">₹{balance.toFixed(2)}</span>
+                <span className="balance-label">Available Balance</span>
+                <span className="balance-value">₹{balance.toFixed(2)}</span>
               </div>
-              
-              <form onSubmit={handleWithdrawalSubmit} className="withdrawal-form">
+
+              <form onSubmit={handleWithdrawalSubmit} className="withdraw-form">
                 <div className="form-group">
-                  <label htmlFor="withdrawAmount">Enter Amount (Min: ₹130)</label>
+                  <label>Enter Amount (Min: ₹130)</label>
                   <div className="amount-input">
                     <span className="currency">₹</span>
                     <input
                       type="number"
-                      id="withdrawAmount"
-                      value={withdrawal.amount}
-                      onChange={handleWithdrawalChange}
+                      value={withdrawalAmount}
+                      onChange={e => setWithdrawalAmount(e.target.value)}
                       placeholder="0.00"
                       min="130"
                       step="1"
@@ -432,34 +416,30 @@ function Mine() {
                     />
                   </div>
                 </div>
-                
-                <div className="withdrawal-calculations">
-                  <div className="calculation-row">
+
+                <div className="calculation-box">
+                  <div className="calc-row">
                     <span>Withdrawal Amount</span>
-                    <span>₹{withdrawal.amount || '0.00'}</span>
+                    <span>₹{parseFloat(withdrawalAmount || 0).toFixed(2)}</span>
                   </div>
-                  <div className="calculation-row">
+                  <div className="calc-row">
                     <span>TDS (18%)</span>
-                    <span className="tds-amount">- ₹{withdrawal.tds.toFixed(2)}</span>
+                    <span className="tds-amount">- ₹{tds.toFixed(2)}</span>
                   </div>
-                  <div className="calculation-row total">
+                  <div className="calc-row total-row">
                     <span>You Will Receive</span>
-                    <span className="payout-amount">₹{withdrawal.payout.toFixed(2)}</span>
+                    <span className="payout-amount">₹{payout.toFixed(2)}</span>
                   </div>
                 </div>
-                
+
                 <div className="modal-actions">
-                  <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}
-                  >
+                  <button type="button" className="btn-cancel" onClick={closeModal}>
                     Cancel
                   </button>
-                  <button
-                    type="submit"
+                  <button 
+                    type="submit" 
                     className="btn-submit"
-                    disabled={!withdrawal.amount || parseFloat(withdrawal.amount) < 130 || parseFloat(withdrawal.amount) > balance}
+                    disabled={!withdrawalAmount || parseFloat(withdrawalAmount) < 130 || parseFloat(withdrawalAmount) > balance}
                   >
                     Submit Request
                   </button>
@@ -467,95 +447,88 @@ function Mine() {
               </form>
             </div>
           </div>
-        </>
+        </div>
       )}
-      
+
       {/* Bank Details Modal */}
-      {modalOpen.bank && (
-        <>
-          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
-          <div className="modal-container active">
+      {modal === 'bank' && (
+        <div className="modal-overlay active" onClick={closeModal}>
+          <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Bank Account Details</h3>
-              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
-            <div className="modal-content">
-              {profile?.bank_details_updated_at && (() => {
-                const updateDate = new Date(profile.bank_details_updated_at);
-                const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
-                if (daysSinceUpdate < 7) {
-                  return (
-                    <div className="warning-message">
-                      ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
-                      If you made a mistake, contact HR/support immediately.
-                    </div>
-                  );
-                }
-                return null;
-              })()}
-              
-              <form onSubmit={handleBankDetailsSubmit} className="bank-form">
+            
+            <div className="modal-body">
+              {bankLocked && (
+                <div className="warning-message">
+                  ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
+                  If you made a mistake, contact HR/support immediately.
+                </div>
+              )}
+
+              <form onSubmit={handleBankSubmit} className="bank-form">
                 <div className="form-group">
-                  <label htmlFor="bankRealName">Account Holder Name *</label>
+                  <label>Account Holder Name *</label>
                   <input
                     type="text"
-                    id="bankRealName"
-                    name="bankRealName"
+                    name="name"
+                    defaultValue={bankData.name}
                     placeholder="Enter your full name as per bank"
-                    defaultValue={bankDetails.name}
                     required
                     minLength="3"
+                    disabled={bankLocked}
                   />
                 </div>
-                
+
                 <div className="form-group">
-                  <label htmlFor="bankAccount">Bank Account Number *</label>
+                  <label>Bank Account Number *</label>
                   <input
                     type="text"
-                    id="bankAccount"
-                    name="bankAccount"
+                    name="account"
+                    defaultValue={bankData.bank_account}
                     placeholder="Enter 9-18 digit account number"
-                    defaultValue={bankDetails.bank_account}
                     required
                     pattern="[0-9]{9,18}"
+                    disabled={bankLocked}
                   />
                 </div>
-                
+
                 <div className="form-group">
-                  <label htmlFor="bankConfirmAccount">Confirm Account Number *</label>
+                  <label>Confirm Account Number *</label>
                   <input
                     type="text"
-                    id="bankConfirmAccount"
-                    name="bankConfirmAccount"
+                    name="confirmAccount"
+                    defaultValue={bankData.bank_account}
                     placeholder="Re-enter account number"
-                    defaultValue={bankDetails.bank_account}
                     required
                     pattern="[0-9]{9,18}"
+                    disabled={bankLocked}
                   />
                 </div>
-                
+
                 <div className="form-group">
-                  <label htmlFor="bankIFSC">IFSC Code *</label>
+                  <label>IFSC Code *</label>
                   <input
                     type="text"
-                    id="bankIFSC"
-                    name="bankIFSC"
+                    name="ifsc"
+                    defaultValue={bankData.bank_ifsc}
                     placeholder="E.g., SBIN0001234"
-                    defaultValue={bankDetails.bank_ifsc}
                     required
                     pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                    disabled={bankLocked}
                   />
                 </div>
-                
+
                 <div className="form-group">
-                  <label htmlFor="bankUPI">UPI ID (Optional)</label>
+                  <label>UPI ID (Optional)</label>
                   <input
                     type="text"
-                    id="bankUPI"
-                    name="bankUPI"
+                    name="upi"
+                    defaultValue={bankData.upi_id}
                     placeholder="E.g., username@upi"
-                    defaultValue={bankDetails.upi_id}
                     pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                    disabled={bankLocked}
                   />
                 </div>
 
@@ -563,75 +536,600 @@ function Mine() {
                   ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
                   Please verify all details before submitting. If you submit wrong details, contact HR to change.
                 </div>
-                
+
                 <div className="modal-actions">
-                  <button
-                    type="button"
-                    className="btn-cancel"
-                    onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}
-                  >
+                  <button type="button" className="btn-cancel" onClick={closeModal}>
                     Cancel
                   </button>
-                  <button
-                    type="submit"
-                    className="btn-submit"
-                  >
+                  <button type="submit" className="btn-submit" disabled={bankLocked}>
                     Save Bank Details
                   </button>
                 </div>
               </form>
             </div>
           </div>
-        </>
+        </div>
       )}
-      
+
       {/* Transaction History Modal */}
-      {modalOpen.transactions && (
-        <>
-          <div className="modal-overlay active" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}></div>
-          <div className="modal-container active">
+      {modal === 'transactions' && (
+        <div className="modal-overlay active" onClick={closeModal}>
+          <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Transaction History</h3>
-              <button className="modal-close-btn" onClick={() => setModalOpen({ withdraw: false, bank: false, transactions: false })}>&times;</button>
+              <button className="modal-close" onClick={closeModal}>&times;</button>
             </div>
-            <div className="modal-content transaction-history-modal">
+            
+            <div className="modal-body tx-modal-body">
               {transactions.length === 0 ? (
                 <div className="empty-state">
                   <p>No transactions found</p>
                 </div>
               ) : (
                 <div className="transactions-list">
-                  {transactions.map((tx, index) => (
-                    <div key={index} className="transaction-card">
-                      <div className="transaction-header">
-                        <div className="transaction-icon-type">
-                          <span className="transaction-icon">{getTypeIcon(tx.type)}</span>
-                          <div className={`transaction-type-badge ${tx.type}`}>
-                            {tx.displayType}
-                          </div>
+                  {transactions.map(tx => (
+                    <div key={tx.id} className="tx-card">
+                      <div className="tx-header">
+                        <div className="tx-icon-type">
+                          <span className="tx-icon">{tx.icon}</span>
+                          <span className="tx-type">{tx.type}</span>
                         </div>
-                        <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
+                        <div className={`tx-amount ${tx.color}`}>
                           {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
                         </div>
                       </div>
-                      
-                      <div className="transaction-details">
-                        <div className="transaction-date">
-                          {formatDate(tx.created_at)}
-                        </div>
-                        <div className={`transaction-status ${getStatusColor(tx.status)}`}>
+                      <div className="tx-details">
+                        <div className="tx-date">{formatDate(tx.date)}</div>
+                        <div className={`tx-status ${getStatusColor(tx.status)}`}>
                           {tx.status}
                         </div>
                       </div>
+                      {tx.description && (
+                        <div className="tx-description">{tx.description}</div>
+                      )}
                     </div>
                   ))}
                 </div>
               )}
             </div>
           </div>
-        </>
+        </div>
       )}
-    </>
+
+      <style jsx>{`
+        /* Basic Reset */
+        .mine-container {
+          min-height: 100vh;
+          background: #f5f5f5;
+        }
+        
+        /* Top Bar */
+        .top-bar {
+          background: #1e3c72;
+          color: white;
+          padding: 15px;
+          text-align: center;
+          font-weight: 600;
+          font-size: 18px;
+          position: relative;
+        }
+        
+        .header-back-btn {
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          color: white;
+          text-decoration: none;
+          font-size: 20px;
+        }
+        
+        /* Main Content */
+        .mine-content {
+          padding: 15px;
+          padding-bottom: 80px;
+        }
+        
+        /* Profile Card */
+        .profile-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 15px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+          display: flex;
+          align-items: center;
+        }
+        
+        .profile-avatar {
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, #1e3c72, #2a5298);
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 24px;
+          font-weight: bold;
+          margin-right: 15px;
+        }
+        
+        .profile-info {
+          flex: 1;
+        }
+        
+        .profile-name {
+          margin: 0 0 5px 0;
+          font-size: 18px;
+          color: #333;
+        }
+        
+        .profile-id {
+          font-size: 14px;
+          color: #666;
+          margin-bottom: 3px;
+          background: #f0f0f0;
+          padding: 3px 10px;
+          border-radius: 15px;
+          display: inline-block;
+          font-family: monospace;
+        }
+        
+        .profile-email {
+          font-size: 14px;
+          color: #888;
+        }
+        
+        /* Balance Card */
+        .balance-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          margin-bottom: 15px;
+          text-align: center;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .balance-label {
+          color: #666;
+          font-size: 14px;
+          margin-bottom: 8px;
+        }
+        
+        .balance-amount {
+          color: #1e3c72;
+          font-size: 36px;
+          font-weight: bold;
+          margin-bottom: 20px;
+        }
+        
+        .balance-actions {
+          display: flex;
+          gap: 15px;
+          justify-content: center;
+        }
+        
+        .btn-withdraw, .btn-recharge {
+          flex: 1;
+          max-width: 160px;
+          padding: 12px;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 8px;
+        }
+        
+        .btn-withdraw {
+          background: #1e3c72;
+          color: white;
+        }
+        
+        .btn-recharge {
+          background: #2e7d32;
+          color: white;
+        }
+        
+        .btn-icon {
+          font-size: 18px;
+        }
+        
+        /* Menu Card */
+        .menu-card {
+          background: white;
+          border-radius: 12px;
+          margin-bottom: 15px;
+          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .menu-item {
+          padding: 18px 20px;
+          display: flex;
+          align-items: center;
+          border-bottom: 1px solid #f0f0f0;
+          cursor: pointer;
+        }
+        
+        .menu-item:last-child {
+          border-bottom: none;
+        }
+        
+        .menu-item:hover {
+          background: #f9f9f9;
+        }
+        
+        .menu-icon {
+          font-size: 20px;
+          margin-right: 15px;
+          width: 24px;
+          text-align: center;
+        }
+        
+        .menu-text {
+          flex: 1;
+          font-size: 16px;
+          color: #333;
+        }
+        
+        .menu-arrow {
+          color: #999;
+          font-size: 18px;
+        }
+        
+        /* Logout Card */
+        .logout-card {
+          background: white;
+          border-radius: 12px;
+          padding: 20px;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .btn-logout {
+          width: 100%;
+          padding: 15px;
+          background: #dc3545;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        /* Bottom Navigation */
+        .bottom-nav {
+          position: fixed;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: white;
+          display: flex;
+          padding: 10px 0;
+          border-top: 1px solid #e0e0e0;
+          z-index: 100;
+        }
+        
+        .nav-item {
+          flex: 1;
+          text-align: center;
+          text-decoration: none;
+          color: #666;
+          font-size: 12px;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 5px;
+        }
+        
+        .nav-item.active {
+          color: #1e3c72;
+        }
+        
+        .nav-item i {
+          font-size: 20px;
+        }
+        
+        /* Modal Styles */
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0,0,0,0.5);
+          z-index: 1000;
+          display: none;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .modal-overlay.active {
+          display: flex;
+        }
+        
+        .modal-container {
+          background: white;
+          border-radius: 16px;
+          width: 90%;
+          max-width: 450px;
+          max-height: 85vh;
+          overflow: hidden;
+          display: none;
+        }
+        
+        .modal-container.active {
+          display: block;
+        }
+        
+        .modal-header {
+          background: linear-gradient(135deg, #1e3c72, #2a5298);
+          color: white;
+          padding: 20px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+        
+        .modal-header h3 {
+          margin: 0;
+          font-size: 18px;
+        }
+        
+        .modal-close {
+          background: none;
+          border: none;
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          padding: 0;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .modal-body {
+          padding: 20px;
+          max-height: calc(85vh - 70px);
+          overflow-y: auto;
+        }
+        
+        /* Withdraw Form */
+        .balance-display {
+          background: #e8f5e9;
+          padding: 15px;
+          border-radius: 10px;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+        
+        .balance-value {
+          font-size: 28px;
+          font-weight: bold;
+          color: #2e7d32;
+          display: block;
+          margin-top: 5px;
+        }
+        
+        .form-group {
+          margin-bottom: 20px;
+        }
+        
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          color: #555;
+          font-weight: 500;
+        }
+        
+        .amount-input {
+          position: relative;
+        }
+        
+        .amount-input .currency {
+          position: absolute;
+          left: 15px;
+          top: 50%;
+          transform: translateY(-50%);
+          font-size: 20px;
+          font-weight: bold;
+          color: #333;
+        }
+        
+        .amount-input input {
+          width: 100%;
+          padding: 15px 15px 15px 45px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+          font-size: 20px;
+          font-weight: bold;
+          text-align: right;
+          box-sizing: border-box;
+        }
+        
+        .calculation-box {
+          background: #f8f9fa;
+          padding: 15px;
+          border-radius: 10px;
+          margin-bottom: 20px;
+        }
+        
+        .calc-row {
+          display: flex;
+          justify-content: space-between;
+          padding: 8px 0;
+          border-bottom: 1px solid #eee;
+        }
+        
+        .calc-row:last-child {
+          border-bottom: none;
+        }
+        
+        .total-row {
+          border-top: 2px solid #ddd;
+          margin-top: 8px;
+          padding-top: 12px;
+          font-weight: bold;
+          font-size: 16px;
+        }
+        
+        .tds-amount {
+          color: #e67e22;
+        }
+        
+        .payout-amount {
+          color: #27ae60;
+          font-size: 18px;
+        }
+        
+        .modal-actions {
+          display: flex;
+          gap: 10px;
+        }
+        
+        .btn-cancel, .btn-submit {
+          flex: 1;
+          padding: 15px;
+          border: none;
+          border-radius: 10px;
+          font-size: 16px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+        
+        .btn-cancel {
+          background: #f5f5f5;
+          color: #666;
+        }
+        
+        .btn-submit {
+          background: #1e3c72;
+          color: white;
+        }
+        
+        .btn-submit:disabled {
+          background: #ccc;
+          cursor: not-allowed;
+        }
+        
+        /* Warning Message */
+        .warning-message {
+          background: #fff3e0;
+          border: 1px solid #ffcc80;
+          padding: 12px;
+          border-radius: 8px;
+          color: #e67e22;
+          font-size: 14px;
+          margin-bottom: 20px;
+          text-align: center;
+          line-height: 1.5;
+        }
+        
+        /* Transaction List */
+        .tx-modal-body {
+          padding: 10px;
+        }
+        
+        .tx-card {
+          background: white;
+          border: 1px solid #eee;
+          border-radius: 10px;
+          padding: 15px;
+          margin-bottom: 10px;
+        }
+        
+        .tx-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 10px;
+        }
+        
+        .tx-icon-type {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+        
+        .tx-icon {
+          font-size: 20px;
+        }
+        
+        .tx-type {
+          font-weight: 600;
+          text-transform: capitalize;
+        }
+        
+        .tx-amount {
+          font-size: 16px;
+          font-weight: bold;
+        }
+        
+        .tx-amount.green {
+          color: #27ae60;
+        }
+        
+        .tx-amount.red {
+          color: #e74c3c;
+        }
+        
+        .tx-details {
+          display: flex;
+          justify-content: space-between;
+          font-size: 12px;
+          color: #666;
+        }
+        
+        .tx-status {
+          padding: 3px 10px;
+          border-radius: 12px;
+          font-size: 11px;
+          font-weight: 600;
+          text-transform: uppercase;
+        }
+        
+        .status-completed {
+          background: #d5f4e6;
+          color: #27ae60;
+        }
+        
+        .status-pending {
+          background: #fff3e0;
+          color: #e67e22;
+        }
+        
+        .status-processing {
+          background: #e3f2fd;
+          color: #1e3c72;
+        }
+        
+        .status-failed {
+          background: #ffebee;
+          color: #c62828;
+        }
+        
+        .tx-description {
+          margin-top: 8px;
+          font-size: 13px;
+          color: #666;
+          padding-top: 8px;
+          border-top: 1px solid #f0f0f0;
+        }
+        
+        .empty-state {
+          text-align: center;
+          padding: 40px 20px;
+          color: #999;
+        }
+      `}</style>
+    </div>
   );
 }
 
