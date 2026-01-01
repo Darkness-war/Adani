@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import Sidebar from '../components/Layout/Sidebar'; // Add this import
 import '../styles/Mine.css';
 
 function Mine() {
@@ -452,104 +453,106 @@ function Mine() {
 
       {/* Bank Details Modal */}
       {modal === 'bank' && (
-        <div className="modal-overlay active" onClick={closeModal}>
-          <div className="modal-container active" onClick={e => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>Bank Account Details</h3>
-              <button className="modal-close" onClick={closeModal}>&times;</button>
+  <div className="modal-overlay active" onClick={closeModal}>
+    <div className="modal-container active bank-modal" onClick={e => e.stopPropagation()}>
+      <div className="modal-header">
+        <h3>Bank Account Details</h3>
+        <button className="modal-close" onClick={closeModal}>&times;</button>
+      </div>
+      
+      <div className="modal-body">
+        {bankLocked && (
+          <div className="warning-message">
+            ⚠️ <strong>Bank details are locked!</strong><br/>
+            If you made a mistake, contact HR/support to change details.
+          </div>
+        )}
+
+        <form onSubmit={handleBankSubmit} className="bank-form">
+          <div className="form-scrollable">
+            <div className="form-group">
+              <label>Account Holder Name *</label>
+              <input
+                type="text"
+                name="name"
+                defaultValue={bankData.name}
+                placeholder="Enter your full name as per bank"
+                required
+                minLength="3"
+                disabled={bankLocked}
+              />
             </div>
-            
-            <div className="modal-body">
-              {bankLocked && (
-                <div className="warning-message">
-                  ⚠️ <strong>Bank details are locked for 7 days!</strong><br/>
-                  If you made a mistake, contact HR/support immediately.
-                </div>
-              )}
 
-              <form onSubmit={handleBankSubmit} className="bank-form">
-                <div className="form-group">
-                  <label>Account Holder Name *</label>
-                  <input
-                    type="text"
-                    name="name"
-                    defaultValue={bankData.name}
-                    placeholder="Enter your full name as per bank"
-                    required
-                    minLength="3"
-                    disabled={bankLocked}
-                  />
-                </div>
+            <div className="form-group">
+              <label>Bank Account Number *</label>
+              <input
+                type="text"
+                name="account"
+                defaultValue={bankData.bank_account}
+                placeholder="Enter 9-18 digit account number"
+                required
+                pattern="[0-9]{9,18}"
+                disabled={bankLocked}
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>Bank Account Number *</label>
-                  <input
-                    type="text"
-                    name="account"
-                    defaultValue={bankData.bank_account}
-                    placeholder="Enter 9-18 digit account number"
-                    required
-                    pattern="[0-9]{9,18}"
-                    disabled={bankLocked}
-                  />
-                </div>
+            <div className="form-group">
+              <label>Confirm Account Number *</label>
+              <input
+                type="text"
+                name="confirmAccount"
+                defaultValue={bankData.bank_account}
+                placeholder="Re-enter account number"
+                required
+                pattern="[0-9]{9,18}"
+                disabled={bankLocked}
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>Confirm Account Number *</label>
-                  <input
-                    type="text"
-                    name="confirmAccount"
-                    defaultValue={bankData.bank_account}
-                    placeholder="Re-enter account number"
-                    required
-                    pattern="[0-9]{9,18}"
-                    disabled={bankLocked}
-                  />
-                </div>
+            <div className="form-group">
+              <label>IFSC Code *</label>
+              <input
+                type="text"
+                name="ifsc"
+                defaultValue={bankData.bank_ifsc}
+                placeholder="E.g., SBIN0001234"
+                required
+                pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                disabled={bankLocked}
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>IFSC Code *</label>
-                  <input
-                    type="text"
-                    name="ifsc"
-                    defaultValue={bankData.bank_ifsc}
-                    placeholder="E.g., SBIN0001234"
-                    required
-                    pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
-                    disabled={bankLocked}
-                  />
-                </div>
+            <div className="form-group">
+              <label>UPI ID (Optional)</label>
+              <input
+                type="text"
+                name="upi"
+                defaultValue={bankData.upi_id}
+                placeholder="E.g., username@upi"
+                pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                disabled={bankLocked}
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>UPI ID (Optional)</label>
-                  <input
-                    type="text"
-                    name="upi"
-                    defaultValue={bankData.upi_id}
-                    placeholder="E.g., username@upi"
-                    pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
-                    disabled={bankLocked}
-                  />
-                </div>
-
-                <div className="warning-message">
-                  ⚠️ <strong>Important:</strong> Bank details can only be updated once every 7 days.<br/>
-                  Please verify all details before submitting. If you submit wrong details, contact HR to change.
-                </div>
-
-                <div className="modal-actions">
-                  <button type="button" className="btn-cancel" onClick={closeModal}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-submit" disabled={bankLocked}>
-                    Save Bank Details
-                  </button>
-                </div>
-              </form>
+            <div className="info-message">
+              ⚠️ <strong>Important:</strong> Bank details are verified for security.<br/>
+              Please verify all details before submitting.
             </div>
           </div>
-        </div>
-      )}
+
+          <div className="modal-actions fixed-actions">
+            <button type="button" className="btn-cancel" onClick={closeModal}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-submit" disabled={bankLocked}>
+              Save Bank Details
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+)}
 
       {/* Transaction History Modal */}
       {modal === 'transactions' && (
