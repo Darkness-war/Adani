@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import Sidebar from '../components/Layout/Sidebar'; // Add this import
+import Sidebar from '../components/Layout/Sidebar';
 import '../styles/Mine.css';
 
 function Mine() {
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
   const [balance, setBalance] = useState(0);
-  const [modal, setModal] = useState(null); // 'withdraw', 'bank', 'transactions', null
+  const [modal, setModal] = useState(null);
   const [withdrawalAmount, setWithdrawalAmount] = useState('');
   const [transactions, setTransactions] = useState([]);
   const [bankData, setBankData] = useState({
@@ -17,6 +17,7 @@ function Mine() {
     upi_id: ''
   });
   const [bankLocked, setBankLocked] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     initialize();
@@ -51,7 +52,6 @@ function Mine() {
         setProfile(data);
         setBalance(data.balance || 0);
         
-        // Set bank data
         setBankData({
           name: data.name || '',
           bank_account: data.bank_account || '',
@@ -59,7 +59,6 @@ function Mine() {
           upi_id: data.upi_id || ''
         });
 
-        // Check if bank details are locked (7 days)
         if (data.bank_details_updated_at) {
           const updateDate = new Date(data.bank_details_updated_at);
           const daysSinceUpdate = (Date.now() - updateDate.getTime()) / (1000 * 60 * 60 * 24);
@@ -73,7 +72,6 @@ function Mine() {
 
   async function loadTransactions(userId) {
     try {
-      // Load regular transactions
       const { data: txData } = await supabase
         .from('transactions')
         .select('*')
@@ -81,7 +79,6 @@ function Mine() {
         .order('created_at', { ascending: false })
         .limit(20);
 
-      // Load withdrawal requests
       const { data: withdrawalData } = await supabase
         .from('withdrawal_requests')
         .select('*')
@@ -89,7 +86,6 @@ function Mine() {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Combine and format
       const allTx = [
         ...(txData || []).map(tx => ({
           id: tx.id,
@@ -156,7 +152,7 @@ function Mine() {
     if (!profile?.bank_account || !profile?.bank_ifsc) {
       alert('Please add bank details first');
       closeModal();
-      openBankModal();
+      setTimeout(() => openBankModal(), 300);
       return;
     }
 
@@ -164,7 +160,6 @@ function Mine() {
       const tds = amount * 0.18;
       const payout = amount - tds;
 
-      // Create withdrawal request
       const { error: withdrawError } = await supabase
         .from('withdrawal_requests')
         .insert({
@@ -181,7 +176,6 @@ function Mine() {
 
       if (withdrawError) throw withdrawError;
 
-      // Update balance
       const { error: balanceError } = await supabase
         .from('profiles')
         .update({ balance: balance - amount })
@@ -204,13 +198,11 @@ function Mine() {
     e.preventDefault();
     const formData = new FormData(e.target);
     
-    // Check if locked
     if (bankLocked) {
       alert('❌ Bank details are locked for 7 days. If you made a mistake, please contact HR/support.');
       return;
     }
 
-    // Validate account match
     const account = formData.get('account');
     const confirmAccount = formData.get('confirmAccount');
     
@@ -283,29 +275,31 @@ function Mine() {
     return `${id.slice(0, 8)}-${id.slice(-4)}`;
   };
 
-  // Calculate TDS and payout
   const tds = parseFloat(withdrawalAmount) * 0.18 || 0;
   const payout = parseFloat(withdrawalAmount) - tds || 0;
 
   return (
     <div className="mine-container">
+      {/* Sidebar */}
+      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      
       {/* Header */}
       <header className="top-bar">
-        <a href="/home" className="header-back-btn">
-          <i className="fas fa-arrow-left"></i>
-        </a>
+        <div className="sidebar-toggle" onClick={() => setIsSidebarOpen(true)}>
+          <i className="fas fa-bars"></i>
+        </div>
         My Account
       </header>
 
       {/* Main Content */}
-      <main className="mine-content">
+      <main className="mine-page">
         {/* Profile Card */}
-        <div className="profile-card">
+        <div className="profile-header-card">
           <div className="profile-avatar">
             {getDisplayName().charAt(0).toUpperCase()}
           </div>
           <div className="profile-info">
-            <h2 className="profile-name">{getDisplayName()}</h2>
+            <div className="profile-name">{getDisplayName()}</div>
             <div className="profile-id">ID: {getUserId()}</div>
             <div className="profile-email">{user?.email}</div>
           </div>
@@ -315,31 +309,31 @@ function Mine() {
         <div className="balance-card">
           <div className="balance-label">Available Balance</div>
           <div className="balance-amount">₹{balance.toFixed(2)}</div>
-          <div className="balance-actions">
-            <button className="btn-withdraw" onClick={openWithdrawModal}>
+          <div className="action-buttons">
+            <button className="action-btn withdraw-btn" onClick={openWithdrawModal}>
               <span className="btn-icon">💰</span> Withdraw
             </button>
-            <button className="btn-recharge" onClick={() => window.location.href = '/recharge'}>
+            <button className="action-btn recharge-btn" onClick={() => window.location.href = '/recharge'}>
               <span className="btn-icon">💳</span> Recharge
             </button>
           </div>
         </div>
 
-        {/* Menu Options */}
-        <div className="menu-card">
-          <div className="menu-item" onClick={openBankModal}>
-            <div className="menu-icon">🏦</div>
-            <div className="menu-text">Bank Account Details</div>
-            <div className="menu-arrow">&gt;</div>
-          </div>
+        {/* Options List */}
+        <div className="options-list-card">
+          <a className="option-item" onClick={openBankModal}>
+            <div className="option-icon">🏦</div>
+            <div className="option-text">Bank Account Details</div>
+            <div className="option-arrow">&gt;</div>
+          </a>
           
-          <div className="menu-item" onClick={openTxModal}>
-            <div className="menu-icon">📜</div>
-            <div className="menu-text">Transaction History</div>
-            <div className="menu-arrow">&gt;</div>
-          </div>
+          <a className="option-item" onClick={openTxModal}>
+            <div className="option-icon">📜</div>
+            <div className="option-text">Transaction History</div>
+            <div className="option-arrow">&gt;</div>
+          </a>
           
-          <div className="menu-item" onClick={() => {
+          <a className="option-item" onClick={() => {
             const newPass = prompt('Enter new password:');
             const confirmPass = prompt('Confirm new password:');
             if (newPass && newPass === confirmPass) {
@@ -348,15 +342,15 @@ function Mine() {
               alert('Passwords do not match!');
             }
           }}>
-            <div className="menu-icon">🔒</div>
-            <div className="menu-text">Change Password</div>
-            <div className="menu-arrow">&gt;</div>
-          </div>
+            <div className="option-icon">🔒</div>
+            <div className="option-text">Change Password</div>
+            <div className="option-arrow">&gt;</div>
+          </a>
         </div>
 
         {/* Logout Button */}
         <div className="logout-card">
-          <button className="btn-logout" onClick={async () => {
+          <button className="logout-btn" onClick={async () => {
             if (confirm('Are you sure you want to log out?')) {
               await supabase.auth.signOut();
               window.location.href = '/login';
@@ -391,13 +385,13 @@ function Mine() {
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Withdrawal Request</h3>
-              <button className="modal-close" onClick={closeModal}>&times;</button>
+              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-body">
+            <div className="modal-content">
               <div className="balance-display">
-                <span className="balance-label">Available Balance</span>
-                <span className="balance-value">₹{balance.toFixed(2)}</span>
+                <span className="modal-balance-label">Available Balance</span>
+                <span className="modal-balance-value">₹{balance.toFixed(2)}</span>
               </div>
 
               <form onSubmit={handleWithdrawalSubmit} className="withdraw-form">
@@ -418,16 +412,16 @@ function Mine() {
                   </div>
                 </div>
 
-                <div className="calculation-box">
-                  <div className="calc-row">
+                <div className="withdrawal-calculations">
+                  <div className="calculation-row">
                     <span>Withdrawal Amount</span>
                     <span>₹{parseFloat(withdrawalAmount || 0).toFixed(2)}</span>
                   </div>
-                  <div className="calc-row">
+                  <div className="calculation-row">
                     <span>TDS (18%)</span>
                     <span className="tds-amount">- ₹{tds.toFixed(2)}</span>
                   </div>
-                  <div className="calc-row total-row">
+                  <div className="calculation-row total">
                     <span>You Will Receive</span>
                     <span className="payout-amount">₹{payout.toFixed(2)}</span>
                   </div>
@@ -453,106 +447,106 @@ function Mine() {
 
       {/* Bank Details Modal */}
       {modal === 'bank' && (
-  <div className="modal-overlay active" onClick={closeModal}>
-    <div className="modal-container active bank-modal" onClick={e => e.stopPropagation()}>
-      <div className="modal-header">
-        <h3>Bank Account Details</h3>
-        <button className="modal-close" onClick={closeModal}>&times;</button>
-      </div>
-      
-      <div className="modal-body">
-        {bankLocked && (
-          <div className="warning-message">
-            ⚠️ <strong>Bank details are locked!</strong><br/>
-            If you made a mistake, contact HR/support to change details.
+        <div className="modal-overlay active" onClick={closeModal}>
+          <div className="modal-container active" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Bank Account Details</h3>
+              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
+            </div>
+            
+            <div className="modal-content">
+              {bankLocked && (
+                <div className="warning-message">
+                  ⚠️ <strong>Bank details are locked!</strong><br/>
+                  If you made a mistake, contact HR/support to change details.
+                </div>
+              )}
+
+              <form onSubmit={handleBankSubmit} className="bank-form">
+                <div className="form-scrollable">
+                  <div className="form-group">
+                    <label>Account Holder Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      defaultValue={bankData.name}
+                      placeholder="Enter your full name as per bank"
+                      required
+                      minLength="3"
+                      disabled={bankLocked}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Bank Account Number *</label>
+                    <input
+                      type="text"
+                      name="account"
+                      defaultValue={bankData.bank_account}
+                      placeholder="Enter 9-18 digit account number"
+                      required
+                      pattern="[0-9]{9,18}"
+                      disabled={bankLocked}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Confirm Account Number *</label>
+                    <input
+                      type="text"
+                      name="confirmAccount"
+                      defaultValue={bankData.bank_account}
+                      placeholder="Re-enter account number"
+                      required
+                      pattern="[0-9]{9,18}"
+                      disabled={bankLocked}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>IFSC Code *</label>
+                    <input
+                      type="text"
+                      name="ifsc"
+                      defaultValue={bankData.bank_ifsc}
+                      placeholder="E.g., SBIN0001234"
+                      required
+                      pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
+                      disabled={bankLocked}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>UPI ID (Optional)</label>
+                    <input
+                      type="text"
+                      name="upi"
+                      defaultValue={bankData.upi_id}
+                      placeholder="E.g., username@upi"
+                      pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
+                      disabled={bankLocked}
+                    />
+                  </div>
+
+                  <div className="info-message">
+                    ⚠️ <strong>Important:</strong> Bank details are verified for security.<br/>
+                    Please verify all details before submitting.
+                  </div>
+                </div>
+
+                <div className="modal-actions">
+                  <button type="button" className="btn-cancel" onClick={closeModal}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn-submit" disabled={bankLocked}>
+                    Save Bank Details
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
-        )}
-
-        <form onSubmit={handleBankSubmit} className="bank-form">
-          <div className="form-scrollable">
-            <div className="form-group">
-              <label>Account Holder Name *</label>
-              <input
-                type="text"
-                name="name"
-                defaultValue={bankData.name}
-                placeholder="Enter your full name as per bank"
-                required
-                minLength="3"
-                disabled={bankLocked}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Bank Account Number *</label>
-              <input
-                type="text"
-                name="account"
-                defaultValue={bankData.bank_account}
-                placeholder="Enter 9-18 digit account number"
-                required
-                pattern="[0-9]{9,18}"
-                disabled={bankLocked}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>Confirm Account Number *</label>
-              <input
-                type="text"
-                name="confirmAccount"
-                defaultValue={bankData.bank_account}
-                placeholder="Re-enter account number"
-                required
-                pattern="[0-9]{9,18}"
-                disabled={bankLocked}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>IFSC Code *</label>
-              <input
-                type="text"
-                name="ifsc"
-                defaultValue={bankData.bank_ifsc}
-                placeholder="E.g., SBIN0001234"
-                required
-                pattern="[A-Za-z]{4}0[A-Z0-9]{6}"
-                disabled={bankLocked}
-              />
-            </div>
-
-            <div className="form-group">
-              <label>UPI ID (Optional)</label>
-              <input
-                type="text"
-                name="upi"
-                defaultValue={bankData.upi_id}
-                placeholder="E.g., username@upi"
-                pattern="[a-zA-Z0-9.\-_]{2,256}@[a-zA-Z]{2,64}"
-                disabled={bankLocked}
-              />
-            </div>
-
-            <div className="info-message">
-              ⚠️ <strong>Important:</strong> Bank details are verified for security.<br/>
-              Please verify all details before submitting.
-            </div>
-          </div>
-
-          <div className="modal-actions fixed-actions">
-            <button type="button" className="btn-cancel" onClick={closeModal}>
-              Cancel
-            </button>
-            <button type="submit" className="btn-submit" disabled={bankLocked}>
-              Save Bank Details
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-)}
+        </div>
+      )}
 
       {/* Transaction History Modal */}
       {modal === 'transactions' && (
@@ -560,10 +554,10 @@ function Mine() {
           <div className="modal-container active" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <h3>Transaction History</h3>
-              <button className="modal-close" onClick={closeModal}>&times;</button>
+              <button className="modal-close-btn" onClick={closeModal}>&times;</button>
             </div>
             
-            <div className="modal-body tx-modal-body">
+            <div className="modal-content transaction-history-modal">
               {transactions.length === 0 ? (
                 <div className="empty-state">
                   <p>No transactions found</p>
@@ -571,24 +565,26 @@ function Mine() {
               ) : (
                 <div className="transactions-list">
                   {transactions.map(tx => (
-                    <div key={tx.id} className="tx-card">
-                      <div className="tx-header">
-                        <div className="tx-icon-type">
-                          <span className="tx-icon">{tx.icon}</span>
-                          <span className="tx-type">{tx.type}</span>
+                    <div key={tx.id} className="transaction-card">
+                      <div className="transaction-header">
+                        <div className="transaction-icon-type">
+                          <span className="transaction-icon">{tx.icon}</span>
+                          <span className={`transaction-type-badge ${tx.type}`}>
+                            {tx.type}
+                          </span>
                         </div>
-                        <div className={`tx-amount ${tx.color}`}>
+                        <div className={`transaction-amount ${tx.amount >= 0 ? 'positive' : 'negative'}`}>
                           {tx.amount >= 0 ? '+' : ''}₹{Math.abs(tx.amount).toFixed(2)}
                         </div>
                       </div>
-                      <div className="tx-details">
-                        <div className="tx-date">{formatDate(tx.date)}</div>
-                        <div className={`tx-status ${getStatusColor(tx.status)}`}>
+                      <div className="transaction-details">
+                        <div className="transaction-date">{formatDate(tx.date)}</div>
+                        <div className={`transaction-status ${getStatusColor(tx.status)}`}>
                           {tx.status}
                         </div>
                       </div>
                       {tx.description && (
-                        <div className="tx-description">{tx.description}</div>
+                        <div className="transaction-description">{tx.description}</div>
                       )}
                     </div>
                   ))}
@@ -598,540 +594,6 @@ function Mine() {
           </div>
         </div>
       )}
-
-      <style jsx>{`
-        /* Basic Reset */
-        .mine-container {
-          min-height: 100vh;
-          background: #f5f5f5;
-        }
-        
-        /* Top Bar */
-        .top-bar {
-          background: #1e3c72;
-          color: white;
-          padding: 15px;
-          text-align: center;
-          font-weight: 600;
-          font-size: 18px;
-          position: relative;
-        }
-        
-        .header-back-btn {
-          position: absolute;
-          left: 15px;
-          top: 50%;
-          transform: translateY(-50%);
-          color: white;
-          text-decoration: none;
-          font-size: 20px;
-        }
-        
-        /* Main Content */
-        .mine-content {
-          padding: 15px;
-          padding-bottom: 80px;
-        }
-        
-        /* Profile Card */
-        .profile-card {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 15px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-          display: flex;
-          align-items: center;
-        }
-        
-        .profile-avatar {
-          width: 60px;
-          height: 60px;
-          background: linear-gradient(135deg, #1e3c72, #2a5298);
-          color: white;
-          border-radius: 50%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          font-size: 24px;
-          font-weight: bold;
-          margin-right: 15px;
-        }
-        
-        .profile-info {
-          flex: 1;
-        }
-        
-        .profile-name {
-          margin: 0 0 5px 0;
-          font-size: 18px;
-          color: #333;
-        }
-        
-        .profile-id {
-          font-size: 14px;
-          color: #666;
-          margin-bottom: 3px;
-          background: #f0f0f0;
-          padding: 3px 10px;
-          border-radius: 15px;
-          display: inline-block;
-          font-family: monospace;
-        }
-        
-        .profile-email {
-          font-size: 14px;
-          color: #888;
-        }
-        
-        /* Balance Card */
-        .balance-card {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          margin-bottom: 15px;
-          text-align: center;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .balance-label {
-          color: #666;
-          font-size: 14px;
-          margin-bottom: 8px;
-        }
-        
-        .balance-amount {
-          color: #1e3c72;
-          font-size: 36px;
-          font-weight: bold;
-          margin-bottom: 20px;
-        }
-        
-        .balance-actions {
-          display: flex;
-          gap: 15px;
-          justify-content: center;
-        }
-        
-        .btn-withdraw, .btn-recharge {
-          flex: 1;
-          max-width: 160px;
-          padding: 12px;
-          border: none;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-        }
-        
-        .btn-withdraw {
-          background: #1e3c72;
-          color: white;
-        }
-        
-        .btn-recharge {
-          background: #2e7d32;
-          color: white;
-        }
-        
-        .btn-icon {
-          font-size: 18px;
-        }
-        
-        /* Menu Card */
-        .menu-card {
-          background: white;
-          border-radius: 12px;
-          margin-bottom: 15px;
-          overflow: hidden;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .menu-item {
-          padding: 18px 20px;
-          display: flex;
-          align-items: center;
-          border-bottom: 1px solid #f0f0f0;
-          cursor: pointer;
-        }
-        
-        .menu-item:last-child {
-          border-bottom: none;
-        }
-        
-        .menu-item:hover {
-          background: #f9f9f9;
-        }
-        
-        .menu-icon {
-          font-size: 20px;
-          margin-right: 15px;
-          width: 24px;
-          text-align: center;
-        }
-        
-        .menu-text {
-          flex: 1;
-          font-size: 16px;
-          color: #333;
-        }
-        
-        .menu-arrow {
-          color: #999;
-          font-size: 18px;
-        }
-        
-        /* Logout Card */
-        .logout-card {
-          background: white;
-          border-radius: 12px;
-          padding: 20px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-        }
-        
-        .btn-logout {
-          width: 100%;
-          padding: 15px;
-          background: #dc3545;
-          color: white;
-          border: none;
-          border-radius: 8px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-        
-        /* Bottom Navigation */
-        .bottom-nav {
-          position: fixed;
-          bottom: 0;
-          left: 0;
-          right: 0;
-          background: white;
-          display: flex;
-          padding: 10px 0;
-          border-top: 1px solid #e0e0e0;
-          z-index: 100;
-        }
-        
-        .nav-item {
-          flex: 1;
-          text-align: center;
-          text-decoration: none;
-          color: #666;
-          font-size: 12px;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          gap: 5px;
-        }
-        
-        .nav-item.active {
-          color: #1e3c72;
-        }
-        
-        .nav-item i {
-          font-size: 20px;
-        }
-        
-        /* Modal Styles */
-        .modal-overlay {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: rgba(0,0,0,0.5);
-          z-index: 1000;
-          display: none;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .modal-overlay.active {
-          display: flex;
-        }
-        
-        .modal-container {
-          background: white;
-          border-radius: 16px;
-          width: 90%;
-          max-width: 450px;
-          max-height: 85vh;
-          overflow: hidden;
-          display: none;
-        }
-        
-        .modal-container.active {
-          display: block;
-        }
-        
-        .modal-header {
-          background: linear-gradient(135deg, #1e3c72, #2a5298);
-          color: white;
-          padding: 20px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-        }
-        
-        .modal-header h3 {
-          margin: 0;
-          font-size: 18px;
-        }
-        
-        .modal-close {
-          background: none;
-          border: none;
-          color: white;
-          font-size: 24px;
-          cursor: pointer;
-          padding: 0;
-          width: 30px;
-          height: 30px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        
-        .modal-body {
-          padding: 20px;
-          max-height: calc(85vh - 70px);
-          overflow-y: auto;
-        }
-        
-        /* Withdraw Form */
-        .balance-display {
-          background: #e8f5e9;
-          padding: 15px;
-          border-radius: 10px;
-          text-align: center;
-          margin-bottom: 20px;
-        }
-        
-        .balance-value {
-          font-size: 28px;
-          font-weight: bold;
-          color: #2e7d32;
-          display: block;
-          margin-top: 5px;
-        }
-        
-        .form-group {
-          margin-bottom: 20px;
-        }
-        
-        .form-group label {
-          display: block;
-          margin-bottom: 8px;
-          color: #555;
-          font-weight: 500;
-        }
-        
-        .amount-input {
-          position: relative;
-        }
-        
-        .amount-input .currency {
-          position: absolute;
-          left: 15px;
-          top: 50%;
-          transform: translateY(-50%);
-          font-size: 20px;
-          font-weight: bold;
-          color: #333;
-        }
-        
-        .amount-input input {
-          width: 100%;
-          padding: 15px 15px 15px 45px;
-          border: 1px solid #ddd;
-          border-radius: 10px;
-          font-size: 20px;
-          font-weight: bold;
-          text-align: right;
-          box-sizing: border-box;
-        }
-        
-        .calculation-box {
-          background: #f8f9fa;
-          padding: 15px;
-          border-radius: 10px;
-          margin-bottom: 20px;
-        }
-        
-        .calc-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid #eee;
-        }
-        
-        .calc-row:last-child {
-          border-bottom: none;
-        }
-        
-        .total-row {
-          border-top: 2px solid #ddd;
-          margin-top: 8px;
-          padding-top: 12px;
-          font-weight: bold;
-          font-size: 16px;
-        }
-        
-        .tds-amount {
-          color: #e67e22;
-        }
-        
-        .payout-amount {
-          color: #27ae60;
-          font-size: 18px;
-        }
-        
-        .modal-actions {
-          display: flex;
-          gap: 10px;
-        }
-        
-        .btn-cancel, .btn-submit {
-          flex: 1;
-          padding: 15px;
-          border: none;
-          border-radius: 10px;
-          font-size: 16px;
-          font-weight: 600;
-          cursor: pointer;
-        }
-        
-        .btn-cancel {
-          background: #f5f5f5;
-          color: #666;
-        }
-        
-        .btn-submit {
-          background: #1e3c72;
-          color: white;
-        }
-        
-        .btn-submit:disabled {
-          background: #ccc;
-          cursor: not-allowed;
-        }
-        
-        /* Warning Message */
-        .warning-message {
-          background: #fff3e0;
-          border: 1px solid #ffcc80;
-          padding: 12px;
-          border-radius: 8px;
-          color: #e67e22;
-          font-size: 14px;
-          margin-bottom: 20px;
-          text-align: center;
-          line-height: 1.5;
-        }
-        
-        /* Transaction List */
-        .tx-modal-body {
-          padding: 10px;
-        }
-        
-        .tx-card {
-          background: white;
-          border: 1px solid #eee;
-          border-radius: 10px;
-          padding: 15px;
-          margin-bottom: 10px;
-        }
-        
-        .tx-header {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 10px;
-        }
-        
-        .tx-icon-type {
-          display: flex;
-          align-items: center;
-          gap: 10px;
-        }
-        
-        .tx-icon {
-          font-size: 20px;
-        }
-        
-        .tx-type {
-          font-weight: 600;
-          text-transform: capitalize;
-        }
-        
-        .tx-amount {
-          font-size: 16px;
-          font-weight: bold;
-        }
-        
-        .tx-amount.green {
-          color: #27ae60;
-        }
-        
-        .tx-amount.red {
-          color: #e74c3c;
-        }
-        
-        .tx-details {
-          display: flex;
-          justify-content: space-between;
-          font-size: 12px;
-          color: #666;
-        }
-        
-        .tx-status {
-          padding: 3px 10px;
-          border-radius: 12px;
-          font-size: 11px;
-          font-weight: 600;
-          text-transform: uppercase;
-        }
-        
-        .status-completed {
-          background: #d5f4e6;
-          color: #27ae60;
-        }
-        
-        .status-pending {
-          background: #fff3e0;
-          color: #e67e22;
-        }
-        
-        .status-processing {
-          background: #e3f2fd;
-          color: #1e3c72;
-        }
-        
-        .status-failed {
-          background: #ffebee;
-          color: #c62828;
-        }
-        
-        .tx-description {
-          margin-top: 8px;
-          font-size: 13px;
-          color: #666;
-          padding-top: 8px;
-          border-top: 1px solid #f0f0f0;
-        }
-        
-        .empty-state {
-          text-align: center;
-          padding: 40px 20px;
-          color: #999;
-        }
-      `}</style>
     </div>
   );
 }
