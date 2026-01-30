@@ -1,0 +1,107 @@
+/* =========================================================
+   FILE: reset.css
+   PATH: assets/css/core/reset.css
+
+   PURPOSE:
+   - Consistent base across browsers
+   - Mobile-first reset
+   - App-like behavior (not website feel)
+========================================================= */
+
+/* Box sizing reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* HTML & body */
+html {
+  width: 100%;
+  height: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  min-height: 100%;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  background-color: #0b0f1a;
+  color: #e5e7eb;
+  line-height: 1.5;
+}
+
+/* Remove default styles */
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* Form elements */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+button {
+  cursor: pointer;
+}
+
+/* Prevent iOS tap highlight */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 600;
+}
+
+/* Paragraph */
+p {
+  line-height: 1.6;
+}
+
+/* Root app wrapper */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Prevent text selection on UI controls */
+button,
+nav,
+header {
+  user-select: none;
+}
