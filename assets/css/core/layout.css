@@ -1,0 +1,182 @@
+/* =========================================================
+   FILE: layout.css
+   PATH: assets/css/core/layout.css
+
+   PURPOSE:
+   - App-like layout system
+   - Mobile-first (Option D)
+   - Shared UI: top bar, bottom nav, cards
+   - Makes site feel like native app
+========================================================= */
+
+/* ================= APP CONTAINER ================= */
+
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-family-base);
+}
+
+/* Root wrapper for every page */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 64px; /* space for bottom nav */
+}
+
+/* ================= TOP BAR ================= */
+
+.app-header {
+  height: 56px;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-soft);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+}
+
+.app-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+.app-header .icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-card);
+}
+
+/* ================= MAIN CONTENT ================= */
+
+.app-content {
+  flex: 1;
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* ================= CARD SYSTEM ================= */
+
+.card {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border-soft);
+}
+
+.card-title {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--space-2);
+}
+
+.card-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+/* ================= BUTTONS ================= */
+
+.btn {
+  height: 44px;
+  border-radius: var(--radius-md);
+  padding: 0 var(--space-4);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  transition: var(--transition-fast);
+}
+
+.btn-primary {
+  background: var(--color-accent-primary);
+  color: #ffffff;
+}
+
+.btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-outline {
+  border: 1px solid var(--color-border-strong);
+  color: var(--color-text-primary);
+}
+
+/* ================= FORM ELEMENTS ================= */
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.input-group label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+
+.input-group input {
+  height: 44px;
+  padding: 0 var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-soft);
+  color: var(--color-text-primary);
+}
+
+/* ================= BOTTOM NAV (MOBILE APP FEEL) ================= */
+
+.bottom-nav {
+  height: 64px;
+  width: 100%;
+  background: var(--color-bg-secondary);
+  border-top: 1px solid var(--color-border-soft);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-bottom-nav);
+}
+
+.bottom-nav a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+
+.bottom-nav a.active {
+  color: var(--color-accent-primary);
+}
+
+/* ================= DESKTOP ADAPTATION ================= */
+
+@media (min-width: 768px) {
+  .app {
+    padding-bottom: 0;
+  }
+
+  .bottom-nav {
+    display: none;
+  }
+
+  .app-content {
+    max-width: 960px;
+    margin: 0 auto;
+  }
+}
