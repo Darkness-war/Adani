@@ -11,9 +11,9 @@
 /* ================= SUPABASE CONFIG ================= */
 /* PUBLIC KEYS — SAFE BY DESIGN (SECURITY VIA RLS) */
 
-const SUPABASE_URL = "https://zrufavpxsnootmvwybye.supabase.co";
+const SUPABASE_URL = "https://atcfrcolbuikjnsoujzw.supabase.co";
 const SUPABASE_ANON_KEY =
-  "sb_publishable_EvHDWxi1BcEjcv_UnycVIQ_3T-V_A5s";
+  "sb_publishable_mUDZkzcq09gllPPjkG8pGQ_k6APV_gv";
 
 /* =========================================================
    SUPABASE CLIENT INITIALIZATION
