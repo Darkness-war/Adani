@@ -1,0 +1,99 @@
+/* =========================================================
+   FILE: variables.css
+   PATH: assets/css/core/variables.css
+
+   PURPOSE:
+   - Global design system
+   - Mobile-first app theme
+   - Single source of truth for UI
+========================================================= */
+
+:root {
+  /* =======================================================
+     COLOR SYSTEM (DARK APP THEME)
+  ======================================================= */
+
+  --color-bg-primary: #0b0f1a;
+  --color-bg-secondary: #12182b;
+  --color-bg-card: #161d3a;
+
+  --color-border-soft: #1f2a48;
+  --color-border-strong: #2a3560;
+
+  --color-text-primary: #e5e7eb;
+  --color-text-secondary: #a5b4fc;
+  --color-text-muted: #94a3b8;
+
+  --color-accent-primary: #6366f1;
+  --color-accent-secondary: #22c55e;
+  --color-accent-danger: #ef4444;
+  --color-accent-warning: #f59e0b;
+
+  /* =======================================================
+     TYPOGRAPHY
+  ======================================================= */
+
+  --font-family-base: system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue",
+    sans-serif;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-xxl: 28px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* =======================================================
+     SPACING (8px SYSTEM)
+  ======================================================= */
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+
+  /* =======================================================
+     RADIUS
+  ======================================================= */
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 999px;
+
+  /* =======================================================
+     SHADOWS (SUBTLE, APP-LIKE)
+  ======================================================= */
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.45);
+
+  /* =======================================================
+     TRANSITIONS
+  ======================================================= */
+
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.4s ease;
+
+  /* =======================================================
+     Z-INDEX SYSTEM
+  ======================================================= */
+
+  --z-header: 100;
+  --z-bottom-nav: 90;
+  --z-modal: 200;
+  --z-toast: 300;
+}
