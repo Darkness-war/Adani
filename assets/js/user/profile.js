@@ -1,50 +1,40 @@
-/* =========================================================
-   FILE: profile.js
-   PATH: assets/js/user/profile.js
+requireAuth();
 
-   PURPOSE:
-   - Protect profile route
-   - Load user profile data
-   - Update full name securely
-========================================================= */
+(async function () {
+  const user = await getUser();
+  if (!user) return;
 
-(function () {
-  window.requireUser().then(function (user) {
-    if (!user) return;
-    loadProfile(user);
-  });
+  document.getElementById("emailText").innerText = user.email;
+  document.getElementById("fullName").value =
+    user.user_metadata?.full_name || "";
 
-  async function loadProfile(user) {
-    const nameInput = document.getElementById("fullName");
-    const emailInput = document.getElementById("email");
-
-    nameInput.value = user.user_metadata?.full_name || "";
-    emailInput.value = user.email;
-  }
+  document.getElementById("avatarInitial").innerText =
+    (user.user_metadata?.full_name || user.email)[0].toUpperCase();
 
   const form = document.getElementById("profileForm");
   const msg = document.getElementById("profileMsg");
 
-  form.addEventListener("submit", async function (e) {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    msg.textContent = "";
+    msg.innerText = "";
 
     const fullName = document.getElementById("fullName").value.trim();
+    const phone = document.getElementById("phone").value.trim();
 
-    if (!fullName) {
-      msg.textContent = "Name cannot be empty";
-      return;
-    }
-
-    const { error } = await window.supabaseClient.auth.updateUser({
-      data: { full_name: fullName }
+    const { error } = await supabaseClient.auth.updateUser({
+      data: {
+        full_name: fullName,
+        phone: phone
+      }
     });
 
     if (error) {
-      msg.textContent = error.message || "Update failed";
+      msg.innerText = error.message;
+      msg.style.color = "red";
       return;
     }
 
-    msg.textContent = "Profile updated successfully";
+    msg.innerText = "Profile updated successfully";
+    msg.style.color = "green";
   });
 })();
