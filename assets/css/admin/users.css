@@ -1,0 +1,40 @@
+/* =========================================================
+   FILE: users.css
+   PATH: assets/css/admin/users.css
+
+   PURPOSE:
+   - Admin users list styling
+   - Mobile-first app UI
+   - Clear readable user rows
+========================================================= */
+
+/* User list rows */
+#userList li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* Last row */
+#userList li:last-child {
+  border-bottom: none;
+}
+
+/* User email emphasis */
+.user-email {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+}
+
+/* User role badge */
+.user-role {
+  font-size: var(--font-size-xs);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border-soft);
+}
