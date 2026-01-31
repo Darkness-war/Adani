@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="/assets/css/core/reset.css" />
+  <link rel="stylesheet" href="/assets/css/core/variables.css" />
+  <link rel="stylesheet" href="/assets/css/core/layout.css" />
+
+  <!-- User CSS -->
+  <link rel="stylesheet" href="/assets/css/user/wallet.css" />
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Core JS -->
+  <script src="/assets/js/core/supabase.js"></script>
+  <script src="/assets/js/core/auth.js"></script>
+  <script src="/assets/js/core/route-guard.js"></script>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- Top Bar -->
+    <header class="app-header">
+      <div class="app-title">Wallet</div>
+      <button class="icon-btn" onclick="signOut()">⎋</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-content">
+
+      <!-- Balance Card -->
+      <div class="card">
+        <div class="card-title">Current Balance</div>
+        <h2 id="walletBalance" style="margin-top: 12px;">₹0.00</h2>
+      </div>
+
+      <!-- Actions -->
+      <div class="card">
+        <div class="card-title">Wallet Actions</div>
+
+        <form id="depositForm" style="margin-top: 12px; display: flex; gap: 8px;">
+          <input
+            type="number"
+            id="depositAmount"
+            placeholder="Deposit amount"
+            style="flex: 1;"
+            min="1"
+            required
+          />
+          <button type="submit" class="btn btn-primary">Deposit</button>
+        </form>
+
+        <form id="withdrawForm" style="margin-top: 12px; display: flex; gap: 8px;">
+          <input
+            type="number"
+            id="withdrawAmount"
+            placeholder="Withdraw amount"
+            style="flex: 1;"
+            min="1"
+            required
+          />
+          <button type="submit" class="btn btn-outline">Withdraw</button>
+        </form>
+
+        <p id="walletMsg" style="margin-top: 12px; font-size: 14px;"></p>
+      </div>
+
+      <!-- Transactions -->
+      <div class="card">
+        <div class="card-title">Recent Transactions</div>
+        <ul id="walletTransactions" style="margin-top: 12px; font-size: 14px;">
+          <li>Loading...</li>
+        </ul>
+      </div>
+
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <a href="/pages/user/dashboard.html">Home</a>
+      <a href="/pages/user/wallet.html" class="active">Wallet</a>
+      <a href="/pages/user/investments.html">Invest</a>
+      <a href="/pages/user/profile.html">Profile</a>
+    </nav>
+
+  </div>
+
+  <!-- Page JS -->
+  <script src="/assets/js/user/wallet.js"></script>
+
+</body>
+</html>
