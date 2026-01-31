@@ -1,101 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | FinTrack</title>
+  <meta charset="UTF-8" />
+  <title>User Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Fonts & Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/apexcharts@3.35.0/dist/apexcharts.css">
+  <!-- CORE -->
+  <link rel="stylesheet" href="/assets/css/core/reset.css" />
+  <link rel="stylesheet" href="/assets/css/core/variables.css" />
+  <link rel="stylesheet" href="/assets/css/core/layout.css" />
 
-    <!-- Custom CSS -->
-    <link rel="stylesheet" href="Dashboard.css">
+  <!-- PAGE -->
+  <link rel="stylesheet" href="/assets/css/user/dashboard.css" />
+
+  <!-- SUPABASE -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="/assets/js/core/supabase.js"></script>
+  <script src="/assets/js/core/auth.js"></script>
 </head>
+
 <body>
+<div class="app-layout">
 
-<div class="dashboard-container">
+  <!-- SIDEBAR (COMMON) -->
+  <aside class="sidebar">
+    <div class="logo">InvestSafe</div>
+    <nav>
+      <a class="active">Dashboard</a>
+      <a href="wallet.html">Wallet</a>
+      <a href="investments.html">Plans</a>
+      <a href="refer.html">Refer</a>
+      <a href="profile.html">Profile</a>
+    </nav>
+  </aside>
 
-    <!-- Desktop Sidebar -->
-    <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-            <div class="logo">
-                <div class="logo-icon">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <span>FinTrack</span>
-            </div>
+  <!-- MAIN -->
+  <main class="dashboard">
+
+    <!-- BANNER -->
+    <section class="dashboard-banner">
+      <div>
+        <h1>Welcome Back</h1>
+        <p>Your total balance</p>
+        <h2 id="balance">₹0</h2>
+      </div>
+      <button class="primary-btn">Recharge Now</button>
+    </section>
+
+    <!-- PLANS -->
+    <section class="section">
+      <h3>Available Plans</h3>
+
+      <div class="plan-grid">
+        <div class="plan-card">
+          <span class="badge">Primary</span>
+          <h4>₹1,000</h4>
+          <p>Daily 2% • 30 Days</p>
+          <button>Buy Plan</button>
         </div>
 
-        <nav class="nav-menu">
-            <a href="#" class="nav-item active">
-                <i class="fas fa-home"></i>
-                <span>Dashboard</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-wallet"></i>
-                <span>Wallet</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Transactions</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-chart-pie"></i>
-                <span>Investments</span>
-            </a>
-            <a href="#" class="nav-item">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
-            </a>
-        </nav>
-
-        <div class="sidebar-footer">
-            <div class="user-profile">
-                <div class="avatar">A</div>
-                <div class="user-info">
-                    <h4>Admin User</h4>
-                    <p>Premium</p>
-                </div>
-            </div>
+        <div class="plan-card">
+          <span class="badge">Secondary</span>
+          <h4>₹5,000</h4>
+          <p>Daily 3% • 45 Days</p>
+          <button>Buy Plan</button>
         </div>
-    </aside>
 
-    <!-- Main Content -->
-    <main class="main-content">
+        <div class="plan-card vip">
+          <span class="badge vip">VIP</span>
+          <h4>₹10,000</h4>
+          <p>Daily 5% • 60 Days</p>
+          <button>Buy VIP</button>
+        </div>
+      </div>
+    </section>
 
-        <!-- Header -->
-        <header class="main-header">
-            <div class="page-title">
-                <h1>Dashboard</h1>
-                <p>Overview of your financial performance</p>
-            </div>
+    <!-- MY PLANS -->
+    <section class="section">
+      <h3>My Active Plans</h3>
+      <div class="my-plan">
+        <span>Primary Plan</span>
+        <span class="status active">Active</span>
+      </div>
+    </section>
 
-            <div class="header-actions">
-                <button class="notification-btn">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge"></span>
-                </button>
-
-                <button class="add-funds-btn">
-                    <i class="fas fa-plus"></i>
-                    <span>Add Funds</span>
-                </button>
-            </div>
-        </header>
-
-        <!-- (Remaining dashboard HTML remains SAME as your original) -->
-        <!-- Summary Cards, Charts, Transactions etc. -->
-        <!-- No structure changed -->
-        
-    </main>
+  </main>
 </div>
 
-<!-- ApexCharts -->
-<script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-
-<!-- Custom JS -->
-<script src="Dashboard.js"></script>
+<script src="/assets/js/user/dashboard.js"></script>
 </body>
 </html>
