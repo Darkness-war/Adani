@@ -1,19 +1,100 @@
-/* =========================================================
-   FILE: profile.css
-   PATH: assets/css/user/profile.css
-
-   PURPOSE:
-   - Profile page styling
-   - Mobile-first app UI
-   - Clean form layout
-========================================================= */
-
-/* Profile message */
-#profileMsg {
-  color: var(--color-text-muted);
+.profile {
+  flex: 1;
+  padding: 24px;
+  background: #f5f6fb;
 }
 
-/* Disabled input style */
-input:disabled {
-  opacity: 0.7;
+.profile-header {
+  margin-bottom: 20px;
+}
+
+/* CARD */
+.profile-card {
+  background: #ffffff;
+  border-radius: 18px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
+}
+
+.profile-card.danger {
+  border: 1px solid #fee2e2;
+}
+
+/* AVATAR */
+.avatar-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#7b61ff,#9f7aea);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.email {
+  color: #666;
+}
+
+/* FORM */
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  font-size: 15px;
+}
+
+.input-group small {
+  color: #999;
+  font-size: 12px;
+}
+
+/* BUTTONS */
+.save-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  background: linear-gradient(135deg,#7b61ff,#9f7aea);
+  color: white;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.logout-btn {
+  background: #ef4444;
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  margin-top: 12px;
+}
+
+/* MOBILE */
+@media(max-width:768px){
+  .sidebar {
+    display: none;
+  }
+  .profile {
+    padding: 16px;
+  }
 }
