@@ -1,0 +1,33 @@
+/* =========================================================
+   FILE: transactions.css
+   PATH: assets/css/user/transactions.css
+
+   PURPOSE:
+   - Transactions page styling
+   - Mobile-first app UI
+   - Clean readable transaction list
+========================================================= */
+
+/* Transaction list items */
+#transactionList li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+/* Last item */
+#transactionList li:last-child {
+  border-bottom: none;
+}
+
+/* Credit / Debit color helpers */
+.tx-credit {
+  color: var(--color-accent-secondary);
+}
+
+.tx-debit {
+  color: var(--color-accent-danger);
+}
