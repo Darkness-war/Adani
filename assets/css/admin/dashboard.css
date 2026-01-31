@@ -1,0 +1,21 @@
+/* =========================================================
+   FILE: dashboard.css
+   PATH: assets/css/admin/dashboard.css
+
+   PURPOSE:
+   - Admin dashboard styling
+   - Mobile-first app UI
+   - Clear admin visual separation
+========================================================= */
+
+/* Admin stats emphasis */
+#totalUsers,
+#totalBalance {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Admin buttons spacing */
+.app-content .btn {
+  width: 100%;
+}
