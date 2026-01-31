@@ -1,0 +1,19 @@
+/* =========================================================
+   FILE: profile.css
+   PATH: assets/css/user/profile.css
+
+   PURPOSE:
+   - Profile page styling
+   - Mobile-first app UI
+   - Clean form layout
+========================================================= */
+
+/* Profile message */
+#profileMsg {
+  color: var(--color-text-muted);
+}
+
+/* Disabled input style */
+input:disabled {
+  opacity: 0.7;
+}
