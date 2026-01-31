@@ -1,0 +1,31 @@
+/* =========================================================
+   FILE: wallet.css
+   PATH: assets/css/user/wallet.css
+
+   PURPOSE:
+   - Wallet page styling
+   - Mobile-first app UI
+   - Clean transaction list & forms
+========================================================= */
+
+/* Wallet balance emphasis */
+#walletBalance {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Wallet message */
+#walletMsg {
+  color: var(--color-text-muted);
+}
+
+/* Wallet transaction list */
+#walletTransactions li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+}
+
+#walletTransactions li:last-child {
+  border-bottom: none;
+}
