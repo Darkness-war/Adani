@@ -1,0 +1,33 @@
+/* =========================================================
+   FILE: dashboard.css
+   PATH: assets/css/user/dashboard.css
+
+   PURPOSE:
+   - Dashboard specific styling
+   - Mobile-first app UI
+   - Enhances cards & lists
+========================================================= */
+
+/* Balance amount emphasis */
+#totalBalance {
+  font-size: var(--font-size-xxl);
+  font-weight: var(--font-weight-bold);
+}
+
+/* Overview numbers */
+#activeInvestments,
+#totalProfit {
+  font-size: var(--font-size-lg);
+  margin-top: var(--space-1);
+}
+
+/* Recent activity list */
+#activityList li {
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--color-border-soft);
+  color: var(--color-text-muted);
+}
+
+#activityList li:last-child {
+  border-bottom: none;
+}
