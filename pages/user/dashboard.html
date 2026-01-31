@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="/assets/css/core/reset.css" />
+  <link rel="stylesheet" href="/assets/css/core/variables.css" />
+  <link rel="stylesheet" href="/assets/css/core/layout.css" />
+
+  <!-- User CSS -->
+  <link rel="stylesheet" href="/assets/css/user/dashboard.css" />
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Core JS -->
+  <script src="/assets/js/core/supabase.js"></script>
+  <script src="/assets/js/core/auth.js"></script>
+  <script src="/assets/js/core/route-guard.js"></script>
+</head>
+
+<body>
+
+  <div class="app">
+
+    <!-- Top Bar -->
+    <header class="app-header">
+      <div class="app-title">Dashboard</div>
+      <button class="icon-btn" onclick="signOut()">⎋</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-content">
+
+      <!-- Balance Card -->
+      <div class="card">
+        <div class="card-title">Total Balance</div>
+        <div class="card-subtitle">Your available funds</div>
+        <h2 id="totalBalance" style="margin-top: 12px;">₹0.00</h2>
+      </div>
+
+      <!-- Stats -->
+      <div class="card">
+        <div class="card-title">Overview</div>
+        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
+          <div>
+            <div class="card-subtitle">Active Investments</div>
+            <strong id="activeInvestments">0</strong>
+          </div>
+          <div>
+            <div class="card-subtitle">Total Profit</div>
+            <strong id="totalProfit">₹0.00</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-title">Recent Activity</div>
+        <ul id="activityList" style="margin-top: 12px; font-size: 14px;">
+          <li>Loading...</li>
+        </ul>
+      </div>
+
+    </main>
+
+    <!-- Bottom Navigation (Mobile) -->
+    <nav class="bottom-nav">
+      <a href="/pages/user/dashboard.html" class="active">Home</a>
+      <a href="/pages/user/wallet.html">Wallet</a>
+      <a href="/pages/user/investments.html">Invest</a>
+      <a href="/pages/user/profile.html">Profile</a>
+    </nav>
+
+  </div>
+
+  <!-- Page JS -->
+  <script src="/assets/js/user/dashboard.js"></script>
+
+</body>
+</html>
