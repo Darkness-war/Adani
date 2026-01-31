@@ -1,45 +1,35 @@
-requireAuth();
+// ===== Mobile Sidebar Toggle =====
+const menuToggle = document.querySelector('.menu-toggle');
+const sidebar = document.getElementById('sidebar');
 
-(async function () {
-  const user = await getUser();
-  if (!user) return;
+if (menuToggle) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
 
-  // WALLET
-  const { data: wallet } = await supabaseClient
-    .from("wallets")
-    .select("balance")
-    .eq("user_id", user.id)
-    .single();
+// ===== Example Chart (Optional – Safe Placeholder) =====
+document.addEventListener("DOMContentLoaded", () => {
+    if (document.querySelector("#incomeChart")) {
+        const options = {
+            chart: {
+                type: 'line',
+                height: 300,
+                toolbar: { show: false }
+            },
+            series: [{
+                name: 'Income',
+                data: [10, 30, 25, 40, 35, 50, 45]
+            }],
+            xaxis: {
+                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+            },
+            colors: ['#7b61ff']
+        };
 
-  document.getElementById("balance").innerText = `₹${wallet?.balance || 0}`;
-
-  // INVESTMENTS
-  const { data: investments } = await supabaseClient
-    .from("investments")
-    .select("amount, profit");
-
-  let invested = 0, profit = 0;
-  investments?.forEach(i => {
-    invested += i.amount;
-    profit += i.profit;
-  });
-
-  document.getElementById("invested").innerText = `₹${invested}`;
-  document.getElementById("profit").innerText = `₹${profit}`;
-
-  // TRANSACTIONS
-  const { data: tx } = await supabaseClient
-    .from("transactions")
-    .select("type, amount, created_at")
-    .order("created_at", { ascending: false })
-    .limit(5);
-
-  const list = document.getElementById("recentTransactions");
-  list.innerHTML = "";
-
-  tx?.forEach(t => {
-    const li = document.createElement("li");
-    li.innerText = `${t.type.toUpperCase()} • ₹${t.amount}`;
-    list.appendChild(li);
-  });
-})();
+        new ApexCharts(
+            document.querySelector("#incomeChart"),
+            options
+        ).render();
+    }
+});
