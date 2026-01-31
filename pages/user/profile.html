@@ -5,41 +5,54 @@
   <title>Profile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Core CSS -->
+  <!-- CORE CSS -->
   <link rel="stylesheet" href="/assets/css/core/reset.css" />
   <link rel="stylesheet" href="/assets/css/core/variables.css" />
   <link rel="stylesheet" href="/assets/css/core/layout.css" />
 
-  <!-- User CSS -->
+  <!-- PAGE CSS -->
   <link rel="stylesheet" href="/assets/css/user/profile.css" />
 
-  <!-- Supabase CDN -->
+  <!-- CORE JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Core JS -->
   <script src="/assets/js/core/supabase.js"></script>
   <script src="/assets/js/core/auth.js"></script>
   <script src="/assets/js/core/route-guard.js"></script>
 </head>
 
 <body>
+  <div class="app-layout">
 
-  <div class="app">
+    <!-- SIDEBAR (UNCHANGED FLOW) -->
+    <aside class="sidebar">
+      <div class="logo">InvestSafe</div>
+      <nav>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="wallet.html">Wallet</a>
+        <a href="investments.html">Investments</a>
+        <a href="transactions.html">Transactions</a>
+        <a class="active">Profile</a>
+      </nav>
+    </aside>
 
-    <!-- Top Bar -->
-    <header class="app-header">
-      <div class="app-title">Profile</div>
-      <button class="icon-btn" onclick="signOut()">⎋</button>
-    </header>
+    <!-- MAIN -->
+    <main class="profile">
 
-    <!-- Main Content -->
-    <main class="app-content">
+      <header class="profile-header">
+        <h1>My Profile</h1>
+      </header>
 
-      <!-- Profile Info -->
-      <div class="card">
-        <div class="card-title">Account Information</div>
+      <!-- PROFILE CARD -->
+      <section class="profile-card">
 
-        <form id="profileForm" style="margin-top:16px; display:flex; flex-direction:column; gap:16px;">
+        <div class="avatar-section">
+          <div class="avatar">
+            <span id="avatarInitial">U</span>
+          </div>
+          <p class="email" id="emailText"></p>
+        </div>
+
+        <form id="profileForm">
 
           <div class="input-group">
             <label>Full Name</label>
@@ -47,33 +60,36 @@
           </div>
 
           <div class="input-group">
-            <label>Email</label>
-            <input type="email" id="email" disabled />
+            <label>Phone</label>
+            <input type="text" id="phone" />
           </div>
 
-          <button type="submit" class="btn btn-primary">
-            Update Profile
+          <div class="input-group">
+            <label>Password</label>
+            <input type="password" placeholder="••••••••" disabled />
+            <small>Password change via email reset</small>
+          </div>
+
+          <button type="submit" class="save-btn">
+            Save Changes
           </button>
 
-          <p id="profileMsg" style="font-size:14px;"></p>
+          <p id="profileMsg"></p>
 
         </form>
-      </div>
+
+      </section>
+
+      <!-- SECURITY -->
+      <section class="profile-card danger">
+        <h3>Security</h3>
+        <button class="logout-btn" onclick="signOut()">Logout</button>
+      </section>
 
     </main>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-      <a href="/pages/user/dashboard.html">Home</a>
-      <a href="/pages/user/wallet.html">Wallet</a>
-      <a href="/pages/user/investments.html">Invest</a>
-      <a href="/pages/user/profile.html" class="active">Profile</a>
-    </nav>
-
   </div>
 
-  <!-- Page JS -->
+  <!-- PAGE JS -->
   <script src="/assets/js/user/profile.js"></script>
-
 </body>
-</html>
+    </html>
