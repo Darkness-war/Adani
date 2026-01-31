@@ -5,80 +5,85 @@
   <title>Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- Core CSS -->
+  <!-- CORE CSS -->
   <link rel="stylesheet" href="/assets/css/core/reset.css" />
   <link rel="stylesheet" href="/assets/css/core/variables.css" />
   <link rel="stylesheet" href="/assets/css/core/layout.css" />
 
-  <!-- User CSS -->
+  <!-- PAGE CSS -->
   <link rel="stylesheet" href="/assets/css/user/dashboard.css" />
 
-  <!-- Supabase CDN -->
+  <!-- SUPABASE -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Core JS -->
   <script src="/assets/js/core/supabase.js"></script>
   <script src="/assets/js/core/auth.js"></script>
   <script src="/assets/js/core/route-guard.js"></script>
 </head>
 
 <body>
+  <div class="app-layout">
 
-  <div class="app">
+    <!-- SIDEBAR (SAME LOGIC AS ZIP) -->
+    <aside class="sidebar">
+      <div class="logo">InvestSafe</div>
 
-    <!-- Top Bar -->
-    <header class="app-header">
-      <div class="app-title">Dashboard</div>
-      <button class="icon-btn" onclick="signOut()">⎋</button>
-    </header>
+      <nav>
+        <a class="active">Dashboard</a>
+        <a href="wallet.html">Wallet</a>
+        <a href="investments.html">Investments</a>
+        <a href="transactions.html">Transactions</a>
+        <a href="profile.html">Profile</a>
+      </nav>
+    </aside>
 
-    <!-- Main Content -->
-    <main class="app-content">
+    <!-- MAIN -->
+    <main class="dashboard">
 
-      <!-- Balance Card -->
-      <div class="card">
-        <div class="card-title">Total Balance</div>
-        <div class="card-subtitle">Your available funds</div>
-        <h2 id="totalBalance" style="margin-top: 12px;">₹0.00</h2>
-      </div>
+      <!-- HEADER -->
+      <header class="dashboard-header">
+        <h1>Dashboard</h1>
+        <button onclick="signOut()" class="logout-btn">Logout</button>
+      </header>
 
-      <!-- Stats -->
-      <div class="card">
-        <div class="card-title">Overview</div>
-        <div style="display: flex; justify-content: space-between; margin-top: 12px;">
-          <div>
-            <div class="card-subtitle">Active Investments</div>
-            <strong id="activeInvestments">0</strong>
-          </div>
-          <div>
-            <div class="card-subtitle">Total Profit</div>
-            <strong id="totalProfit">₹0.00</strong>
-          </div>
+      <!-- SUMMARY CARDS -->
+      <section class="summary-grid">
+        <div class="summary-card purple">
+          <span>Wallet Balance</span>
+          <h2 id="balance">₹0</h2>
         </div>
-      </div>
 
-      <!-- Recent Activity -->
-      <div class="card">
-        <div class="card-title">Recent Activity</div>
-        <ul id="activityList" style="margin-top: 12px; font-size: 14px;">
-          <li>Loading...</li>
-        </ul>
-      </div>
+        <div class="summary-card">
+          <span>Total Invested</span>
+          <h2 id="invested">₹0</h2>
+        </div>
+
+        <div class="summary-card">
+          <span>Total Profit</span>
+          <h2 id="profit">₹0</h2>
+        </div>
+
+        <div class="summary-card">
+          <span>Total Withdrawn</span>
+          <h2 id="withdrawn">₹0</h2>
+        </div>
+      </section>
+
+      <!-- CHART -->
+      <section class="card">
+        <h3>Monthly Overview</h3>
+        <canvas id="incomeChart"></canvas>
+      </section>
+
+      <!-- TRANSACTIONS -->
+      <section class="card">
+        <h3>Recent Transactions</h3>
+        <ul id="recentTransactions"></ul>
+      </section>
 
     </main>
-
-    <!-- Bottom Navigation (Mobile) -->
-    <nav class="bottom-nav">
-      <a href="/pages/user/dashboard.html" class="active">Home</a>
-      <a href="/pages/user/wallet.html">Wallet</a>
-      <a href="/pages/user/investments.html">Invest</a>
-      <a href="/pages/user/profile.html">Profile</a>
-    </nav>
-
   </div>
 
-  <!-- Page JS -->
+  <!-- PAGE JS -->
   <script src="/assets/js/user/dashboard.js"></script>
-
 </body>
 </html>
