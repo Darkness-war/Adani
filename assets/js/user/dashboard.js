@@ -1,35 +1,15 @@
-// ===== Mobile Sidebar Toggle =====
-const menuToggle = document.querySelector('.menu-toggle');
-const sidebar = document.getElementById('sidebar');
+requireAuth();
 
-if (menuToggle) {
-    menuToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('active');
-    });
-}
+(async () => {
+  const user = await getUser();
+  if (!user) return;
 
-// ===== Example Chart (Optional – Safe Placeholder) =====
-document.addEventListener("DOMContentLoaded", () => {
-    if (document.querySelector("#incomeChart")) {
-        const options = {
-            chart: {
-                type: 'line',
-                height: 300,
-                toolbar: { show: false }
-            },
-            series: [{
-                name: 'Income',
-                data: [10, 30, 25, 40, 35, 50, 45]
-            }],
-            xaxis: {
-                categories: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-            },
-            colors: ['#7b61ff']
-        };
+  const { data: wallet } = await supabaseClient
+    .from("wallets")
+    .select("balance")
+    .eq("user_id", user.id)
+    .single();
 
-        new ApexCharts(
-            document.querySelector("#incomeChart"),
-            options
-        ).render();
-    }
-});
+  document.getElementById("balance").innerText =
+    `₹${wallet?.balance || 0}`;
+})();
