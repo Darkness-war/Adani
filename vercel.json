@@ -1,8 +1,10 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/auth/(.*)", "destination": "/pages/auth/$1" },
-    { "source": "/user/(.*)", "destination": "/pages/user/$1" },
-    { "source": "/assets/(.*)", "destination": "/assets/$1" }
+    { "source": "/", "destination": "/pages/user/dashboard.html" },
+    { "source": "/login", "destination": "/pages/auth/login.html" },
+    { "source": "/signup", "destination": "/pages/auth/signup.html" },
+    { "source": "/auth/:path*", "destination": "/pages/auth/:path*" },
+    { "source": "/user/:path*", "destination": "/pages/user/:path*" },
+    { "source": "/assets/:path*", "destination": "/assets/:path*" }
   ]
 }
