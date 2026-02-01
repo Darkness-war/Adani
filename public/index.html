@@ -133,7 +133,7 @@
             try {
                 const { createClient } = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm');
                 const supabaseUrl = 'https://atcfrcolbuikjnsoujzw.supabase.co';
-                const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+                const supabaseKey = 'sb_publishable_mUDZkzcq09gllPPjkG8pGQ_k6APV_gv';
                 const supabase = createClient(supabaseUrl, supabaseKey);
                 
                 const { data: { user } } = await supabase.auth.getUser();
