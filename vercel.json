@@ -1,6 +1,7 @@
 {
-  "routes": [
-    { "src": "/", "dest": "/pages/user/dashboard.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "rewrites": [
+    { "source": "/", "destination": "/public/index.html" },
+    { "source": "/login", "destination": "/pages/auth/login.html" },
+    { "source": "/signup", "destination": "/pages/auth/signup.html" }
   ]
 }
