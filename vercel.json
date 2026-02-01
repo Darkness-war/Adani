@@ -1,7 +1,14 @@
 {
+  "cleanUrls": true,
+  "trailingSlash": false,
   "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-    { "source": "/login", "destination": "/pages/auth/login.html" },
-    { "source": "/signup", "destination": "/pages/auth/signup.html" }
+    {
+      "source": "/",
+      "destination": "/public/index.html"
+    },
+    {
+      "source": "/pages/(.*)",
+      "destination": "/pages/$1"
+    }
   ]
 }
