@@ -1,0 +1,13 @@
+{
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/pages/user/dashboard.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/pages/$1",
+      "continue": true
+    }
+  ]
+}
