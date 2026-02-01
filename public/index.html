@@ -138,7 +138,7 @@
                 
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
-                    window.location.href = '/pages/user/dashboard.html';
+                    window.location.href = '/user/dashboard.html';
                 }
             } catch (error) {
                 console.log('Not logged in or error:', error);
