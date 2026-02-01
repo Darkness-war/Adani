@@ -19,73 +19,222 @@
   <script src="/assets/js/core/auth.js"></script>
 </head>
 
-<body>
-<div class="app-layout">
-
-  <!-- SIDEBAR (COMMON) -->
-  <aside class="sidebar">
-    <div class="logo">InvestSafe</div>
-    <nav>
-      <a class="active">Dashboard</a>
-      <a href="wallet.html">Wallet</a>
-      <a href="investments.html">Plans</a>
-      <a href="refer.html">Refer</a>
-      <a href="profile.html">Profile</a>
-    </nav>
+  <style>
+   /* Modern Floating Elements */
+    .floating-shapes {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+    
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(114, 9, 183, 0.05));
+      filter: blur(40px);
+    }
+    
+    .shape-1 { width: 300px; height: 300px; top: 10%; left: 5%; }
+    .shape-2 { width: 200px; height: 200px; bottom: 20%; right: 10%; }
+    .shape-3 { width: 150px; height: 150px; top: 50%; left: 80%; }
+  </style>
+</head>
+<body class="dashboard-page">
+  <!-- Floating Background Shapes -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+  
+  <!-- Modern Sidebar -->
+  <div id="sidebarOverlay" class="sidebar-overlay"></div>
+  <aside id="sideMenu" class="side-menu">
+    <div class="sidebar-header">
+      <div id="sidebarId">Loading...</div>
+      <div id="sidebarVIP">...</div>
+    </div>
+    <div class="sidebar-actions">
+      <a href="contact.html" class="sidebar-btn"><span><i class="fas fa-headset"></i></span> Customer Support</a>
+      <a href="#" target="_blank" class="sidebar-btn"><span><i class="fab fa-telegram"></i></span> Telegram Channel</a>
+      <button class="sidebar-btn" id="settingsToggleBtn">
+        <div class="sidebar-btn-content">
+          <span><i class="fas fa-cog"></i></span> Settings
+        </div>
+        <span class="chevron"><i class="fas fa-chevron-right"></i></span>
+      </button>
+      <div class="settings-submenu" id="settingsSubmenu">
+        <a href="terms.html" class="sidebar-btn sub-item"><span><i class="fas fa-file-alt"></i></span> Terms & Conditions</a>
+        <a href="privacy-policy.html" class="sidebar-btn sub-item"><span><i class="fas fa-lock"></i></span> Privacy Policy</a>
+        <a href="refund.html" class="sidebar-btn sub-item"><span><i class="fas fa-credit-card"></i></span> Refund Policy</a>
+      </div>
+    </div>
+    <span id="closeBtn" class="close-btn">&times;</span>
   </aside>
-
-  <!-- MAIN -->
-  <main class="dashboard">
-
-    <!-- BANNER -->
-    <section class="dashboard-banner">
-      <div>
-        <h1>Welcome Back</h1>
-        <p>Your total balance</p>
-        <h2 id="balance">₹0</h2>
+  
+  <!-- Modern Header -->
+  <header class="top-bar">
+    <div id="menuBtn" class="menu-btn"><span></span><span></span><span></span></div>
+    <span class="logo">✨ Uzumaki</span>
+    <div class="header-actions">
+      <button class="header-btn" id="notificationsBtn">
+        <i class="fas fa-bell"></i>
+        <span class="badge">3</span>
+      </button>
+      <button class="header-btn" id="themeToggle">
+        <i class="fas fa-moon"></i>
+      </button>
+    </div>
+  </header>
+  
+  <!-- Main Dashboard Content -->
+  <main class="dashboard-container">
+    <!-- Welcome Banner -->
+    <section class="welcome-banner">
+      <div class="welcome-content">
+        <h1>Welcome Back! 👋</h1>
+        <p>Track your investments and grow your portfolio</p>
       </div>
-      <button class="primary-btn">Recharge Now</button>
-    </section>
-
-    <!-- PLANS -->
-    <section class="section">
-      <h3>Available Plans</h3>
-
-      <div class="plan-grid">
-        <div class="plan-card">
-          <span class="badge">Primary</span>
-          <h4>₹1,000</h4>
-          <p>Daily 2% • 30 Days</p>
-          <button>Buy Plan</button>
-        </div>
-
-        <div class="plan-card">
-          <span class="badge">Secondary</span>
-          <h4>₹5,000</h4>
-          <p>Daily 3% • 45 Days</p>
-          <button>Buy Plan</button>
-        </div>
-
-        <div class="plan-card vip">
-          <span class="badge vip">VIP</span>
-          <h4>₹10,000</h4>
-          <p>Daily 5% • 60 Days</p>
-          <button>Buy VIP</button>
-        </div>
+      <div class="balance-display">
+        <div class="balance-label">Total Balance</div>
+        <div id="totalBalance" class="balance-amount-large">₹0.00</div>
       </div>
     </section>
-
-    <!-- MY PLANS -->
-    <section class="section">
-      <h3>My Active Plans</h3>
-      <div class="my-plan">
-        <span>Primary Plan</span>
-        <span class="status active">Active</span>
+    
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card stat-1">
+        <div class="stat-icon">
+          <i class="fas fa-wallet"></i>
+        </div>
+        <div class="stat-value" id="availableBalance">₹0.00</div>
+        <div class="stat-label">Available Balance</div>
+      </div>
+      
+      <div class="stat-card stat-2">
+        <div class="stat-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="stat-value" id="totalInvested">₹0.00</div>
+        <div class="stat-label">Total Invested</div>
+      </div>
+      
+      <div class="stat-card stat-3">
+        <div class="stat-icon">
+          <i class="fas fa-gem"></i>
+        </div>
+        <div class="stat-value" id="totalEarnings">₹0.00</div>
+        <div class="stat-label">Total Earnings</div>
+      </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <a href="recharge.html" class="quick-action-btn">
+        <i class="fas fa-plus-circle"></i>
+        <span>Add Funds</span>
+      </a>
+      <a href="withdraw.html" class="quick-action-btn">
+        <i class="fas fa-money-bill-wave"></i>
+        <span>Withdraw</span>
+      </a>
+      <a href="refer.html" class="quick-action-btn">
+        <i class="fas fa-user-plus"></i>
+        <span>Refer & Earn</span>
+      </a>
+      <a href="invest.html" class="quick-action-btn">
+        <i class="fas fa-chart-pie"></i>
+        <span>Invest Now</span>
+      </a>
+    </div>
+    
+    <!-- Modern Tabs -->
+    <nav class="dashboard-tabs">
+      <button class="tab-button active" data-tab="primary">
+        <span><i class="fas fa-star"></i> Primary Plans</span>
+      </button>
+      <button class="tab-button" data-tab="vip">
+        <span><i class="fas fa-crown"></i> VIP Plans</span>
+      </button>
+      <button class="tab-button" data-tab="purchased">
+        <span><i class="fas fa-check-circle"></i> My Investments</span>
+      </button>
+    </nav>
+    
+    <!-- Plans Sections -->
+    <section id="primary" class="tab-content active">
+      <div class="plans-grid" id="primaryPlansGrid">
+        <!-- Plans will be loaded here -->
+        <div class="skeleton-loader" style="height: 400px;"></div>
       </div>
     </section>
-
+    
+    <section id="vip" class="tab-content">
+      <div class="plans-grid" id="vipPlansGrid">
+        <!-- VIP Plans will be loaded here -->
+        <div class="skeleton-loader" style="height: 400px;"></div>
+      </div>
+    </section>
+    
+    <section id="purchased" class="tab-content">
+      <div class="plans-grid" id="purchasedPlansGrid">
+        <!-- Purchased Plans will be loaded here -->
+        <div class="skeleton-loader" style="height: 400px;"></div>
+      </div>
+    </section>
+    
+    <!-- Recent Activity -->
+    <section class="activity-feed">
+      <div class="activity-header">
+        <h3><i class="fas fa-history"></i> Recent Activity</h3>
+        <button class="view-all-btn" id="viewAllActivity">View All</button>
+      </div>
+      <div class="activity-list" id="recentActivity">
+        <!-- Activities will be loaded here -->
+        <div class="skeleton-loader" style="height: 60px; margin-bottom: 10px;"></div>
+        <div class="skeleton-loader" style="height: 60px; margin-bottom: 10px;"></div>
+        <div class="skeleton-loader" style="height: 60px;"></div>
+      </div>
+    </section>
   </main>
-</div>
+  
+  <!-- Bottom Navigation -->
+  <div class="bottom-nav-spacer"></div>
+  <footer class="bottom-nav">
+    <a href="dashboard.html" class="active">
+      <i class="fas fa-home"></i>
+      <span>Home</span>
+    </a>
+    <a href="recharge.html">
+      <i class="fas fa-bolt"></i>
+      <span>Recharge</span>
+    </a>
+    <a href="refer.html">
+      <i class="fas fa-user-friends"></i>
+      <span>Refer</span>
+    </a>
+    <a href="mine.html">
+      <i class="fas fa-user"></i>
+      <span>Account</span>
+    </a>
+  </footer>
+  
+  <!-- Notifications Modal -->
+  <div class="modal-overlay" id="notificationsModal">
+    <div class="modal-container modern-modal">
+      <div class="modal-header">
+        <h3><i class="fas fa-bell"></i> Notifications</h3>
+        <button id="closeNotifications">&times;</button>
+      </div>
+      <div class="modal-content" id="notificationsList">
+        <!-- Notifications will be loaded here -->
+      </div>
+    </div>
+  </div>
 
 <script src="/assets/js/user/dashboard.js"></script>
 </body>
