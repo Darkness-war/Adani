@@ -1,6 +1,8 @@
 {
-  "routes": [
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/(.*)", "dest": "/$1" }
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/auth/(.*)", "destination": "/pages/auth/$1" },
+    { "source": "/user/(.*)", "destination": "/pages/user/$1" },
+    { "source": "/assets/(.*)", "destination": "/assets/$1" }
   ]
 }
