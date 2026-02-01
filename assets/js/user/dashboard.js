@@ -1,5 +1,5 @@
 [file name]: dashboard.js
-import { supabase } from "../config/supabase.js";
+import { supabase } from "../assets/js/core/supabase.js";
 
 console.log('[dashboard.js] Modern Dashboard loaded');
 
