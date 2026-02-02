@@ -1,183 +1,25 @@
 {
   "version": 2,
-  "name": "uzumaki-investments",
   "public": true,
-  
-  "builds": [
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "**/*.html",
-      "use": "@vercel/static"
-    },
-    {
-      "src": "assets/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "cleanUrls": false,
+  "trailingSlash": false,
   
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "/public/index.html"
+      "src": "/assets/(.*)",
+      "dest": "/assets/$1"
     },
     {
       "src": "/pages/(.*)",
       "dest": "/pages/$1"
     },
     {
-      "src": "/assets/(.*)",
-      "dest": "/assets/$1",
-      "headers": {
-        "cache-control": "public, max-age=31536000, immutable"
-      }
-    },
-    {
       "src": "/api/(.*)",
       "dest": "/api/$1"
+    },
+    {
+      "src": "/",
+      "dest": "/public/index.html"
     }
-  ],
-  
-  "headers": [
-    {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "X-Frame-Options",
-          "value": "DENY"
-        },
-        {
-          "key": "X-Content-Type-Options",
-          "value": "nosniff"
-        },
-        {
-          "key": "Referrer-Policy",
-          "value": "strict-origin-when-cross-origin"
-        },
-        {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
-        }
-      ]
-    },
-    {
-      "source": "/assets/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
-      ]
-    },
-    {
-      "source": "/(.*).css",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "text/css; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800"
-        }
-      ]
-    },
-    {
-      "source": "/(.*).js",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/javascript; charset=utf-8"
-        },
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=604800"
-        }
-      ]
-    }
-  ],
-  
-  "env": {
-    "NODE_ENV": "production",
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key"
-  },
-  
-  "regions": ["bom1"],
-  
-  "github": {
-    "enabled": true,
-    "autoAlias": true,
-    "silent": true
-  },
-  
-  "rewrites": [
-    {
-      "source": "/api/pay0-create-order",
-      "destination": "/api/pay0/create-order.js"
-    },
-    {
-      "source": "/api/pay0-check-status",
-      "destination": "/api/pay0/check-status.js"
-    },
-    {
-      "source": "/api/webhook/pay0",
-      "destination": "/api/webhooks/pay0.js"
-    }
-  ],
-  
-  "redirects": [
-    {
-      "source": "/",
-      "destination": "/public/index.html"
-    },
-    {
-      "source": "/login",
-      "destination": "/pages/auth/login.html"
-    },
-    {
-      "source": "/signup",
-      "destination": "/pages/auth/signup.html"
-    },
-    {
-      "source": "/dashboard",
-      "destination": "/pages/user/dashboard.html"
-    },
-    {
-      "source": "/admin",
-      "destination": "/pages/admin/admin-dashboard.html"
-    }
-  ],
-  
-  "crons": [
-    {
-      "path": "/api/cron/daily-earnings",
-      "schedule": "0 0 * * *"
-    },
-    {
-      "path": "/api/cron/check-investments",
-      "schedule": "*/15 * * * *"
-    },
-    {
-      "path": "/api/cron/cleanup",
-      "schedule": "0 3 * * *"
-    }
-  ],
-  
-  "functions": {
-    "api/**/*.js": {
-      "maxDuration": 10,
-      "memory": 1024
-    }
-  },
-  
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key"
-    }
-  }
+  ]
 }
