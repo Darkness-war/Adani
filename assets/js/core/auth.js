@@ -1,229 +1,265 @@
-import { supabase, checkAuth, getCurrentUser, logout } from './supabase.js';
+import { sessionManager, dbService, utils } from './supabase.js';
 
 class AuthGuard {
     constructor() {
-        this.currentUser = null;
-        this.currentProfile = null;
-        this.isAdmin = false;
+        this.currentPage = window.location.pathname.split('/').pop();
         this.publicPages = new Set([
+            'index.html',
             'login.html',
             'signup.html',
             'forgot-password.html',
-            'index.html',
             'terms.html',
-            'privacy.html',
-            'contact.html'
+            'privacy-policy.html',
+            'contact.html',
+            'refund.html'
         ]);
+        
+        this.adminPages = new Set([
+            'admin-dashboard.html',
+            'admin-users.html',
+            'admin-investments.html',
+            'admin-withdrawals.html',
+            'admin-logs.html',
+            'admin-settings.html'
+        ]);
+        
+        this.init();
     }
 
-    async initialize() {
-        console.log('[Auth] Initializing auth guard...');
+    async init() {
+        // Check auth status
+        const { user, profile } = await sessionManager.getCurrentUser();
         
-        // Check current page
-        const currentPage = window.location.pathname.split('/').pop();
+        // Handle page access
+        await this.handlePageAccess(user, profile);
         
-        // Check authentication
-        const { user, profile } = await getCurrentUser();
+        // Update UI based on auth state
+        this.updateUI(user, profile);
         
-        if (user) {
-            this.currentUser = user;
-            this.currentProfile = profile;
-            this.isAdmin = this.checkAdmin(user.email);
-            
-            // Update UI
-            this.updateUserInfo(user, profile);
-            
-            // Redirect from auth pages if logged in
-            if (this.publicPages.has(currentPage) && currentPage !== 'index.html') {
-                window.location.href = '/pages/user/dashboard.html';
-                return;
-            }
-            
-            // Check admin access for admin pages
-            if (currentPage.includes('admin-') && !this.isAdmin) {
+        // Setup auth state listener
+        sessionManager.subscribe((event, user, profile) => {
+            this.handleAuthChange(event, user, profile);
+        });
+        
+        // Setup inactivity timer
+        this.setupInactivityTimer();
+    }
+
+    async handlePageAccess(user, profile) {
+        const isPublicPage = this.publicPages.has(this.currentPage);
+        const isAdminPage = this.adminPages.has(this.currentPage);
+        
+        // Redirect logic
+        if (!user && !isPublicPage) {
+            // Not logged in and not on public page
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
+        
+        if (user && isPublicPage && this.currentPage !== 'index.html') {
+            // Logged in but on auth page (except index)
+            window.location.href = '/pages/user/dashboard.html';
+            return;
+        }
+        
+        if (user && isAdminPage) {
+            // Check if user is admin
+            const isAdmin = await sessionManager.isAdmin();
+            if (!isAdmin) {
                 window.location.href = '/pages/errors/403.html';
                 return;
             }
-        } else {
-            // Not logged in - redirect to login if not public page
-            if (!this.publicPages.has(currentPage) && currentPage !== 'index.html') {
-                window.location.href = '/pages/auth/login.html';
-                return;
-            }
         }
-        
-        // Set up event listeners
-        this.setupEventListeners();
-        
-        // Hide loading state
-        this.hideLoading();
-        
-        console.log('[Auth] Auth guard initialized');
     }
-    
-    checkAdmin(email) {
-        const adminEmails = [
-            'admin@uzumaki.com',
-            'superadmin@uzumaki.com'
-            // Add more admin emails as needed
-        ];
-        return adminEmails.includes(email?.toLowerCase());
+
+    updateUI(user, profile) {
+        if (user) {
+            // Update user info in header/sidebar
+            this.updateUserElements(user, profile);
+            
+            // Show user-specific elements
+            document.querySelectorAll('.auth-only').forEach(el => {
+                el.style.display = '';
+            });
+            
+            // Hide auth buttons
+            document.querySelectorAll('.no-auth').forEach(el => {
+                el.style.display = 'none';
+            });
+        } else {
+            // Show auth buttons
+            document.querySelectorAll('.no-auth').forEach(el => {
+                el.style.display = '';
+            });
+            
+            // Hide user-specific elements
+            document.querySelectorAll('.auth-only').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
     }
-    
-    updateUserInfo(user, profile) {
-        // Update user name elements
-        document.querySelectorAll('#userName, #welcomeName').forEach(el => {
-            if (el) el.textContent = profile?.full_name || user.email.split('@')[0];
+
+    updateUserElements(user, profile) {
+        // Update user name
+        document.querySelectorAll('.user-name').forEach(el => {
+            if (el) {
+                el.textContent = profile?.full_name || user.email?.split('@')[0] || 'User';
+            }
         });
         
         // Update user email
-        const userEmailEl = document.getElementById('userEmail');
-        if (userEmailEl) userEmailEl.textContent = user.email;
+        document.querySelectorAll('.user-email').forEach(el => {
+            if (el) {
+                el.textContent = user.email || '';
+            }
+        });
         
-        // Update user status
-        const userStatusEl = document.getElementById('userStatus');
-        if (userStatusEl) {
-            userStatusEl.textContent = profile?.is_active ? 'Active' : 'Inactive';
-            userStatusEl.className = profile?.is_active ? 'badge badge-success' : 'badge badge-danger';
-        }
+        // Update user balance
+        document.querySelectorAll('.user-balance').forEach(el => {
+            if (el && profile) {
+                el.textContent = utils.formatCurrency(profile.balance || 0);
+            }
+        });
         
-        // Update balances if elements exist
-        const totalBalanceEl = document.getElementById('totalBalance');
-        const availableBalanceEl = document.getElementById('availableBalance');
-        const totalInvestedEl = document.getElementById('totalInvested');
-        const totalEarningsEl = document.getElementById('totalEarnings');
+        // Update user avatar
+        document.querySelectorAll('.user-avatar').forEach(el => {
+            if (el && profile?.avatar_url) {
+                el.style.backgroundImage = `url(${profile.avatar_url})`;
+                el.innerHTML = ''; // Clear initials
+            } else if (el) {
+                const initials = (profile?.full_name || 'U').charAt(0).toUpperCase();
+                el.innerHTML = `<span>${initials}</span>`;
+            }
+        });
         
-        if (totalBalanceEl) {
-            totalBalanceEl.textContent = this.formatCurrency(profile?.balance || 0);
-        }
-        if (availableBalanceEl) {
-            availableBalanceEl.textContent = this.formatCurrency(profile?.available_balance || 0);
-        }
-        
-        // Update VIP badge
-        const vipBadge = document.querySelector('.sidebar-vip');
-        if (vipBadge) {
-            vipBadge.textContent = profile?.is_vip ? 'VIP Member' : 'Basic Member';
-            vipBadge.style.background = profile?.is_vip 
-                ? 'linear-gradient(135deg, #FFD700, #FFB300)' 
-                : '#e0e0e0';
-        }
-    }
-    
-    formatCurrency(amount) {
-        return new Intl.NumberFormat('en-IN', {
-            style: 'currency',
-            currency: 'INR',
-            minimumFractionDigits: 2
-        }).format(amount || 0);
-    }
-    
-    setupEventListeners() {
-        // Logout button
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', async (e) => {
-                e.preventDefault();
-                await logout();
-            });
-        }
-        
-        // Theme toggle
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => {
-                this.toggleTheme();
-            });
-            
-            // Load saved theme
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            document.body.setAttribute('data-theme', savedTheme);
-            themeToggle.innerHTML = savedTheme === 'dark' 
-                ? '<i class="fas fa-sun"></i>' 
-                : '<i class="fas fa-moon"></i>';
-        }
-        
-        // Menu toggle
-        const menuToggle = document.getElementById('menuToggle');
-        if (menuToggle) {
-            menuToggle.addEventListener('click', () => {
-                document.body.classList.toggle('sidebar-open');
-            });
-        }
-        
-        // Notifications
-        const notificationsBtn = document.getElementById('notificationsBtn');
-        const notificationsModal = document.getElementById('notificationsModal');
-        if (notificationsBtn && notificationsModal) {
-            notificationsBtn.addEventListener('click', () => {
-                notificationsModal.classList.add('active');
-            });
-            
-            notificationsModal.addEventListener('click', (e) => {
-                if (e.target === notificationsModal) {
-                    notificationsModal.classList.remove('active');
+        // Update VIP status
+        document.querySelectorAll('.vip-badge').forEach(el => {
+            if (el) {
+                if (profile?.is_vip) {
+                    el.style.display = '';
+                    el.textContent = 'VIP';
+                    el.className = 'vip-badge active';
+                } else {
+                    el.style.display = 'none';
                 }
-            });
-        }
-        
-        // Close modal on escape
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                const modals = document.querySelectorAll('.modal-backdrop');
-                modals.forEach(modal => modal.classList.remove('active'));
             }
         });
     }
-    
-    toggleTheme() {
-        const currentTheme = document.body.getAttribute('data-theme');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+    handleAuthChange(event, user, profile) {
+        console.log(`[AuthGuard] Auth changed: ${event}`);
         
-        document.body.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        
-        const themeToggle = document.getElementById('themeToggle');
-        if (themeToggle) {
-            themeToggle.innerHTML = newTheme === 'dark' 
-                ? '<i class="fas fa-sun"></i>' 
-                : '<i class="fas fa-moon"></i>';
+        switch (event) {
+            case 'SIGNED_IN':
+                this.updateUI(user, profile);
+                if (this.publicPages.has(this.currentPage) && this.currentPage !== 'index.html') {
+                    window.location.href = '/pages/user/dashboard.html';
+                }
+                break;
+                
+            case 'SIGNED_OUT':
+                this.updateUI(null, null);
+                if (!this.publicPages.has(this.currentPage)) {
+                    window.location.href = '/pages/auth/login.html';
+                }
+                break;
+                
+            case 'USER_UPDATED':
+                this.updateUI(user, profile);
+                break;
         }
     }
-    
-    hideLoading() {
-        const loadingState = document.getElementById('loadingState');
-        if (loadingState) {
-            setTimeout(() => {
-                loadingState.style.opacity = '0';
-                setTimeout(() => {
-                    loadingState.style.display = 'none';
-                }, 300);
-            }, 500);
+
+    setupInactivityTimer() {
+        let inactivityTimer;
+        const logoutTime = 30 * 60 * 1000; // 30 minutes
+        
+        const resetTimer = () => {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                this.handleInactive();
+            }, logoutTime);
+        };
+        
+        // Events that reset the timer
+        const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+        events.forEach(event => {
+            document.addEventListener(event, resetTimer, true);
+        });
+        
+        resetTimer(); // Start the timer
+    }
+
+    async handleInactive() {
+        const { user } = await sessionManager.getCurrentUser();
+        if (user) {
+            utils.showToast('You have been logged out due to inactivity', 'warning');
+            await sessionManager.logout();
         }
     }
-    
+
     // Public methods
-    getUser() {
-        return { user: this.currentUser, profile: this.currentProfile };
+    async requireAuth() {
+        const { user } = await sessionManager.getCurrentUser();
+        if (!user) {
+            window.location.href = '/pages/auth/login.html';
+            return false;
+        }
+        return true;
     }
-    
-    isAuthenticated() {
-        return !!this.currentUser;
+
+    async requireAdmin() {
+        const isAdmin = await sessionManager.isAdmin();
+        if (!isAdmin) {
+            window.location.href = '/pages/errors/403.html';
+            return false;
+        }
+        return true;
     }
-    
-    getIsAdmin() {
-        return this.isAdmin;
+
+    getCurrentUser() {
+        return sessionManager.getCurrentUser();
     }
 }
 
-// Create and export singleton instance
+// Initialize auth guard
 const authGuard = new AuthGuard();
+
+// Export for use in other modules
 export default authGuard;
 
-// Initialize on DOM load
-document.addEventListener('DOMContentLoaded', () => {
-    authGuard.initialize();
-});
+// Global logout function
+window.logout = async () => {
+    try {
+        utils.showLoading();
+        await sessionManager.logout();
+    } catch (error) {
+        utils.showToast('Logout failed. Please try again.', 'error');
+    } finally {
+        utils.hideLoading();
+    }
+};
 
-// Export for global use
-window.authGuard = authGuard;
+// Check auth on page load
+document.addEventListener('DOMContentLoaded', () => {
+    // Add logout button listener if exists
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', window.logout);
+    }
+    
+    // Add user menu functionality
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenu = document.getElementById('userMenu');
+    if (userMenuBtn && userMenu) {
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('show');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', () => {
+            userMenu.classList.remove('show');
+        });
+    }
+});
