@@ -1,10 +1,7 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/pages/user/dashboard.html" },
-    { "source": "/login", "destination": "/pages/auth/login.html" },
-    { "source": "/signup", "destination": "/pages/auth/signup.html" },
-    { "source": "/auth/:path*", "destination": "/pages/auth/:path*" },
-    { "source": "/user/:path*", "destination": "/pages/user/:path*" },
-    { "source": "/assets/:path*", "destination": "/assets/:path*" }
+  "routes": [
+    { "src": "/", "dest": "/index.html" },
+    { "src": "/login", "dest": "/pages/auth/login.html" },
+    { "src": "/signup", "dest": "/pages/auth/signup.html" }
   ]
 }
