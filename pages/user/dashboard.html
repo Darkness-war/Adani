@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Uzumaki Investments</title>
     
     <!-- Core CSS -->
@@ -16,345 +16,567 @@
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <style>
-        /* Loading State */
-        #loadingState {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: var(--white);
+        /* Custom animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Custom styles for dashboard */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, var(--white), var(--gray-50));
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(67, 97, 238, 0.15);
+            border-color: var(--primary);
+        }
+        
+        .metric-card.primary {
+            border-left: 4px solid var(--primary);
+        }
+        
+        .metric-card.success {
+            border-left: 4px solid var(--success);
+        }
+        
+        .metric-card.warning {
+            border-left: 4px solid var(--warning);
+        }
+        
+        .metric-card.danger {
+            border-left: 4px solid var(--danger);
+        }
+        
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+        
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            z-index: var(--z-modal);
+            font-size: 1.5rem;
         }
         
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid var(--gray-200);
-            border-top-color: var(--primary);
+        .metric-icon.balance {
+            background: linear-gradient(135deg, #4361ee, #4895ef);
+            color: white;
+        }
+        
+        .metric-icon.invested {
+            background: linear-gradient(135deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        
+        .metric-icon.earnings {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+        
+        .metric-icon.referrals {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+        }
+        
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gray-900);
+            margin: 8px 0;
+        }
+        
+        .metric-label {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .metric-change {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .metric-change.positive {
+            color: var(--success);
+        }
+        
+        .metric-change.negative {
+            color: var(--danger);
+        }
+        
+        /* Quick actions */
+        .quick-actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin: 24px 0;
+        }
+        
+        .quick-action {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quick-action:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .quick-action-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            font-size: 1.5rem;
+        }
+        
+        .quick-action-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 4px;
+        }
+        
+        .quick-action-desc {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+        }
+        
+        /* Investment cards */
+        .investment-card {
+            background: var(--white);
+            border-radius: 16px;
+            border: 1px solid var(--gray-200);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .investment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .investment-card.vip {
+            border: 2px solid #FFD700;
+            position: relative;
+        }
+        
+        .vip-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: linear-gradient(135deg, #FFD700, #FFB300);
+            color: #333;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .investment-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .investment-body {
+            padding: 20px;
+        }
+        
+        .investment-features {
+            list-style: none;
+            padding: 0;
+            margin: 16px 0;
+        }
+        
+        .investment-feature {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--gray-100);
+        }
+        
+        .investment-feature:last-child {
+            border-bottom: none;
+        }
+        
+        .feature-label {
+            color: var(--gray-600);
+        }
+        
+        .feature-value {
+            font-weight: 600;
+            color: var(--gray-900);
+        }
+        
+        .investment-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        
+        /* Activity timeline */
+        .activity-timeline {
+            position: relative;
+            padding-left: 24px;
+        }
+        
+        .activity-timeline::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--gray-200);
+        }
+        
+        .activity-item {
+            position: relative;
+            padding: 16px 0;
+            padding-left: 24px;
+        }
+        
+        .activity-item::before {
+            content: '';
+            position: absolute;
+            left: -8px;
+            top: 24px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
+            background: var(--primary);
+            border: 2px solid var(--white);
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .activity-time {
+            font-size: 0.75rem;
+            color: var(--gray-500);
+            margin-bottom: 4px;
+        }
+        
+        .activity-content {
+            font-size: 0.875rem;
+            color: var(--gray-800);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .quick-actions-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .investment-actions {
+                flex-direction: column;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .quick-actions-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
-<body class="app-layout" data-theme="light">
-    <!-- Loading State -->
-    <div id="loadingState">
-        <div class="spinner"></div>
+<body>
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading your dashboard...</p>
+        </div>
     </div>
     
     <!-- Header -->
-    <header class="header flex items-center justify-between">
-        <!-- Mobile Menu Toggle -->
-        <button id="menuToggle" class="btn btn-icon lg:hidden">
-            <i class="fas fa-bars"></i>
-        </button>
-        
-        <!-- Logo -->
-        <div class="flex items-center gap-3">
-            <div class="logo-icon bg-primary text-white p-2 rounded-lg">
-                <i class="fas fa-chart-line"></i>
-            </div>
-            <h1 class="text-xl font-bold text-gray-900">Uzumaki</h1>
-        </div>
-        
-        <!-- Desktop Actions -->
-        <div class="hidden lg:flex items-center gap-4">
-            <!-- Theme Toggle -->
-            <button id="themeToggle" class="btn btn-icon">
-                <i class="fas fa-moon"></i>
-            </button>
-            
-            <!-- Notifications -->
-            <div class="relative">
-                <button id="notificationsBtn" class="btn btn-icon">
-                    <i class="fas fa-bell"></i>
-                    <span class="notification-badge">3</span>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <!-- Mobile menu toggle -->
+                <button class="menu-toggle" id="menuToggle">
+                    <i class="fas fa-bars"></i>
                 </button>
-            </div>
-            
-            <!-- User Menu -->
-            <div class="relative">
-                <button id="userMenuBtn" class="flex items-center gap-2">
-                    <div class="w-10 h-10 rounded-full bg-gradient-primary flex items-center justify-center text-white">
-                        <i class="fas fa-user"></i>
+                
+                <!-- Logo -->
+                <div class="logo">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Uzumaki</span>
+                </div>
+                
+                <!-- Desktop navigation -->
+                <nav class="desktop-nav">
+                    <a href="dashboard.html" class="nav-link active">
+                        <i class="fas fa-home"></i>
+                        <span>Dashboard</span>
+                    </a>
+                    <a href="investments.html" class="nav-link">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Invest</span>
+                    </a>
+                    <a href="wallet.html" class="nav-link">
+                        <i class="fas fa-wallet"></i>
+                        <span>Wallet</span>
+                    </a>
+                    <a href="referrals.html" class="nav-link">
+                        <i class="fas fa-user-friends"></i>
+                        <span>Referrals</span>
+                    </a>
+                </nav>
+                
+                <!-- User actions -->
+                <div class="user-actions">
+                    <!-- Notifications -->
+                    <div class="notification-dropdown">
+                        <button class="btn-icon" id="notificationBtn">
+                            <i class="fas fa-bell"></i>
+                            <span class="notification-count">3</span>
+                        </button>
+                        <div class="dropdown-menu notification-menu">
+                            <div class="dropdown-header">
+                                <h3>Notifications</h3>
+                                <button class="btn-link mark-all-read">Mark all as read</button>
+                            </div>
+                            <div class="notification-list" id="notificationList">
+                                <!-- Notifications will be loaded here -->
+                            </div>
+                        </div>
                     </div>
-                    <span class="hidden md:inline font-medium">User</span>
-                </button>
+                    
+                    <!-- Theme toggle -->
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                    
+                    <!-- User dropdown -->
+                    <div class="user-dropdown">
+                        <button class="user-dropdown-toggle" id="userDropdownToggle">
+                            <div class="user-avatar" id="userAvatar">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <span class="user-name" id="userName">Loading...</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="dropdown-menu user-menu">
+                            <div class="user-info">
+                                <div class="user-avatar-lg">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                <div>
+                                    <h4 id="dropdownUserName">Loading...</h4>
+                                    <p id="dropdownUserEmail">Loading...</p>
+                                </div>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a href="profile.html" class="dropdown-item">
+                                <i class="fas fa-user-circle"></i>
+                                <span>Profile</span>
+                            </a>
+                            <a href="settings.html" class="dropdown-item">
+                                <i class="fas fa-cog"></i>
+                                <span>Settings</span>
+                            </a>
+                            <a href="support.html" class="dropdown-item">
+                                <i class="fas fa-headset"></i>
+                                <span>Support</span>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                            <button class="dropdown-item logout-btn" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <span>Logout</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </header>
     
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <!-- User Profile -->
-        <div class="sidebar-profile p-6 border-b border-gray-200">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-full bg-gradient-primary flex items-center justify-center text-white">
-                    <i class="fas fa-user fa-lg"></i>
+    <!-- Mobile sidebar -->
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="sidebar-header">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
                 </div>
                 <div>
-                    <h3 id="userName" class="font-semibold text-gray-900">Loading...</h3>
-                    <p id="userEmail" class="text-sm text-gray-600">Loading...</p>
+                    <h4 id="sidebarUserName">Loading...</h4>
+                    <p id="sidebarUserEmail">Loading...</p>
                 </div>
             </div>
-            <div class="mt-4">
-                <div class="flex justify-between items-center">
-                    <span class="text-sm text-gray-600">Account Status</span>
-                    <span id="userStatus" class="badge badge-success">Active</span>
-                </div>
-            </div>
+            <button class="sidebar-close" id="sidebarClose">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
         
-        <!-- Navigation -->
-        <nav class="sidebar-nav p-4">
-            <ul class="space-y-1">
-                <li>
-                    <a href="/pages/user/dashboard.html" class="nav-item active">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/wallet.html" class="nav-item">
-                        <i class="fas fa-wallet"></i>
-                        <span>Wallet</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/investments.html" class="nav-item">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>Investments</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/transactions.html" class="nav-item">
-                        <i class="fas fa-exchange-alt"></i>
-                        <span>Transactions</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/referrals.html" class="nav-item">
-                        <i class="fas fa-user-friends"></i>
-                        <span>Referrals</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/support.html" class="nav-item">
-                        <i class="fas fa-headset"></i>
-                        <span>Support</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/pages/user/settings.html" class="nav-item">
-                        <i class="fas fa-cog"></i>
-                        <span>Settings</span>
-                    </a>
-                </li>
-            </ul>
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="sidebar-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="investments.html" class="sidebar-link">
+                <i class="fas fa-chart-pie"></i>
+                <span>Investments</span>
+            </a>
+            <a href="wallet.html" class="sidebar-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="transactions.html" class="sidebar-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="sidebar-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="profile.html" class="sidebar-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="settings.html" class="sidebar-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+            <a href="support.html" class="sidebar-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
         </nav>
         
-        <!-- Sidebar Footer -->
-        <div class="sidebar-footer p-4 mt-auto border-t border-gray-200">
-            <button id="logoutBtn" class="btn btn-secondary w-full">
+        <div class="sidebar-footer">
+            <button class="btn btn-block logout-btn" id="mobileLogoutBtn">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
         </div>
     </aside>
     
-    <!-- Main Content -->
+    <!-- Main content -->
     <main class="main-content">
         <div class="container">
-            <!-- Welcome Section -->
-            <section class="mb-8">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Welcome back, <span id="welcomeName">User</span> 👋</h2>
-                        <p class="text-gray-600 mt-1">Here's what's happening with your investments today</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <div class="text-right">
-                            <p class="text-sm text-gray-600">Total Balance</p>
-                            <p id="totalBalance" class="text-2xl font-bold text-gray-900">₹0.00</p>
-                        </div>
-                        <button onclick="window.location.href='/pages/user/wallet.html'" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Add Funds
-                        </button>
-                    </div>
+            <!-- Welcome section -->
+            <section class="welcome-section">
+                <div class="welcome-content">
+                    <h1>Welcome back, <span id="welcomeUserName">User</span>! 👋</h1>
+                    <p class="text-gray-600">Here's your investment summary for today</p>
+                </div>
+                <div class="welcome-actions">
+                    <button class="btn btn-primary" onclick="window.location.href='investments.html'">
+                        <i class="fas fa-plus"></i>
+                        <span>New Investment</span>
+                    </button>
+                    <button class="btn btn-secondary" onclick="window.location.href='wallet.html'">
+                        <i class="fas fa-wallet"></i>
+                        <span>Add Funds</span>
+                    </button>
                 </div>
             </section>
             
-            <!-- Stats Grid -->
-            <section class="mb-8">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Available Balance -->
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
+            <!-- Stats grid -->
+            <section class="stats-section">
+                <div class="dashboard-grid">
+                    <!-- Total Balance -->
+                    <div class="metric-card primary">
+                        <div class="metric-header">
                             <div>
-                                <p class="text-sm text-gray-600">Available Balance</p>
-                                <p id="availableBalance" class="text-2xl font-bold text-gray-900">₹0.00</p>
+                                <p class="metric-label">Total Balance</p>
+                                <h2 class="metric-value" id="totalBalance">₹0.00</h2>
                             </div>
-                            <div class="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-                                <i class="fas fa-wallet text-blue-600 text-xl"></i>
+                            <div class="metric-icon balance">
+                                <i class="fas fa-wallet"></i>
                             </div>
                         </div>
-                        <button onclick="window.location.href='/pages/user/wallet.html'" class="btn btn-secondary w-full">
-                            Withdraw Funds
-                        </button>
+                        <div class="metric-footer">
+                            <span class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="balanceChange">+0.00%</span>
+                            </span>
+                            <span class="metric-time">Since yesterday</span>
+                        </div>
                     </div>
                     
                     <!-- Total Invested -->
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
+                    <div class="metric-card success">
+                        <div class="metric-header">
                             <div>
-                                <p class="text-sm text-gray-600">Total Invested</p>
-                                <p id="totalInvested" class="text-2xl font-bold text-gray-900">₹0.00</p>
+                                <p class="metric-label">Total Invested</p>
+                                <h2 class="metric-value" id="totalInvested">₹0.00</h2>
                             </div>
-                            <div class="w-12 h-12 rounded-lg bg-green-100 flex items-center justify-center">
-                                <i class="fas fa-chart-line text-green-600 text-xl"></i>
+                            <div class="metric-icon invested">
+                                <i class="fas fa-chart-line"></i>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">Active Plans</span>
-                            <span id="activePlans" class="font-semibold">0</span>
+                        <div class="metric-footer">
+                            <span class="metric-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="investedChange">+0.00%</span>
+                            </span>
+                            <span class="metric-time">Active investments</span>
                         </div>
                     </div>
                     
                     <!-- Total Earnings -->
-                    <div class="card p-6">
-                        <div class="flex items-center justify-between mb-4">
+                    <div class="metric-card warning">
+                        <div class="metric-header">
                             <div>
-                                <p class="text-sm text-gray-600">Total Earnings</p>
-                                <p id="totalEarnings" class="text-2xl font-bold text-gray-900">₹0.00</p>
+                                <p class="metric-label">Total Earnings</p>
+                                <h2 class="metric-value" id="totalEarnings">₹0.00</h2>
                             </div>
-                            <div class="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-                                <i class="fas fa-coins text-purple-600 text-xl"></i>
+                            <div class="metric-icon earnings">
+                                <i class="fas fa-coins"></i>
                             </div>
                         </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm text-gray-600">Today's Earnings</span>
-                            <span id="todayEarnings" class="font-semibold text-green-600">₹0.00</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Quick Actions -->
-            <section class="mb-8">
-                <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <a href="/pages/user/wallet.html" class="card p-4 text-center hover:shadow-lg transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-gradient-primary flex items-center justify-center text-white mx-auto mb-3">
-                            <i class="fas fa-plus"></i>
-                        </div>
-                        <p class="font-medium text-gray-900">Add Funds</p>
-                    </a>
-                    
-                    <a href="/pages/user/investments.html" class="card p-4 text-center hover:shadow-lg transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center text-green-600 mx-auto mb-3">
-                            <i class="fas fa-chart-pie"></i>
-                        </div>
-                        <p class="font-medium text-gray-900">Invest Now</p>
-                    </a>
-                    
-                    <a href="/pages/user/referrals.html" class="card p-4 text-center hover:shadow-lg transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center text-blue-600 mx-auto mb-3">
-                            <i class="fas fa-user-plus"></i>
-                        </div>
-                        <p class="font-medium text-gray-900">Refer & Earn</p>
-                    </a>
-                    
-                    <a href="/pages/user/support.html" class="card p-4 text-center hover:shadow-lg transition-all">
-                        <div class="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-orange-600 mx-auto mb-3">
-                            <i class="fas fa-headset"></i>
-                        </div>
-                        <p class="font-medium text-gray-900">Support</p>
-                    </a>
-                </div>
-            </section>
-            
-            <!-- Investment Plans -->
-            <section class="mb-8">
-                <div class="flex justify-between items-center mb-6">
-                    <h3 class="text-lg font-semibold text-gray-900">Investment Plans</h3>
-                    <div class="flex gap-2">
-                        <button data-tab="primary" class="tab-btn active">Primary</button>
-                        <button data-tab="vip" class="tab-btn">VIP Plans</button>
-                        <button data-tab="purchased" class="tab-btn">My Investments</button>
-                    </div>
-                </div>
-                
-                <!-- Plans Container -->
-                <div id="plansContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Plans will be loaded here -->
-                </div>
-            </section>
-            
-            <!-- Recent Activity -->
-            <section>
-                <div class="card">
-                    <div class="p-6 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Recent Activity</h3>
-                    </div>
-                    <div class="p-6">
-                        <div id="recentActivity" class="space-y-4">
-                            <!-- Activity will be loaded here -->
-                        </div>
-                        <div class="mt-6 text-center">
-                            <a href="/pages/user/transactions.html" class="text-primary font-medium hover:underline">
-                                View All Transactions
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-    
-    <!-- Bottom Navigation (Mobile) -->
-    <nav class="bottom-nav lg:hidden">
-        <a href="/pages/user/dashboard.html" class="nav-item active">
-            <i class="fas fa-home"></i>
-            <span class="text-xs mt-1">Home</span>
-        </a>
-        <a href="/pages/user/wallet.html" class="nav-item">
-            <i class="fas fa-wallet"></i>
-            <span class="text-xs mt-1">Wallet</span>
-        </a>
-        <a href="/pages/user/investments.html" class="nav-item">
-            <i class="fas fa-chart-pie"></i>
-            <span class="text-xs mt-1">Invest</span>
-        </a>
-        <a href="/pages/user/profile.html" class="nav-item">
-            <i class="fas fa-user"></i>
-            <span class="text-xs mt-1">Profile</span>
-        </a>
-    </nav>
-    
-    <!-- Notifications Modal -->
-    <div id="notificationsModal" class="modal-backdrop">
-        <div class="modal w-96">
-            <div class="p-6 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
-            </div>
-            <div id="notificationsList" class="p-4">
-                <!-- Notifications will be loaded here -->
-            </div>
-        </div>
-    </div>
-    
-    <!-- Scripts -->
-    <script type="module" src="/assets/js/core/supabase.js"></script>
-    <script type="module" src="/assets/js/core/auth.js"></script>
-    <script type="module" src="/assets/js/user/dashboard.js"></script>
-</body>
-</html>
+   
