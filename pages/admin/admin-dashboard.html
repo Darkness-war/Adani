@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/assets/css/core/reset.css">
+    <link rel="stylesheet" href="/assets/css/core/variables.css">
+    <link rel="stylesheet" href="/assets/css/core/layout.css">
+    
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="/assets/css/admin/admin-dashboard.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    
+    <style>
+        /* Custom admin styles */
+        :root {
+            --admin-primary: #1e40af;
+            --admin-secondary: #1e3a8a;
+            --admin-danger: #dc2626;
+            --admin-warning: #d97706;
+            --admin-success: #059669;
+            --admin-info: #0891b2;
+        }
+        
+        .admin-body {
+            background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+            min-height: 100vh;
+        }
+        
+        /* Admin header */
+        .admin-header {
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+            color: white;
+            box-shadow: 0 4px 20px rgba(30, 64, 175, 0.3);
+        }
+        
+        .admin-header .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+        
+        /* Admin sidebar */
+        .admin-sidebar {
+            background: white;
+            border-right: 1px solid #e5e7eb;
+            width: 250px;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-sidebar.collapsed {
+            width: 70px;
+        }
+        
+        .admin-sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, var(--admin-primary), var(--admin-secondary));
+            color: white;
+        }
+        
+        .admin-sidebar-nav .nav-item {
+            padding: 12px 20px;
+            color: #4b5563;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+        
+        .admin-sidebar-nav .nav-item:hover {
+            background: #f3f4f6;
+            color: var(--admin-primary);
+        }
+        
+        .admin-sidebar-nav .nav-item.active {
+            background: rgba(30, 64, 175, 0.1);
+            color: var(--admin-primary);
+            border-left-color: var(--admin-primary);
+        }
+        
+        /* Admin cards */
+        .admin-stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .admin-stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .admin-stat-card .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        
+        .admin-stat-card .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .admin-stat-card .stat-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        /* Status badges */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .status-badge.pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-badge.rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .status-badge.completed {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        /* Action buttons */
+        .action-btn {
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .action-btn.approve {
+            background: #10b981;
+            color: white;
+        }
+        
+        .action-btn.approve:hover {
+            background: #059669;
+        }
+        
+        .action-btn.reject {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .action-btn.reject:hover {
+            background: #dc2626;
+        }
+        
+        .action-btn.view {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .action-btn.view:hover {
+            background: #2563eb;
+        }
+        
+        /* Data table styles */
+        .data-table {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-table .dataTables_wrapper {
+            padding: 20px;
+        }
+        
+        /* Quick action buttons */
+        .quick-action-btn {
+            padding: 16px;
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .quick-action-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-color: var(--admin-primary);
+        }
+        
+        .quick-action-btn .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+        
+        /* Admin modal */
+        .admin-modal {
+            background: white;
+            border-radius: 16px;
+            max-width: 800px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .admin-sidebar {
+                position: fixed;
+                left: -250px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+            }
+            
+            .admin-sidebar.show {
+                left: 0;
+            }
+            
+            .admin-content {
+                margin-left: 0 !important;
+            }
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading admin dashboard...</p>
+        </div>
+    </div>
+    
+    <!-- Admin sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <!-- Sidebar header -->
+        <div class="admin-sidebar-header">
+            <div class="flex items-center justify-between">
+                <h2 class="logo">
+                    <i class="fas fa-crown"></i>
+                    <span>Admin Panel</span>
+                </h2>
+                <button class="btn-icon text-white" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <div class="admin-info mt-4">
+                <div class="flex items-center gap-3">
+                    <div class="admin-avatar">
+                        <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div>
+                        <h4 id="adminName">Loading...</h4>
+                        <p id="adminRole" class="text-sm opacity-75">Super Admin</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar navigation -->
+        <nav class="admin-sidebar-nav py-4">
+            <a href="admin-dashboard.html" class="nav-item active">
+                <i class="fas fa-tachometer-alt"></i>
+                <span>Dashboard</span>
+            </a>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">User Management</h3>
+                <a href="admin-users.html" class="nav-item">
+                    <i class="fas fa-users"></i>
+                    <span>All Users</span>
+                </a>
+                <a href="admin-users.html?filter=vip" class="nav-item">
+                    <i class="fas fa-crown"></i>
+                    <span>VIP Users</span>
+                </a>
+                <a href="admin-users.html?filter=new" class="nav-item">
+                    <i class="fas fa-user-plus"></i>
+                    <span>New Users</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Financial Management</h3>
+                <a href="admin-recharge.html" class="nav-item">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Recharge Requests</span>
+                    <span class="badge pending-count">0</span>
+                </a>
+                <a href="admin-withdrawals.html" class="nav-item">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Withdrawal Requests</span>
+                    <span class="badge pending-count">0</span>
+                </a>
+                <a href="admin-transactions.html" class="nav-item">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>All Transactions</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">Investment Management</h3>
+                <a href="admin-investments.html" class="nav-item">
+                    <i class="fas fa-chart-line"></i>
+                    <span>All Investments</span>
+                </a>
+                <a href="admin-plans.html" class="nav-item">
+                    <i class="fas fa-box"></i>
+                    <span>Investment Plans</span>
+                </a>
+                <a href="admin-earnings.html" class="nav-item">
+                    <i class="fas fa-coins"></i>
+                    <span>Daily Earnings</span>
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <h3 class="nav-section-title">System Management</h3>
+                <a href="admin-settings.html" class="nav-item">
+                    <i class="fas fa-cog"></i>
+                    <span>System Settings</span>
+                </a>
+                <a href="admin-logs.html" class="nav-item">
+                    <i class="fas fa-history"></i>
+                    <span>Activity Logs</span>
+                </a>
+                <a href="admin-backup.html" class="nav-item">
+                    <i class="fas fa-database"></i>
+                    <span>Backup & Restore</span>
+                </a>
+            </div>
+            
+            <div class="nav-section mt-auto">
+                <a href="/pages/user/dashboard.html" class="nav-item">
+                    <i class="fas fa-user"></i>
+                    <span>User Dashboard</span>
+                </a>
+                <a href="#" class="nav-item text-red-600" id="adminLogoutBtn">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
+    </aside>
+    
+    <!-- Main content -->
+    <div class="admin-content" id="adminContent">
+        <!-- Admin header -->
+        <header class="admin-header">
+            <div class="container">
+                <div class="flex items-center justify-between py-4">
+                    <!-- Left side: Mobile menu toggle and breadcrumb -->
+                    <div class="flex items-center gap-4">
+                        <button class="btn-icon text-white md:hidden" id="mobileMenuToggle">
+                            <i class="fas fa-bars"></i>
+                        </button>
+                        
+                        <div class="breadcrumb">
+                            <span class="text-white opacity-75">Admin</span>
+                            <i class="fas fa-chevron-right mx-2 text-white opacity-50"></i>
+                            <span class="text-white font-medium">Dashboard</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Right side: Search and notifications -->
+                    <div class="flex items-center gap-4">
+                        <!-- Search -->
+                        <div class="search-container">
+                            <input type="text" placeholder="Search users, transactions..." 
+                                   class="search-input">
+                            <button class="search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Notifications -->
+                        <div class="notification-dropdown">
+                            <button class="btn-icon text-white" id="adminNotificationBtn">
+                                <i class="fas fa-bell"></i>
+                                <span class="notification-badge">3</span>
+                            </button>
+                        </div>
+                        
+                        <!-- Quick actions dropdown -->
+                        <div class="dropdown">
+                            <button class="btn btn-primary">
+                                <i class="fas fa-bolt"></i>
+                                <span>Quick Actions</span>
+                                <i class="fas fa-chevron-down ml-2"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a href="admin-recharge.html" class="dropdown-item">
+                                    <i class="fas fa-money-bill-wave"></i>
+                                    <span>Approve Recharges</span>
+                                </a>
+                                <a href="admin-withdrawals.html" class="dropdown-item">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Process Withdrawals</span>
+                                </a>
+                                <a href="admin-users.html?action=add" class="dropdown-item">
+                                    <i class="fas fa-user-plus"></i>
+                                    <span>Add New User</span>
+                                </a>
+                                <a href="admin-plans.html?action=add" class="dropdown-item">
+                                    <i class="fas fa-plus-circle"></i>
+                                    <span>Create New Plan</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main content area -->
+        <main class="admin-main">
+            <div class="container py-6">
+                <!-- Welcome section -->
+                <section class="mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h1 class="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+                            <p class="text-gray-600 mt-2">Manage your investment platform from one place</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <p class="text-sm text-gray-600">System Status</p>
+                                <p class="text-lg font-semibold text-green-600">
+                                    <i class="fas fa-circle text-xs mr-1"></i>
+                                    All Systems Operational
+                                </p>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="refreshAllData()">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh Data</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <!-- Stats overview -->
+                <section class="mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <!-- Total Users -->
+                        <div class="admin-stat-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="stat-label">Total Users</p>
+                                    <h2 class="stat-value" id="totalUsers">0</h2>
+                                    <div class="flex items-center gap-2 mt-2">
+                                        <span class="text-sm text-green-600">
+                                            <i class="fas fa-arrow-up"></i>
+                                            <span id="userGrowth">0%</span>
+                                        </span>
+                                        <span class="text-sm text-gray-500">from last month</span>
+                                    </div>
+                                </div>
+                                <div class="stat-icon" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Total Balance -->
+                        <div class="admin-stat-card">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="stat-label">Platform Balance</p>
+                                    <h2 class="stat-value" id="totalBalance">₹0.00</h2>
+                                    <div class="flex items-center 
