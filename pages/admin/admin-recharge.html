@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recharge Management - Admin Panel</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/assets/css/core/reset.css">
+    <link rel="stylesheet" href="/assets/css/core/variables.css">
+    <link rel="stylesheet" href="/assets/css/core/layout.css">
+    
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="/assets/css/admin/admin-common.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
+    
+    <style>
+        /* Custom styles for recharge management */
+        .recharge-filters {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+        }
+        
+        .filter-group {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .stats-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card-small {
+            background: white;
+            border-radius: 10px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card-small:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        .stat-card-small .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 8px 0;
+        }
+        
+        .stat-card-small .stat-label {
+            font-size: 0.875rem;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .stat-card-small.pending {
+            border-left: 4px solid #f59e0b;
+        }
+        
+        .stat-card-small.approved {
+            border-left: 4px solid #10b981;
+        }
+        
+        .stat-card-small.rejected {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .stat-card-small.total {
+            border-left: 4px solid #3b82f6;
+        }
+        
+        /* Recharge details modal */
+        .recharge-details {
+            max-width: 600px;
+        }
+        
+        .payment-proof {
+            max-width: 300px;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            padding: 12px;
+        }
+        
+        .payment-proof img {
+            width: 100%;
+            height: auto;
+            border-radius: 4px;
+        }
+        
+        /* Bulk actions */
+        .bulk-actions {
+            background: #f9fafb;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: none;
+        }
+        
+        .bulk-actions.show {
+            display: block;
+        }
+        
+        .selected-count {
+            font-weight: 600;
+            color: #1f2937;
+        }
+        
+        /* Quick approval buttons */
+        .quick-approval {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+        
+        .quick-approval-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+            transition: all 0.3s ease;
+        }
+        
+        .quick-approval-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 30px rgba(16, 185, 129, 0.6);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .filter-group {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                width: 100%;
+            }
+            
+            .stats-cards {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .stats-cards {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="admin-body">
+    <!-- Loading overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Loading recharge management...</p>
+        </div>
+    </div>
+    
+    <!-- Admin sidebar (same as dashboard) -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <!-- Sidebar content same as dashboard -->
+    </aside>
+    
+    <!-- Main content -->
+    <div class="admin-content" id="adminContent">
+        <!-- Admin header (same as dashboard) -->
+        <header class="admin-header">
+            <!-- Header content same as dashboard -->
+        </header>
+        
+        <!-- Main content area -->
+        <main class="admin-main">
+            <div class="container py-6">
+                <!-- Page header -->
+                <div class="page-header mb-6">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Recharge Management</h1>
+                            <p class="text-gray-600 mt-1">Approve or reject user recharge requests</p>
+                        </div>
+                        
+                        <div class="flex items-center gap-3">
+                            <button class="btn btn-primary" onclick="rechargeManager.exportData()">
+                                <i class="fas fa-file-export"></i>
+                                <span>Export Data</span>
+                            </button>
+                            <button class="btn btn-secondary" onclick="rechargeManager.refreshData()">
+                                <i class="fas fa-sync-alt"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Stats cards -->
+                <div class="stats-cards">
+                    <div class="stat-card-small pending">
+                        <div class="stat-label">Pending</div>
+                        <div class="stat-value" id="pendingCount">0</div>
+                        <div class="text-sm text-gray-500">Awaiting approval</div>
+                    </div>
+                    
+                    <div class="stat-card-small approved">
+                        <div class="stat-label">Approved</div>
+                        <div class="stat-value" id="approvedCount">0</div>
+                        <div class="text-sm text-gray-500">This month</div>
+                    </div>
+                    
+                    <div class="stat-card-small rejected">
+                        <div class="stat-label">Rejected</div>
+                        <div class="stat-value" id="rejectedCount">0</div>
+                        <div class="text-sm text-gray-500">This month</div>
+                    </div>
+                    
+                    <div class="stat-card-small total">
+                        <div class="stat-label">Total Amount</div>
+                        <div class="stat-value" id="totalAmount">₹0</div>
+                        <div class="text-sm text-gray-500">Pending amount</div>
+                    </div>
+                </div>
+                
+                <!-- Filters -->
+                <div class="recharge-filters">
+                    <div class="filter-group">
+                        <div class="filter-item">
+                            <label class="form-label">Status</label>
+                            <select class="form-input" id="statusFilter">
+                                <option value="">All Status</option>
+                                <option value="pending">Pending</option>
+                                <option value="completed">Approved</option>
+                                <option value="failed">Rejected</option>
+                                <option value="expired">Expired</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-input" id="methodFilter">
+                                <option value="">All Methods</option>
+                                <option value="Pay0">Pay0</option>
+                                <option value="UPI">UPI</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label class="form-label">Date Range</label>
+                            <input type="date" class="form-input" id="dateFrom">
+                            <span class="mx-2">to</span>
+                            <input type="date" class="form-input" id="dateTo">
+                        </div>
+                        
+                        <div class="filter-item">
+                            <label class="form-label">Amount Range</label>
+                            <div class="flex items-center gap-2">
+                                <input type="number" class="form-input" id="minAmount" placeholder="Min">
+                                <span>-</span>
+                                <input type="number" class="form-input" id="maxAmount" placeholder="Max">
+                            </div>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <button class="btn btn-secondary w-full" onclick="rechargeManager.clearFilters()">
+                                <i class="fas fa-times"></i>
+                                Clear Filters
+                            </button>
+                        </div>
+                        
+                        <div class="filter-item">
+                            <button class="btn btn-primary w-full" onclick="rechargeManager.applyFilters()">
+                                <i class="fas fa-filter"></i>
+                                Apply Filters
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Search -->
+                    <div class="mt-4">
+                        <div class="relative">
+                            <input type="text" class="form-input pl-10" id="searchInput" 
+                                   placeholder="Search by order ID, user name, email, or UTR...">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Bulk actions -->
+                <div class="bulk-actions" id="bulkActions">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <span class="selected-count" id="selectedCount">0</span> requests selected
+                        </div>
+                        <div class="flex gap-2">
+                            <button class="btn btn-success btn-sm" onclick="rechargeManager.bulkApprove()">
+                                <i class="fas fa-check"></i>
+                                Approve Selected
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="rechargeManager.bulkReject()">
+                                <i class="fas fa-times"></i>
+                                Reject Selected
+                            </button>
+                            <button class="btn btn-secondary btn-sm" onclick="rechargeManager.clearSelection()">
+                                <i class="fas fa-times"></i>
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Recharges table -->
+                <div class="data-table">
+                    <table id="rechargesTable" class="display" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>
+                                    <input type="checkbox" id="selectAll">
+                                </th>
+                                <th>Order ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded by DataTables -->
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <th></th>
+                                <th>Order ID</th>
+                                <th>User</th>
+                                <th>Amount</th>
+                                <th>Method</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Modals -->
+    <div class="modal-overlay" id="rechargeModalOverlay" style="display: none;">
+        <div class="admin-modal recharge-details" id="rechargeModal">
+            <!-- Modal content will be loaded here -->
+        </div>
+    </div>
+    
+    <!-- Quick approval button -->
+    <div class="quick-approval">
+        <button class="quick-approval-btn" id="quickApproveBtn" title="Quick Approve All Pending">
+            <i class="fas fa-bolt"></i>
+        </button>
+    </div>
+    
+    <!-- Scripts -->
+    <script type="module" src="/assets/js/core/supabase.js"></script>
+    <script type="module" src="/assets/js/core/auth.js"></script>
+    <script type="module" src="/assets/js/admin/admin-recharge.js"></script>
+    
+    <script>
+        // Initialize sidebar and theme
+        document.addEventListener('DOMContentLoaded', () => {
+            // Sidebar toggle
+            const sidebarToggle = document.getElementById('sidebarToggle');
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const adminSidebar = document.getElementById('adminSidebar');
+            
+            sidebarToggle?.addEventListener('click', () => {
+                adminSidebar.classList.toggle('collapsed');
+            });
+            
+            mobileMenuToggle?.addEventListener('click', () => {
+                adminSidebar.classList.add('show');
+            });
+            
+            // Check admin access
+            (async () => {
+                const { user } = await sessionManager.getCurrentUser();
+                if (!user) {
+                    window.location.href = '/pages/auth/login.html';
+                    return;
+                }
+                
+                const { data: profile } = await supabase
+                    .from('profiles')
+                    .select('is_admin')
+                    .eq('id', user.id)
+                    .single();
+                
+                if (!profile?.is_admin) {
+                    window.location.href = '/pages/errors/403.html';
+                }
+            })();
+            
+            // Hide loading overlay
+            setTimeout(() => {
+                document.getElementById('loadingOverlay').style.display = 'none';
+            }, 1500);
+        });
+    </script>
+</body>
+</html>
