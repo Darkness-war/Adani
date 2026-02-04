@@ -1,4 +1,4 @@
-<!-- login.html -->
+<!-- pages/auth/login.html -->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -7,12 +7,12 @@
     <title>Sign In | Uzumaki Investments</title>
     
     <!-- Core Styles -->
-    <link rel="stylesheet" href="/assets/css/core/reset.css">
-    <link rel="stylesheet" href="/assets/css/core/variables.css">
-    <link rel="stylesheet" href="/assets/css/core/layout.css">
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
     
-    <!-- Page Specific -->
-    <link rel="stylesheet" href="/assets/css/auth/login.css">
+    <!-- Page Specific CSS -->
+    <link rel="stylesheet" href="../../assets/css/auth/login.css">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,9 +21,6 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="/assets/images/favicon.svg">
 </head>
 <body>
     <!-- Theme Toggle -->
@@ -71,18 +68,6 @@
                         </div>
                     </div>
                 </div>
-                
-                <!-- Stats Counter -->
-                <div class="stats-counter">
-                    <div class="stat">
-                        <span class="stat-number" data-count="25000">0</span>
-                        <span class="stat-label">Active Investors</span>
-                    </div>
-                    <div class="stat">
-                        <span class="stat-number" data-count="850">0</span>
-                        <span class="stat-label">M Assets</span>
-                    </div>
-                </div>
             </div>
         </div>
         
@@ -93,16 +78,6 @@
                 <div class="form-header">
                     <h2>Welcome Back</h2>
                     <p class="form-subtitle">Sign in to your investment dashboard</p>
-                    
-                    <!-- User Type Selector -->
-                    <div class="user-type-selector">
-                        <button class="user-type-btn active" data-type="individual">
-                            <i class="fas fa-user"></i> Individual
-                        </button>
-                        <button class="user-type-btn" data-type="institutional">
-                            <i class="fas fa-building"></i> Institutional
-                        </button>
-                    </div>
                 </div>
                 
                 <!-- Login Form -->
@@ -137,13 +112,13 @@
                             <span class="checkbox-custom"></span>
                             <span class="checkbox-label">Remember this device</span>
                         </label>
-                        <a href="/auth/forgot-password" class="forgot-password">
+                        <a href="forgot-password.html" class="forgot-password">
                             Forgot Password?
                         </a>
                     </div>
                     
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary btn-block btn-gradient" id="loginBtn">
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
                         <span class="btn-content">
                             <i class="fas fa-sign-in-alt"></i>
                             <span>Sign In</span>
@@ -153,9 +128,9 @@
                         </div>
                     </button>
                     
-                    <!-- Quick Social Login -->
+                    <!-- Social Login -->
                     <div class="social-quick-login">
-                        <p class="divider-text">Or sign in with</p>
+                        <p class="divider-text">Or continue with</p>
                         <div class="social-buttons">
                             <button type="button" class="social-btn google" id="googleLogin">
                                 <i class="fab fa-google"></i>
@@ -165,24 +140,20 @@
                                 <i class="fab fa-github"></i>
                                 <span>GitHub</span>
                             </button>
-                            <button type="button" class="social-btn apple" id="appleLogin">
-                                <i class="fab fa-apple"></i>
-                                <span>Apple</span>
-                            </button>
                         </div>
                     </div>
                     
                     <!-- Sign Up Link -->
                     <div class="signup-prompt">
-                        <p>New to Uzumaki? 
-                            <a href="/auth/signup" class="signup-link">
-                                Create Account <i class="fas fa-arrow-right"></i>
+                        <p>Don't have an account? 
+                            <a href="signup.html" class="signup-link">
+                                Sign Up <i class="fas fa-arrow-right"></i>
                             </a>
                         </p>
                     </div>
                 </form>
                 
-                <!-- Demo Access (Collapsible) -->
+                <!-- Demo Access -->
                 <div class="demo-access">
                     <div class="demo-header">
                         <button class="demo-toggle" id="demoToggle">
@@ -232,40 +203,12 @@
                 </div>
             </div>
         </div>
-        
-        <!-- Mobile Bottom Nav -->
-        <div class="mobile-nav">
-            <a href="/" class="nav-item">
-                <i class="fas fa-home"></i>
-                <span>Home</span>
-            </a>
-            <a href="/about" class="nav-item">
-                <i class="fas fa-info-circle"></i>
-                <span>About</span>
-            </a>
-            <a href="/contact" class="nav-item">
-                <i class="fas fa-envelope"></i>
-                <span>Contact</span>
-            </a>
-            <a href="/help" class="nav-item">
-                <i class="fas fa-question-circle"></i>
-                <span>Help</span>
-            </a>
-        </div>
     </div>
     
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
     
     <!-- Core Scripts -->
-    <script type="module" src="/assets/js/core/supabase.js"></script>
-    <script type="module" src="/assets/js/auth/login.js"></script>
-    
-    <!-- Service Worker -->
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/sw.js');
-        }
-    </script>
+    <script type="module" src="../../assets/js/auth/login.js"></script>
 </body>
-                                                       </html>
+    </html>
