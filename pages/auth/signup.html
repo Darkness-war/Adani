@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Account | Uzumaki Investments</title>
+    <title>Sign Up | Uzumaki Investments</title>
     
     <!-- Core Styles -->
     <link rel="stylesheet" href="../../assets/css/core/reset.css">
@@ -30,9 +30,9 @@
     <!-- Background Elements -->
     <div class="background-animation"></div>
     
-    <div class="auth-container">
-        <!-- Left Panel - Brand & Benefits -->
-        <div class="auth-brand-panel">
+    <div class="login-container">
+        <!-- Left Panel - Brand & Features (EXACTLY like login) -->
+        <div class="login-brand-panel">
             <div class="brand-content">
                 <!-- Animated Logo -->
                 <div class="logo-container">
@@ -43,204 +43,122 @@
                     <p class="brand-subtitle">Intelligent Investments</p>
                 </div>
                 
-                <!-- Benefits List -->
-                <div class="benefits-list">
-                    <div class="benefit-item">
-                        <i class="fas fa-chart-line benefit-icon"></i>
+                <!-- Features List (SAME as login) -->
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt feature-icon"></i>
                         <div>
-                            <h4>Smart Investing</h4>
-                            <p>AI-powered investment strategies</p>
+                            <h4>Bank-Level Security</h4>
+                            <p>256-bit encryption & 2FA protection</p>
                         </div>
                     </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-shield-alt benefit-icon"></i>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line feature-icon"></i>
                         <div>
-                            <h4>Secure Platform</h4>
-                            <p>Bank-level security & encryption</p>
+                            <h4>Smart Analytics</h4>
+                            <p>Real-time portfolio tracking</p>
                         </div>
                     </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-bolt benefit-icon"></i>
+                    <div class="feature-item">
+                        <i class="fas fa-bolt feature-icon"></i>
                         <div>
-                            <h4>Instant Access</h4>
-                            <p>Real-time trading & withdrawals</p>
+                            <h4>Instant Execution</h4>
+                            <p>Sub-second trade processing</p>
                         </div>
-                    </div>
-                    <div class="benefit-item">
-                        <i class="fas fa-headset benefit-icon"></i>
-                        <div>
-                            <h4>24/7 Support</h4>
-                            <p>Dedicated customer service</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Trust Indicators -->
-                <div class="trust-indicators">
-                    <div class="trust-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Regulated Platform</span>
-                    </div>
-                    <div class="trust-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>SSL Secured</span>
-                    </div>
-                    <div class="trust-item">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Insurance Protected</span>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Right Panel - Signup Form -->
-        <div class="auth-form-panel">
+        <div class="login-form-panel">
             <div class="form-wrapper">
                 <!-- Form Header -->
                 <div class="form-header">
-                    <h2>Create Your Account</h2>
+                    <h2>Create Account</h2>
                     <p class="form-subtitle">Join thousands of smart investors</p>
-                    
-                    <!-- Progress Steps -->
-                    <div class="signup-progress">
-                        <div class="progress-step active">
-                            <div class="step-number">1</div>
-                            <span>Account Info</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">2</div>
-                            <span>Verification</span>
-                        </div>
-                        <div class="progress-step">
-                            <div class="step-number">3</div>
-                            <span>Complete</span>
-                        </div>
-                    </div>
                 </div>
                 
                 <!-- Signup Form -->
                 <form id="signupForm" class="auth-form">
-                    <!-- Personal Info Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-user"></i>
-                            Personal Information
-                        </h3>
-                        
-                        <div class="form-row">
-                            <div class="form-group floating-label">
-                                <input type="text" id="firstName" name="firstName" class="form-input" 
-                                       placeholder=" " required>
-                                <label for="firstName">First Name</label>
-                                <div class="input-border"></div>
-                            </div>
-                            
-                            <div class="form-group floating-label">
-                                <input type="text" id="lastName" name="lastName" class="form-input" 
-                                       placeholder=" " required>
-                                <label for="lastName">Last Name</label>
-                                <div class="input-border"></div>
-                            </div>
-                        </div>
-                        
+                    <!-- Name Fields in Row -->
+                    <div class="form-row">
                         <div class="form-group floating-label">
-                            <input type="email" id="email" name="email" class="form-input" 
+                            <input type="text" id="firstName" name="firstName" class="form-input" 
                                    placeholder=" " required>
-                            <label for="email">
-                                <i class="fas fa-envelope"></i> Email Address
-                            </label>
+                            <label for="firstName">First Name</label>
                             <div class="input-border"></div>
                         </div>
                         
                         <div class="form-group floating-label">
-                            <input type="tel" id="phone" name="phone" class="form-input" 
-                                   placeholder=" ">
-                            <label for="phone">
-                                <i class="fas fa-phone"></i> Phone Number (Optional)
-                            </label>
+                            <input type="text" id="lastName" name="lastName" class="form-input" 
+                                   placeholder=" " required>
+                            <label for="lastName">Last Name</label>
                             <div class="input-border"></div>
                         </div>
                     </div>
                     
-                    <!-- Security Section -->
-                    <div class="form-section">
-                        <h3 class="section-title">
-                            <i class="fas fa-lock"></i>
-                            Security Settings
-                        </h3>
-                        
-                        <div class="form-group floating-label">
-                            <input type="password" id="password" name="password" 
-                                   class="form-input" placeholder=" " required>
-                            <label for="password">
-                                <i class="fas fa-key"></i> Password
-                            </label>
-                            <button type="button" class="password-toggle" id="togglePassword">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <div class="input-border"></div>
-                            <div class="password-strength" id="passwordStrength">
-                                <div class="strength-bar"></div>
-                                <span class="strength-text">Password strength</span>
+                    <!-- Email Field -->
+                    <div class="form-group floating-label">
+                        <input type="email" id="email" name="email" class="form-input" 
+                               placeholder=" " required>
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <div class="input-border"></div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="form-group floating-label">
+                        <input type="password" id="password" name="password" 
+                               class="form-input" placeholder=" " required>
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="input-border"></div>
+                        <!-- Password Strength Indicator -->
+                        <div class="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
                             </div>
-                        </div>
-                        
-                        <div class="form-group floating-label">
-                            <input type="password" id="confirmPassword" name="confirmPassword" 
-                                   class="form-input" placeholder=" " required>
-                            <label for="confirmPassword">
-                                <i class="fas fa-key"></i> Confirm Password
-                            </label>
-                            <button type="button" class="password-toggle" id="toggleConfirmPassword">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                            <div class="input-border"></div>
-                        </div>
-                        
-                        <!-- Password Requirements -->
-                        <div class="password-requirements">
-                            <h4>Password must include:</h4>
-                            <ul>
-                                <li id="req-length"><i class="fas fa-circle"></i> At least 8 characters</li>
-                                <li id="req-uppercase"><i class="fas fa-circle"></i> One uppercase letter</li>
-                                <li id="req-lowercase"><i class="fas fa-circle"></i> One lowercase letter</li>
-                                <li id="req-number"><i class="fas fa-circle"></i> One number</li>
-                                <li id="req-special"><i class="fas fa-circle"></i> One special character</li>
-                            </ul>
+                            <span class="strength-text">Password strength</span>
                         </div>
                     </div>
                     
-                    <!-- Terms & Preferences -->
-                    <div class="form-section">
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox" id="terms" name="terms" required>
-                                <span class="checkbox-custom"></span>
-                                <span class="checkbox-label">
-                                    I agree to the <a href="/terms" class="link">Terms of Service</a> and <a href="/privacy" class="link">Privacy Policy</a>
-                                </span>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox" id="newsletter" name="newsletter" checked>
-                                <span class="checkbox-custom"></span>
-                                <span class="checkbox-label">
-                                    Send me investment insights, tips, and platform updates
-                                </span>
-                            </label>
-                        </div>
-                        
-                        <div class="form-group checkbox-group">
-                            <label class="checkbox-wrapper">
-                                <input type="checkbox" id="twoFactor" name="twoFactor">
-                                <span class="checkbox-custom"></span>
-                                <span class="checkbox-label">
-                                    Enable two-factor authentication for extra security
-                                </span>
-                            </label>
-                        </div>
+                    <!-- Confirm Password Field -->
+                    <div class="form-group floating-label">
+                        <input type="password" id="confirmPassword" name="confirmPassword" 
+                               class="form-input" placeholder=" " required>
+                        <label for="confirmPassword">
+                            <i class="fas fa-lock"></i> Confirm Password
+                        </label>
+                        <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="input-border"></div>
+                    </div>
+                    
+                    <!-- Password Requirements -->
+                    <div class="password-requirements">
+                        <h4>Password must include:</h4>
+                        <ul>
+                            <li id="req-length"><i class="fas fa-circle"></i> At least 8 characters</li>
+                            <li id="req-uppercase"><i class="fas fa-circle"></i> One uppercase letter</li>
+                            <li id="req-lowercase"><i class="fas fa-circle"></i> One lowercase letter</li>
+                            <li id="req-number"><i class="fas fa-circle"></i> One number</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Terms Checkbox -->
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="terms" name="terms" required>
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">I agree to <a href="/terms">Terms</a> & <a href="/privacy">Privacy</a></span>
+                        </label>
                     </div>
                     
                     <!-- Submit Button -->
@@ -255,7 +173,7 @@
                     </button>
                     
                     <!-- Social Signup -->
-                    <div class="social-signup">
+                    <div class="social-quick-login">
                         <p class="divider-text">Or sign up with</p>
                         <div class="social-buttons">
                             <button type="button" class="social-btn google" id="googleSignup">
@@ -270,9 +188,9 @@
                     </div>
                     
                     <!-- Login Link -->
-                    <div class="login-prompt">
+                    <div class="signup-prompt">
                         <p>Already have an account? 
-                            <a href="login.html" class="login-link">
+                            <a href="login.html" class="signup-link">
                                 Sign In <i class="fas fa-arrow-right"></i>
                             </a>
                         </p>
@@ -294,4 +212,4 @@
     <!-- Core Scripts -->
     <script type="module" src="../../assets/js/auth/signup.js"></script>
 </body>
-                      </html>
+    </html>
