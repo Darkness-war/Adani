@@ -1,4 +1,3 @@
-<!-- pages/auth/login.html -->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
@@ -153,46 +152,157 @@
                     </div>
                 </form>
                 
-                <!-- Demo Access -->
-                <div class="demo-access">
-                    <div class="demo-header">
-                        <button class="demo-toggle" id="demoToggle">
-                            <i class="fas fa-vial"></i>
-                            <span>Test with Demo Accounts</span>
-                            <i class="fas fa-chevron-down"></i>
+                <!-- Enhanced Demo Section -->
+                <div class="demo-section">
+                    <div class="demo-section-header">
+                        <div class="demo-title">
+                            <i class="fas fa-flask"></i>
+                            <h3>Testing Environment</h3>
+                        </div>
+                        <div class="demo-status">
+                            <span class="status-badge active">
+                                <i class="fas fa-circle"></i>
+                                Live Testing
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="demo-description">
+                        <p>Experience our platform with pre-configured demo accounts. Perfect for testing features without real commitments.</p>
+                        <div class="demo-features">
+                            <span><i class="fas fa-check"></i> Real-time Data</span>
+                            <span><i class="fas fa-check"></i> Full Functionality</span>
+                            <span><i class="fas fa-check"></i> No Risk</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Account Tabs -->
+                    <div class="account-tabs">
+                        <button class="account-tab active" data-tab="standard">
+                            <i class="fas fa-user"></i>
+                            Standard Account
+                        </button>
+                        <button class="account-tab" data-tab="vip">
+                            <i class="fas fa-crown"></i>
+                            VIP Account
                         </button>
                     </div>
                     
-                    <div class="demo-content" id="demoContent">
-                        <div class="demo-grid">
-                            <div class="demo-card" data-email="user@test.com" data-password="Test@123">
-                                <div class="demo-card-header">
-                                    <i class="fas fa-user-circle demo-icon"></i>
-                                    <div class="demo-badge">Standard</div>
+                    <!-- Account Cards -->
+                    <div class="account-cards">
+                        <!-- Standard Account -->
+                        <div class="account-card active" id="standard-account">
+                            <div class="account-card-header">
+                                <div class="account-type">
+                                    <div class="account-icon">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <div class="account-badges">
+                                        <span class="badge">Demo</span>
+                                        <span class="badge badge-features">Basic Features</span>
+                                    </div>
                                 </div>
-                                <h4>User Account</h4>
-                                <p>Standard trading features</p>
-                                <div class="demo-credentials">
-                                    <code>user@test.com</code>
-                                    <code>Test@123</code>
+                                <div class="account-balance">
+                                    <span class="balance-label">Demo Balance</span>
+                                    <span class="balance-amount">$10,000</span>
                                 </div>
-                                <button type="button" class="btn-demo-use">Use This</button>
                             </div>
                             
-                            <div class="demo-card" data-email="vip@test.com" data-password="Test@123">
-                                <div class="demo-card-header">
-                                    <i class="fas fa-crown demo-icon"></i>
-                                    <div class="demo-badge vip">VIP</div>
+                            <div class="account-info">
+                                <h4>Standard Trading Account</h4>
+                                <p class="account-description">
+                                    Perfect for testing basic trading features and getting familiar with the platform.
+                                </p>
+                                
+                                <div class="account-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-envelope"></i> Email:</span>
+                                        <code class="detail-value">user@test.com</code>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-key"></i> Password:</span>
+                                        <code class="detail-value">Test@123</code>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-chart-line"></i> Features:</span>
+                                        <span class="detail-features">Basic Trading, Portfolio View</span>
+                                    </div>
                                 </div>
-                                <h4>VIP Account</h4>
-                                <p>Premium features unlocked</p>
-                                <div class="demo-credentials">
-                                    <code>vip@test.com</code>
-                                    <code>Test@123</code>
-                                </div>
-                                <button type="button" class="btn-demo-use">Use This</button>
+                                
+                                <button class="btn-use-account" data-email="user@test.com" data-password="Test@123">
+                                    <i class="fas fa-rocket"></i>
+                                    Use This Account
+                                </button>
                             </div>
                         </div>
+                        
+                        <!-- VIP Account -->
+                        <div class="account-card" id="vip-account">
+                            <div class="account-card-header">
+                                <div class="account-type">
+                                    <div class="account-icon vip">
+                                        <i class="fas fa-crown"></i>
+                                    </div>
+                                    <div class="account-badges">
+                                        <span class="badge vip-badge">VIP</span>
+                                        <span class="badge badge-features">Premium Features</span>
+                                    </div>
+                                </div>
+                                <div class="account-balance">
+                                    <span class="balance-label">Demo Balance</span>
+                                    <span class="balance-amount">$50,000</span>
+                                </div>
+                            </div>
+                            
+                            <div class="account-info">
+                                <h4>VIP Premium Account</h4>
+                                <p class="account-description">
+                                    Access premium features including advanced analytics and priority execution.
+                                </p>
+                                
+                                <div class="account-details">
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-envelope"></i> Email:</span>
+                                        <code class="detail-value">vip@test.com</code>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-key"></i> Password:</span>
+                                        <code class="detail-value">Test@123</code>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-label"><i class="fas fa-chart-line"></i> Features:</span>
+                                        <span class="detail-features">Advanced Analytics, Priority Execution</span>
+                                    </div>
+                                </div>
+                                
+                                <button class="btn-use-account" data-email="vip@test.com" data-password="Test@123">
+                                    <i class="fas fa-rocket"></i>
+                                    Use This Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Testing Notes -->
+                    <div class="testing-notes">
+                        <div class="note-item warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <div>
+                                <strong>Important:</strong> Demo accounts reset every 24 hours. No real money involved.
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="demo-actions">
+                        <button class="demo-action-btn" id="autoFillAll">
+                            <i class="fas fa-magic"></i>
+                            Auto-fill All Fields
+                        </button>
+                        <button class="demo-action-btn secondary" id="resetDemo">
+                            <i class="fas fa-redo"></i>
+                            Reset Form
+                        </button>
                     </div>
                 </div>
                 
@@ -211,4 +321,4 @@
     <!-- Core Scripts -->
     <script type="module" src="../../assets/js/auth/login.js"></script>
 </body>
-    </html>
+                    </html>
