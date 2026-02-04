@@ -1,18 +1,10 @@
 {
-  "rewrites": [
-    { "source": "/", "destination": "/public/index.html" },
-
-    { "source": "/login", "destination": "/pages/auth/login.html" },
-    { "source": "/signup", "destination": "/pages/auth/signup.html" },
-    { "source": "/forgot-password", "destination": "/pages/auth/forgot-password.html" },
-
-    { "source": "/dashboard", "destination": "/pages/user/dashboard.html" },
-    { "source": "/wallet", "destination": "/pages/user/wallet.html" },
-    { "source": "/investments", "destination": "/pages/user/investments.html" },
-
-    { "source": "/admin", "destination": "/pages/admin/admin-dashboard.html" },
-
-    { "source": "/403", "destination": "/pages/errors/403.html" },
-    { "source": "/404", "destination": "/pages/errors/404.html" }
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
   ]
 }
