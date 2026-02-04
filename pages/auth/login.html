@@ -1,0 +1,214 @@
+<!-- pages/auth/login.html -->
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | Uzumaki Investments</title>
+    
+    <!-- Core Styles -->
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
+    
+    <!-- Page Specific CSS -->
+    <link rel="stylesheet" href="../../assets/css/auth/login.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Theme Toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i class="fas fa-moon"></i>
+    </button>
+    
+    <!-- Background Elements -->
+    <div class="background-animation"></div>
+    
+    <div class="login-container">
+        <!-- Left Panel - Brand & Features -->
+        <div class="login-brand-panel">
+            <div class="brand-content">
+                <!-- Animated Logo -->
+                <div class="logo-container">
+                    <div class="logo-spiral">
+                        <div class="spiral-inner"></div>
+                    </div>
+                    <h1 class="brand-title">Uzumaki</h1>
+                    <p class="brand-subtitle">Intelligent Investments</p>
+                </div>
+                
+                <!-- Features List -->
+                <div class="features-list">
+                    <div class="feature-item">
+                        <i class="fas fa-shield-alt feature-icon"></i>
+                        <div>
+                            <h4>Bank-Level Security</h4>
+                            <p>256-bit encryption & 2FA protection</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-chart-line feature-icon"></i>
+                        <div>
+                            <h4>Smart Analytics</h4>
+                            <p>Real-time portfolio tracking</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <i class="fas fa-bolt feature-icon"></i>
+                        <div>
+                            <h4>Instant Execution</h4>
+                            <p>Sub-second trade processing</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Right Panel - Login Form -->
+        <div class="login-form-panel">
+            <div class="form-wrapper">
+                <!-- Form Header -->
+                <div class="form-header">
+                    <h2>Welcome Back</h2>
+                    <p class="form-subtitle">Sign in to your investment dashboard</p>
+                </div>
+                
+                <!-- Login Form -->
+                <form id="loginForm" class="auth-form">
+                    <!-- Email Field -->
+                    <div class="form-group floating-label">
+                        <input type="email" id="email" name="email" class="form-input" 
+                               placeholder=" " required>
+                        <label for="email">
+                            <i class="fas fa-envelope"></i> Email Address
+                        </label>
+                        <div class="input-border"></div>
+                    </div>
+                    
+                    <!-- Password Field -->
+                    <div class="form-group floating-label">
+                        <input type="password" id="password" name="password" 
+                               class="form-input" placeholder=" " required>
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <button type="button" class="password-toggle" id="togglePassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="input-border"></div>
+                    </div>
+                    
+                    <!-- Form Options -->
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="rememberMe">
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">Remember this device</span>
+                        </label>
+                        <a href="forgot-password.html" class="forgot-password">
+                            Forgot Password?
+                        </a>
+                    </div>
+                    
+                    <!-- Submit Button -->
+                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                        <span class="btn-content">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span>Sign In</span>
+                        </span>
+                        <div class="btn-loader">
+                            <div class="spinner"></div>
+                        </div>
+                    </button>
+                    
+                    <!-- Social Login -->
+                    <div class="social-quick-login">
+                        <p class="divider-text">Or continue with</p>
+                        <div class="social-buttons">
+                            <button type="button" class="social-btn google" id="googleLogin">
+                                <i class="fab fa-google"></i>
+                                <span>Google</span>
+                            </button>
+                            <button type="button" class="social-btn github" id="githubLogin">
+                                <i class="fab fa-github"></i>
+                                <span>GitHub</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Sign Up Link -->
+                    <div class="signup-prompt">
+                        <p>Don't have an account? 
+                            <a href="signup.html" class="signup-link">
+                                Sign Up <i class="fas fa-arrow-right"></i>
+                            </a>
+                        </p>
+                    </div>
+                </form>
+                
+                <!-- Demo Access -->
+                <div class="demo-access">
+                    <div class="demo-header">
+                        <button class="demo-toggle" id="demoToggle">
+                            <i class="fas fa-vial"></i>
+                            <span>Test with Demo Accounts</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                    
+                    <div class="demo-content" id="demoContent">
+                        <div class="demo-grid">
+                            <div class="demo-card" data-email="user@test.com" data-password="Test@123">
+                                <div class="demo-card-header">
+                                    <i class="fas fa-user-circle demo-icon"></i>
+                                    <div class="demo-badge">Standard</div>
+                                </div>
+                                <h4>User Account</h4>
+                                <p>Standard trading features</p>
+                                <div class="demo-credentials">
+                                    <code>user@test.com</code>
+                                    <code>Test@123</code>
+                                </div>
+                                <button type="button" class="btn-demo-use">Use This</button>
+                            </div>
+                            
+                            <div class="demo-card" data-email="vip@test.com" data-password="Test@123">
+                                <div class="demo-card-header">
+                                    <i class="fas fa-crown demo-icon"></i>
+                                    <div class="demo-badge vip">VIP</div>
+                                </div>
+                                <h4>VIP Account</h4>
+                                <p>Premium features unlocked</p>
+                                <div class="demo-credentials">
+                                    <code>vip@test.com</code>
+                                    <code>Test@123</code>
+                                </div>
+                                <button type="button" class="btn-demo-use">Use This</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Security Badge -->
+                <div class="security-badge">
+                    <i class="fas fa-shield-check"></i>
+                    <span>Protected by SSL/TLS Encryption</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Core Scripts -->
+    <script type="module" src="../../assets/js/auth/login.js"></script>
+</body>
+    </html>
