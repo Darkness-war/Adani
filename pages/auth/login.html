@@ -1,10 +1,9 @@
-<!-- pages/auth/login.html -->
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In | Uzumaki Investments</title>
+    <title>Sign Up | Uzumaki Investments</title>
     
     <!-- Core Styles -->
     <link rel="stylesheet" href="../../assets/css/core/reset.css">
@@ -12,7 +11,7 @@
     <link rel="stylesheet" href="../../assets/css/core/layout.css">
     
     <!-- Page Specific CSS -->
-    <link rel="stylesheet" href="../../assets/css/auth/login.css">
+    <link rel="stylesheet" href="../../assets/css/auth/signup.css">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -32,7 +31,7 @@
     <div class="background-animation"></div>
     
     <div class="login-container">
-        <!-- Left Panel - Brand & Features -->
+        <!-- Left Panel - Brand & Features (EXACTLY like login) -->
         <div class="login-brand-panel">
             <div class="brand-content">
                 <!-- Animated Logo -->
@@ -44,7 +43,7 @@
                     <p class="brand-subtitle">Intelligent Investments</p>
                 </div>
                 
-                <!-- Features List -->
+                <!-- Features List (SAME as login) -->
                 <div class="features-list">
                     <div class="feature-item">
                         <i class="fas fa-shield-alt feature-icon"></i>
@@ -71,17 +70,34 @@
             </div>
         </div>
         
-        <!-- Right Panel - Login Form -->
+        <!-- Right Panel - Signup Form -->
         <div class="login-form-panel">
             <div class="form-wrapper">
                 <!-- Form Header -->
                 <div class="form-header">
-                    <h2>Welcome Back</h2>
-                    <p class="form-subtitle">Sign in to your investment dashboard</p>
+                    <h2>Create Account</h2>
+                    <p class="form-subtitle">Join thousands of smart investors</p>
                 </div>
                 
-                <!-- Login Form -->
-                <form id="loginForm" class="auth-form">
+                <!-- Signup Form -->
+                <form id="signupForm" class="auth-form">
+                    <!-- Name Fields in Row -->
+                    <div class="form-row">
+                        <div class="form-group floating-label">
+                            <input type="text" id="firstName" name="firstName" class="form-input" 
+                                   placeholder=" " required>
+                            <label for="firstName">First Name</label>
+                            <div class="input-border"></div>
+                        </div>
+                        
+                        <div class="form-group floating-label">
+                            <input type="text" id="lastName" name="lastName" class="form-input" 
+                                   placeholder=" " required>
+                            <label for="lastName">Last Name</label>
+                            <div class="input-border"></div>
+                        </div>
+                    </div>
+                    
                     <!-- Email Field -->
                     <div class="form-group floating-label">
                         <input type="email" id="email" name="email" class="form-input" 
@@ -103,103 +119,88 @@
                             <i class="fas fa-eye"></i>
                         </button>
                         <div class="input-border"></div>
+                        <!-- Password Strength Indicator -->
+                        <div class="password-strength">
+                            <div class="strength-bar">
+                                <div class="strength-fill"></div>
+                            </div>
+                            <span class="strength-text">Password strength</span>
+                        </div>
                     </div>
                     
-                    <!-- Form Options -->
+                    <!-- Confirm Password Field -->
+                    <div class="form-group floating-label">
+                        <input type="password" id="confirmPassword" name="confirmPassword" 
+                               class="form-input" placeholder=" " required>
+                        <label for="confirmPassword">
+                            <i class="fas fa-lock"></i> Confirm Password
+                        </label>
+                        <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <div class="input-border"></div>
+                    </div>
+                    
+                    <!-- Password Requirements -->
+                    <div class="password-requirements">
+                        <h4>Password must include:</h4>
+                        <ul>
+                            <li id="req-length"><i class="fas fa-circle"></i> At least 8 characters</li>
+                            <li id="req-uppercase"><i class="fas fa-circle"></i> One uppercase letter</li>
+                            <li id="req-lowercase"><i class="fas fa-circle"></i> One lowercase letter</li>
+                            <li id="req-number"><i class="fas fa-circle"></i> One number</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Terms Checkbox -->
                     <div class="form-options">
                         <label class="checkbox-wrapper">
-                            <input type="checkbox" id="rememberMe">
+                            <input type="checkbox" id="terms" name="terms" required>
                             <span class="checkbox-custom"></span>
-                            <span class="checkbox-label">Remember this device</span>
+                            <span class="checkbox-label">I agree to <a href="/terms">Terms</a> & <a href="/privacy">Privacy</a></span>
                         </label>
-                        <a href="forgot-password.html" class="forgot-password">
-                            Forgot Password?
-                        </a>
                     </div>
                     
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary btn-block" id="loginBtn">
+                    <button type="submit" class="btn btn-primary btn-block" id="signupBtn">
                         <span class="btn-content">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span>Sign In</span>
+                            <i class="fas fa-user-plus"></i>
+                            <span>Create Account</span>
                         </span>
                         <div class="btn-loader">
                             <div class="spinner"></div>
                         </div>
                     </button>
                     
-                    <!-- Social Login -->
+                    <!-- Social Signup -->
                     <div class="social-quick-login">
-                        <p class="divider-text">Or continue with</p>
+                        <p class="divider-text">Or sign up with</p>
                         <div class="social-buttons">
-                            <button type="button" class="social-btn google" id="googleLogin">
+                            <button type="button" class="social-btn google" id="googleSignup">
                                 <i class="fab fa-google"></i>
                                 <span>Google</span>
                             </button>
-                            <button type="button" class="social-btn github" id="githubLogin">
+                            <button type="button" class="social-btn github" id="githubSignup">
                                 <i class="fab fa-github"></i>
                                 <span>GitHub</span>
                             </button>
                         </div>
                     </div>
                     
-                    <!-- Sign Up Link -->
+                    <!-- Login Link -->
                     <div class="signup-prompt">
-                        <p>Don't have an account? 
-                            <a href="signup.html" class="signup-link">
-                                Sign Up <i class="fas fa-arrow-right"></i>
+                        <p>Already have an account? 
+                            <a href="login.html" class="signup-link">
+                                Sign In <i class="fas fa-arrow-right"></i>
                             </a>
                         </p>
                     </div>
                 </form>
                 
-                <!-- Demo Access -->
-                <div class="demo-access">
-                    <div class="demo-header">
-                        <button class="demo-toggle" id="demoToggle">
-                            <i class="fas fa-vial"></i>
-                            <span>Test with Demo Accounts</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                    </div>
-                    
-                    <div class="demo-content" id="demoContent">
-                        <div class="demo-grid">
-                            <div class="demo-card" data-email="user@test.com" data-password="Test@123">
-                                <div class="demo-card-header">
-                                    <i class="fas fa-user-circle demo-icon"></i>
-                                    <div class="demo-badge">Standard</div>
-                                </div>
-                                <h4>User Account</h4>
-                                <p>Standard trading features</p>
-                                <div class="demo-credentials">
-                                    <code>user@test.com</code>
-                                    <code>Test@123</code>
-                                </div>
-                                <button type="button" class="btn-demo-use">Use This</button>
-                            </div>
-                            
-                            <div class="demo-card" data-email="vip@test.com" data-password="Test@123">
-                                <div class="demo-card-header">
-                                    <i class="fas fa-crown demo-icon"></i>
-                                    <div class="demo-badge vip">VIP</div>
-                                </div>
-                                <h4>VIP Account</h4>
-                                <p>Premium features unlocked</p>
-                                <div class="demo-credentials">
-                                    <code>vip@test.com</code>
-                                    <code>Test@123</code>
-                                </div>
-                                <button type="button" class="btn-demo-use">Use This</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
                 <!-- Security Badge -->
                 <div class="security-badge">
                     <i class="fas fa-shield-check"></i>
-                    <span>Protected by SSL/TLS Encryption</span>
+                    <span>Your data is encrypted and protected</span>
                 </div>
             </div>
         </div>
@@ -209,6 +210,6 @@
     <div class="toast-container" id="toastContainer"></div>
     
     <!-- Core Scripts -->
-    <script type="module" src="../../assets/js/auth/login.js"></script>
+    <script type="module" src="../../assets/js/auth/signup.js"></script>
 </body>
     </html>
