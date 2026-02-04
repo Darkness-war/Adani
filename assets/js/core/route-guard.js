@@ -1,58 +1,30 @@
-/* =========================================================
-   FILE: route-guard.js
-   PATH: assets/js/core/route-guard.js
+import { supabase } from "./supabase.js";
 
-   PURPOSE:
-   - Protect user pages
-   - Protect admin pages
-   - Separate user vs admin access
-   - Backend (Supabase) is final authority
-========================================================= */
+const protectedUserPages = [
+  "/pages/user/dashboard.html",
+  "/pages/user/wallet.html",
+  "/pages/user/investments.html",
+  "/pages/user/transactions.html",
+  "/pages/user/profile.html"
+];
 
-/* =========================================================
-   USER ROUTE GUARD
-   Use on all normal user pages
-========================================================= */
+const protectedAdminPages = [
+  "/pages/admin/admin-dashboard.html",
+  "/pages/admin/users.html",
+  "/pages/admin/investments.html",
+  "/pages/admin/withdrawals.html",
+  "/pages/admin/logs.html"
+];
 
-window.requireUser = async function () {
-  const user = await window.getUser();
+const currentPath = window.location.pathname;
 
-  if (!user) {
+const { data: { session } } = await supabase.auth.getSession();
+
+if (!session) {
+  if (
+    protectedUserPages.includes(currentPath) ||
+    protectedAdminPages.includes(currentPath)
+  ) {
     window.location.replace("/pages/auth/login.html");
-    return null;
   }
-
-  return user;
-};
-
-/* =========================================================
-   ADMIN ROUTE GUARD
-   Real security enforced via Supabase RLS
-========================================================= */
-
-window.requireAdmin = async function () {
-  const user = await window.getUser();
-
-  if (!user) {
-    window.location.replace("/pages/auth/login.html");
-    return;
-  }
-
-  const { data, error } = await window.supabaseClient
-    .from("roles")
-    .select("role")
-    .eq("user_id", user.id)
-    .single();
-
-  if (error || !data || data.role !== "admin") {
-    try {
-      await window.supabaseClient.from("admin_logs").insert({
-        user_id: user.id,
-        action: "unauthorized_admin_access",
-        created_at: new Date().toISOString()
-      });
-    } catch (e) {}
-
-    window.location.replace("/pages/errors/403.html");
-  }
-};
+}
