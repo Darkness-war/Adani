@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up | Uzumaki Investments</title>
+    <title>Create Account | Uzumaki Investments</title>
     
     <!-- Core Styles -->
     <link rel="stylesheet" href="../../assets/css/core/reset.css">
@@ -30,8 +30,9 @@
     <!-- Background Elements -->
     <div class="background-animation"></div>
     
+    <!-- Main Container - SAME CLASS AS LOGIN -->
     <div class="login-container">
-        <!-- Left Panel - Brand & Features (EXACTLY like login) -->
+        <!-- Left Panel - Brand & Features (EXACT COPY FROM LOGIN) -->
         <div class="login-brand-panel">
             <div class="brand-content">
                 <!-- Animated Logo -->
@@ -43,7 +44,7 @@
                     <p class="brand-subtitle">Intelligent Investments</p>
                 </div>
                 
-                <!-- Features List (SAME as login) -->
+                <!-- Features List (EXACT SAME) -->
                 <div class="features-list">
                     <div class="feature-item">
                         <i class="fas fa-shield-alt feature-icon"></i>
@@ -67,6 +68,27 @@
                         </div>
                     </div>
                 </div>
+                
+                <!-- Signup Benefits (Extra for Signup) -->
+                <div class="signup-benefits">
+                    <h3>Why Join Uzumaki?</h3>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>AI-powered investment strategies</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>24/7 dedicated support team</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Commission-free trading</span>
+                    </div>
+                    <div class="benefit">
+                        <i class="fas fa-check-circle"></i>
+                        <span>Advanced risk management tools</span>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -77,6 +99,22 @@
                 <div class="form-header">
                     <h2>Create Account</h2>
                     <p class="form-subtitle">Join thousands of smart investors</p>
+                    
+                    <!-- Progress Indicator -->
+                    <div class="signup-progress">
+                        <div class="progress-step active">
+                            <div class="step-number">1</div>
+                            <span>Account</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">2</div>
+                            <span>Verification</span>
+                        </div>
+                        <div class="progress-step">
+                            <div class="step-number">3</div>
+                            <span>Complete</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Signup Form -->
@@ -108,7 +146,7 @@
                         <div class="input-border"></div>
                     </div>
                     
-                    <!-- Password Field -->
+                    <!-- Password Field with Strength Indicator -->
                     <div class="form-group floating-label">
                         <input type="password" id="password" name="password" 
                                class="form-input" placeholder=" " required>
@@ -119,12 +157,16 @@
                             <i class="fas fa-eye"></i>
                         </button>
                         <div class="input-border"></div>
+                        
                         <!-- Password Strength Indicator -->
-                        <div class="password-strength">
-                            <div class="strength-bar">
-                                <div class="strength-fill"></div>
+                        <div class="password-strength-container">
+                            <div class="strength-bars">
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
                             </div>
-                            <span class="strength-text">Password strength</span>
+                            <span class="strength-text" id="strengthText">Password strength</span>
                         </div>
                     </div>
                     
@@ -142,27 +184,65 @@
                     </div>
                     
                     <!-- Password Requirements -->
-                    <div class="password-requirements">
-                        <h4>Password must include:</h4>
-                        <ul>
-                            <li id="req-length"><i class="fas fa-circle"></i> At least 8 characters</li>
-                            <li id="req-uppercase"><i class="fas fa-circle"></i> One uppercase letter</li>
-                            <li id="req-lowercase"><i class="fas fa-circle"></i> One lowercase letter</li>
-                            <li id="req-number"><i class="fas fa-circle"></i> One number</li>
-                        </ul>
+                    <div class="requirements-box">
+                        <h4>Password Requirements:</h4>
+                        <div class="requirements-list">
+                            <div class="requirement" id="req-length">
+                                <i class="fas fa-circle"></i>
+                                <span>At least 8 characters</span>
+                            </div>
+                            <div class="requirement" id="req-uppercase">
+                                <i class="fas fa-circle"></i>
+                                <span>One uppercase letter</span>
+                            </div>
+                            <div class="requirement" id="req-lowercase">
+                                <i class="fas fa-circle"></i>
+                                <span>One lowercase letter</span>
+                            </div>
+                            <div class="requirement" id="req-number">
+                                <i class="fas fa-circle"></i>
+                                <span>One number</span>
+                            </div>
+                            <div class="requirement" id="req-special">
+                                <i class="fas fa-circle"></i>
+                                <span>One special character</span>
+                            </div>
+                        </div>
                     </div>
                     
-                    <!-- Terms Checkbox -->
+                    <!-- Terms & Newsletter -->
                     <div class="form-options">
                         <label class="checkbox-wrapper">
                             <input type="checkbox" id="terms" name="terms" required>
                             <span class="checkbox-custom"></span>
-                            <span class="checkbox-label">I agree to <a href="/terms">Terms</a> & <a href="/privacy">Privacy</a></span>
+                            <span class="checkbox-label">
+                                I agree to the <a href="/terms" class="terms-link">Terms of Service</a> and <a href="/privacy" class="terms-link">Privacy Policy</a>
+                            </span>
                         </label>
                     </div>
                     
+                    <div class="form-options">
+                        <label class="checkbox-wrapper">
+                            <input type="checkbox" id="newsletter" name="newsletter" checked>
+                            <span class="checkbox-custom"></span>
+                            <span class="checkbox-label">
+                                Send me investment insights and platform updates
+                            </span>
+                        </label>
+                    </div>
+                    
+                    <!-- Referral Code (Optional) -->
+                    <div class="form-group floating-label">
+                        <input type="text" id="referralCode" name="referralCode" 
+                               class="form-input" placeholder=" ">
+                        <label for="referralCode">
+                            <i class="fas fa-gift"></i> Referral Code (Optional)
+                        </label>
+                        <div class="input-border"></div>
+                    </div>
+                    
                     <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary btn-block" id="signupBtn">
+                    <button type="submit" class="btn btn-primary btn-block btn-gradient" id="signupBtn">
                         <span class="btn-content">
                             <i class="fas fa-user-plus"></i>
                             <span>Create Account</span>
@@ -172,7 +252,7 @@
                         </div>
                     </button>
                     
-                    <!-- Social Signup -->
+                    <!-- Quick Social Signup -->
                     <div class="social-quick-login">
                         <p class="divider-text">Or sign up with</p>
                         <div class="social-buttons">
@@ -188,19 +268,35 @@
                     </div>
                     
                     <!-- Login Link -->
-                    <div class="signup-prompt">
+                    <div class="login-link-section">
                         <p>Already have an account? 
-                            <a href="login.html" class="signup-link">
+                            <a href="login.html" class="login-link">
                                 Sign In <i class="fas fa-arrow-right"></i>
                             </a>
                         </p>
                     </div>
                 </form>
                 
+                <!-- Trust Indicators -->
+                <div class="trust-indicators">
+                    <div class="trust-item">
+                        <i class="fas fa-shield-check"></i>
+                        <span>SSL Secured</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-lock"></i>
+                        <span>Encrypted Data</span>
+                    </div>
+                    <div class="trust-item">
+                        <i class="fas fa-user-shield"></i>
+                        <span>Privacy Protected</span>
+                    </div>
+                </div>
+                
                 <!-- Security Badge -->
                 <div class="security-badge">
                     <i class="fas fa-shield-check"></i>
-                    <span>Your data is encrypted and protected</span>
+                    <span>Bank-level security & 256-bit encryption</span>
                 </div>
             </div>
         </div>
@@ -212,4 +308,4 @@
     <!-- Core Scripts -->
     <script type="module" src="../../assets/js/auth/signup.js"></script>
 </body>
-    </html>
+                                </html>
