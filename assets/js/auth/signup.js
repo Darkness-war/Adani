@@ -290,6 +290,19 @@ async function handleSignup(event) {
     if (!validateForm(firstName, lastName, email, password, confirmPassword, terms)) {
         return;
     }
+
+    // Add this line in handleSignup function after the validation section:
+    async function handleSignup(event) {
+    event.preventDefault();
+    
+    // ... validation code ...
+    
+    // ADD THIS LINE:
+    await sessionManager.initialize(); // Ensure session manager is ready
+    
+    try {
+        // ... rest of your code ...
+    }
     
     try {
         // Show loading state
@@ -573,4 +586,349 @@ function showSuccessMessage(firstName, email) {
                         background: var(--gray-100);
                         border: none;
                         border-radius: var(--radius-md);
-                        color: var
+                        color: var(--gray-700);
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.background='var(--gray-200)'" 
+                    onmouseout="this.style.background='var(--gray-100)'">
+                        Go to Login
+                    </button>
+                    <button onclick="resendVerificationEmail('${email}')" style="
+                        padding: 0.875rem 2rem;
+                        background: var(--primary);
+                        border: none;
+                        border-radius: var(--radius-md);
+                        color: white;
+                        font-weight: 500;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                    " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 5px 15px rgba(67, 97, 238, 0.3)'" 
+                    onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'">
+                        <i class="fas fa-redo"></i> Resend Email
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', successHTML);
+    
+    // Add animations
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes slideUp {
+            from { 
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+}
+
+// ====================
+// SOCIAL SIGNUP
+// ====================
+
+function initializeSocialSignup() {
+    document.getElementById('googleSignup')?.addEventListener('click', () => 
+        handleSocialSignup('google'));
+    document.getElementById('githubSignup')?.addEventListener('click', () => 
+        handleSocialSignup('github'));
+}
+
+async function handleSocialSignup(provider) {
+    try {
+        showToast(`Signing up with ${provider}...`, 'info');
+        
+        const { error } = await supabase.auth.signInWithOAuth({
+            provider: provider,
+            options: {
+                redirectTo: `${window.location.origin}/pages/user/dashboard.html`,
+                scopes: provider === 'github' ? 'read:user,user:email' : 'email profile',
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent'
+                }
+            }
+        });
+        
+        if (error) throw error;
+        
+    } catch (error) {
+        console.error(`${provider} signup error:`, error);
+        showToast(`${provider} signup failed. Please try again.`, 'error');
+    }
+}
+
+// ====================
+// ERROR HANDLING
+// ====================
+
+function handleSignupError(error) {
+    let message = 'Signup failed. Please try again.';
+    let type = 'error';
+    
+    if (error.message.includes('already registered') || error.message.includes('already exists')) {
+        message = 'This email is already registered. Please sign in instead.';
+    } else if (error.message.includes('weak password')) {
+        message = 'Password is too weak. Please use a stronger password with at least 8 characters including uppercase, lowercase, numbers, and special characters.';
+    } else if (error.message.includes('Invalid email')) {
+        message = 'Please enter a valid email address.';
+    } else if (error.message.includes('rate limit')) {
+        message = 'Too many signup attempts. Please try again in 15 minutes.';
+    } else if (error.message.includes('network')) {
+        message = 'Network error. Please check your internet connection.';
+    } else if (error.message.includes('User already registered')) {
+        message = 'An account with this email already exists. Please sign in or use a different email.';
+        type = 'warning';
+    }
+    
+    showToast(message, type);
+    
+    // Add error animation to form
+    const form = document.getElementById('signupForm');
+    form.classList.add('error-shake');
+    setTimeout(() => {
+        form.classList.remove('error-shake');
+    }, 500);
+}
+
+// ====================
+// LOADING STATE
+// ====================
+
+function setLoadingState(button, isLoading, loadingText = 'Processing...') {
+    if (!button) return;
+    
+    if (isLoading) {
+        button.classList.add('loading');
+        button.disabled = true;
+        button.dataset.originalText = button.innerHTML;
+        button.innerHTML = `
+            <span class="btn-content">
+                <i class="fas fa-spinner fa-spin"></i>
+                <span>${loadingText}</span>
+            </span>
+        `;
+    } else {
+        button.classList.remove('loading');
+        button.disabled = false;
+        if (button.dataset.originalText) {
+            button.innerHTML = button.dataset.originalText;
+        }
+    }
+}
+
+// ====================
+// TOAST NOTIFICATIONS
+// ====================
+
+function showToast(message, type = 'info', duration = 5000) {
+    const container = document.getElementById('toastContainer') || createToastContainer();
+    const toastId = 'toast-' + Date.now();
+    
+    const toast = document.createElement('div');
+    toast.id = toastId;
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `
+        <i class="fas ${getToastIcon(type)}"></i>
+        <span>${message}</span>
+        <button class="toast-close" onclick="removeToast('${toastId}')">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    container.appendChild(toast);
+    
+    // Auto-remove after duration
+    setTimeout(() => {
+        removeToast(toastId);
+    }, duration);
+    
+    return toastId;
+}
+
+function getToastIcon(type) {
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        warning: 'fa-exclamation-triangle',
+        info: 'fa-info-circle'
+    };
+    return icons[type] || 'fa-info-circle';
+}
+
+function createToastContainer() {
+    const container = document.createElement('div');
+    container.id = 'toastContainer';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+    return container;
+}
+
+function removeToast(toastId) {
+    const toast = document.getElementById(toastId);
+    if (toast) {
+        toast.style.animation = 'toastSlideOut 0.3s ease forwards';
+        setTimeout(() => {
+            toast.remove();
+        }, 300);
+    }
+}
+
+// ====================
+// SESSION CHECK
+// ====================
+
+async function checkExistingSession() {
+    try {
+        const { user } = await sessionManager.getCurrentUser();
+        if (user) {
+            showToast('You are already signed in. Redirecting to dashboard...', 'info');
+            setTimeout(() => {
+                window.location.href = '../../user/dashboard.html';
+            }, 2000);
+            return true;
+        }
+        return false;
+    } catch (error) {
+        return false;
+    }
+}
+
+// ====================
+// GLOBAL FUNCTIONS
+// ====================
+
+// Make some functions available globally
+window.removeToast = removeToast;
+window.resendVerificationEmail = async function(email) {
+    try {
+        showToast('Resending verification email...', 'info');
+        
+        const { error } = await supabase.auth.resend({
+            type: 'signup',
+            email: email,
+            options: {
+                emailRedirectTo: `${window.location.origin}/pages/auth/verify-email.html`
+            }
+        });
+        
+        if (error) throw error;
+        
+        showToast('Verification email resent! Check your inbox.', 'success');
+        
+    } catch (error) {
+        console.error('Resend error:', error);
+        showToast('Failed to resend email. Please try again.', 'error');
+    }
+};
+
+// ====================
+// ADDITIONAL STYLES
+// ====================
+
+// Add error shake animation
+const errorStyle = document.createElement('style');
+errorStyle.textContent = `
+    @keyframes errorShake {
+        0%, 100% { transform: translateX(0); }
+        10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+        20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    
+    .error-shake {
+        animation: errorShake 0.5s ease-in-out;
+    }
+    
+    @keyframes toastSlideOut {
+        to {
+            transform: translateX(120%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(errorStyle);
+
+// ====================
+// INPUT ENHANCEMENTS
+// ====================
+
+// Add real-time email validation
+const emailInput = document.getElementById('email');
+if (emailInput) {
+    emailInput.addEventListener('blur', () => {
+        const email = emailInput.value.trim();
+        if (email && !utils.validateEmail(email)) {
+            emailInput.style.borderColor = 'var(--danger)';
+            emailInput.style.boxShadow = '0 0 0 3px rgba(231, 76, 60, 0.1)';
+        } else if (email) {
+            emailInput.style.borderColor = 'var(--success)';
+            emailInput.style.boxShadow = '0 0 0 3px rgba(46, 204, 113, 0.1)';
+        }
+    });
+}
+
+// Add input focus effects
+document.querySelectorAll('.form-input').forEach(input => {
+    input.addEventListener('focus', function() {
+        this.parentElement.classList.add('focused');
+    });
+    
+    input.addEventListener('blur', function() {
+        this.parentElement.classList.remove('focused');
+    });
+});
+
+// ====================
+// PERFORMANCE MONITORING
+// ====================
+
+const pageLoadTime = performance.now();
+window.addEventListener('load', () => {
+    const loadTime = performance.now() - pageLoadTime;
+    console.log(`Signup page loaded in ${loadTime.toFixed(2)}ms`);
+    
+    // Send performance data if analytics is enabled
+    if (localStorage.getItem('analytics-enabled') !== 'false') {
+        const perfData = {
+            event: 'page_load',
+            page: 'signup',
+            load_time: loadTime,
+            timestamp: new Date().toISOString()
+        };
+        // Could send to analytics service here
+        console.log('Performance:', perfData);
+    }
+});
+
+// ====================
+// KEYBOARD SHORTCUTS
+// ====================
+
+document.addEventListener('keydown', (e) => {
+    // Ctrl/Cmd + Enter submits the form
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('signupForm').dispatchEvent(new Event('submit'));
+    }
+    
+    // Escape key resets the form
+    if (e.key === 'Escape') {
+        if (confirm('Reset the form?')) {
+            document.getElementById('signupForm').reset();
+            updateProgressStep(0);
+            showToast('Form reset', 'info');
+        }
+    }
+});
