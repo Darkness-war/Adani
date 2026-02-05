@@ -1,5 +1,5 @@
 // core/auth.js
-import { supabase } from './supabase.js';
+import { sessionManager, dbService, utils, supabase } from './supabase.js';
 import { showToast, showLoading, hideLoading } from './utils.js';
 
 class AuthGuard {
