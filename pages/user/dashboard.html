@@ -21,10 +21,19 @@
 </head>
 <body class="app-layout">
     <!-- Loading Overlay -->
-    <div id="loadingOverlay" class="loading-overlay active">
+    <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-content">
-            <div class="spinner-large"></div>
-            <p>Loading your dashboard...</p>
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Investments</h2>
+            <p class="loading-text">Loading your dashboard...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
         </div>
     </div>
     
@@ -46,12 +55,16 @@
             <div class="user-avatar">
                 <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
                 <i class="fas fa-user" id="userAvatarFallback"></i>
+                <span class="status-indicator online"></span>
             </div>
             <div class="user-info">
                 <h4 id="sidebarUserName">Loading...</h4>
                 <p class="user-email" id="sidebarUserEmail">user@example.com</p>
                 <div class="user-tier">
                     <span class="tier-badge" id="userTier">Standard</span>
+                    <span class="verification-badge" id="userVerified">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
                 </div>
             </div>
         </div>
@@ -63,7 +76,7 @@
             </a>
             <a href="wallet.html" class="nav-link">
                 <i class="fas fa-wallet"></i>
-                <span>Recharge</span>
+                <span>Wallet</span>
             </a>
             <a href="investments.html" class="nav-link">
                 <i class="fas fa-chart-line"></i>
@@ -76,18 +89,34 @@
             <a href="transactions.html" class="nav-link">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transactions</span>
+                <span class="nav-badge">3</span>
             </a>
             <a href="referrals.html" class="nav-link">
                 <i class="fas fa-user-friends"></i>
                 <span>Referrals</span>
+                <span class="nav-badge new">New</span>
             </a>
             <a href="support.html" class="nav-link">
                 <i class="fas fa-headset"></i>
                 <span>Support</span>
             </a>
+            <a href="settings.html" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
         </nav>
         
         <div class="sidebar-footer">
+            <div class="account-summary">
+                <div class="summary-item">
+                    <span>Total Balance</span>
+                    <strong id="sidebarBalance">₹0.00</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Earnings Today</span>
+                    <strong class="positive" id="sidebarEarnings">+₹0.00</strong>
+                </div>
+            </div>
             <button class="btn btn-logout" id="sidebarLogout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
@@ -102,13 +131,18 @@
                 <i class="fas fa-bars"></i>
             </button>
             <div class="mobile-logo">
-                <i class="fas fa-chart-line"></i>
+                <div class="logo-spiral mini">
+                    <div class="spiral-inner"></div>
+                </div>
                 <span>Uzumaki</span>
             </div>
             <div class="mobile-actions">
                 <button class="btn-icon" id="mobileNotifications">
                     <i class="fas fa-bell"></i>
                     <span class="badge badge-danger" id="mobileNotificationCount">3</span>
+                </button>
+                <button class="btn-icon" id="mobileRefresh">
+                    <i class="fas fa-sync-alt"></i>
                 </button>
             </div>
         </div>
@@ -122,15 +156,30 @@
                 <div class="user-avatar">
                     <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
                     <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                    <span class="status-indicator online"></span>
                 </div>
                 <div class="user-info">
                     <h4 id="mobileUserName">Loading...</h4>
                     <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                    <div class="user-tier">
+                        <span class="tier-badge" id="mobileUserTier">Standard</span>
+                    </div>
                 </div>
             </div>
             <button class="close-sidebar" id="closeMobileSidebar">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+        
+        <div class="mobile-account-summary">
+            <div class="summary-item">
+                <span>Total Balance</span>
+                <strong id="mobileBalance">₹0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>Today's Earnings</span>
+                <strong class="positive" id="mobileEarnings">+₹0.00</strong>
+            </div>
         </div>
         
         <nav class="mobile-nav">
@@ -140,7 +189,7 @@
             </a>
             <a href="wallet.html" class="mobile-nav-link">
                 <i class="fas fa-wallet"></i>
-                <span>Recharge</span>
+                <span>Wallet</span>
             </a>
             <a href="investments.html" class="mobile-nav-link">
                 <i class="fas fa-chart-line"></i>
@@ -153,6 +202,7 @@
             <a href="transactions.html" class="mobile-nav-link">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transactions</span>
+                <span class="nav-badge">3</span>
             </a>
             <a href="referrals.html" class="mobile-nav-link">
                 <i class="fas fa-user-friends"></i>
@@ -161,6 +211,10 @@
             <a href="support.html" class="mobile-nav-link">
                 <i class="fas fa-headset"></i>
                 <span>Support</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
             </a>
         </nav>
         
@@ -179,28 +233,46 @@
             <section class="welcome-section">
                 <div class="welcome-content">
                     <div class="greeting">
-                        <h1>Welcome back, <span id="welcomeUserName" class="highlight">User</span>! 👋</h1>
-                        <p class="greeting-subtitle">Here's your investment summary for today</p>
+                        <div class="greeting-header">
+                            <h1>Welcome back, <span id="welcomeUserName" class="highlight">User</span>! 👋</h1>
+                            <div class="date-display">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span id="currentDate">Today, January 1, 2024</span>
+                            </div>
+                        </div>
+                        <p class="greeting-subtitle">Your financial journey at a glance</p>
+                        <div class="performance-badge">
+                            <i class="fas fa-trophy"></i>
+                            <span>Performance: <strong id="performanceScore">Excellent</strong></span>
+                        </div>
                     </div>
                     <div class="welcome-actions">
                         <button class="btn btn-primary btn-with-icon" onclick="window.location.href='wallet.html'">
                             <i class="fas fa-plus-circle"></i>
-                            <span>Recharge</span>
+                            <span>Add Funds</span>
                         </button>
                         <button class="btn btn-success btn-with-icon" onclick="window.location.href='investments.html'">
                             <i class="fas fa-chart-line"></i>
                             <span>Invest Now</span>
                         </button>
+                        <button class="btn btn-outline btn-with-icon" id="quickWithdraw">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <span>Withdraw</span>
+                        </button>
                     </div>
-                </div>
-                <div class="date-display">
-                    <i class="fas fa-calendar-alt"></i>
-                    <span id="currentDate">Today, January 1, 2024</span>
                 </div>
             </section>
             
             <!-- Stats Grid -->
             <section class="stats-section">
+                <div class="section-header">
+                    <h2 class="section-title">Financial Overview</h2>
+                    <div class="time-filter">
+                        <button class="time-btn active" data-time="today">Today</button>
+                        <button class="time-btn" data-time="week">Week</button>
+                        <button class="time-btn" data-time="month">Month</button>
+                    </div>
+                </div>
                 <div class="stats-grid">
                     <!-- Total Balance -->
                     <div class="stat-card stat-card-primary">
@@ -213,6 +285,14 @@
                             <div class="stat-change positive">
                                 <i class="fas fa-arrow-up"></i>
                                 <span id="balanceChange">+0.00% today</span>
+                            </div>
+                            <div class="stat-actions">
+                                <button class="stat-action-btn" onclick="window.location.href='wallet.html'">
+                                    <i class="fas fa-plus"></i> Add
+                                </button>
+                                <button class="stat-action-btn" onclick="window.location.href='withdraw.html'">
+                                    <i class="fas fa-arrow-up"></i> Withdraw
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -227,6 +307,10 @@
                             <h2 class="stat-value" id="totalInvested">₹0.00</h2>
                             <div class="stat-meta">
                                 <span class="active-plans" id="activePlans">0 active plans</span>
+                                <span class="profit-badge">
+                                    <i class="fas fa-arrow-up"></i>
+                                    <span id="investmentProfit">0.00%</span>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -243,6 +327,10 @@
                                 <i class="fas fa-arrow-up"></i>
                                 <span id="earningsChange">+₹0.00 today</span>
                             </div>
+                            <div class="earnings-breakdown">
+                                <span>Daily: <strong id="dailyEarnings">₹0.00</strong></span>
+                                <span>Monthly: <strong id="monthlyEarnings">₹0.00</strong></span>
+                            </div>
                         </div>
                     </div>
                     
@@ -255,8 +343,15 @@
                             <h3 class="stat-label">Referral Earnings</h3>
                             <h2 class="stat-value" id="referralEarnings">₹0.00</h2>
                             <div class="stat-meta">
-                                <span class="referral-count" id="referralCount">0 referrals</span>
+                                <span class="referral-count" id="referralCount">
+                                    <i class="fas fa-users"></i>
+                                    0 referrals
+                                </span>
                             </div>
+                            <button class="btn-referral" onclick="window.location.href='referrals.html'">
+                                Invite Friends
+                                <i class="fas fa-arrow-right"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -267,35 +362,52 @@
                 <h2 class="section-title">Quick Actions</h2>
                 <div class="quick-actions-grid">
                     <div class="quick-action" onclick="window.location.href='wallet.html'">
-                        <div class="action-icon">
+                        <div class="action-icon primary">
                             <i class="fas fa-money-bill-wave"></i>
                         </div>
                         <h4>Add Funds</h4>
-                        <p>Deposit money to your wallet</p>
+                        <p>Deposit money to your wallet instantly</p>
                     </div>
                     
                     <div class="quick-action" onclick="window.location.href='investments.html'">
-                        <div class="action-icon">
+                        <div class="action-icon success">
                             <i class="fas fa-chart-pie"></i>
                         </div>
                         <h4>New Investment</h4>
                         <p>Start a new investment plan</p>
+                        <span class="badge-new">Hot</span>
                     </div>
                     
                     <div class="quick-action" onclick="window.location.href='withdraw.html'">
-                        <div class="action-icon">
+                        <div class="action-icon warning">
                             <i class="fas fa-hand-holding-usd"></i>
                         </div>
                         <h4>Withdraw</h4>
-                        <p>Withdraw your earnings</p>
+                        <p>Withdraw your earnings anytime</p>
                     </div>
                     
                     <div class="quick-action" onclick="window.location.href='referrals.html'">
-                        <div class="action-icon">
+                        <div class="action-icon purple">
                             <i class="fas fa-share-alt"></i>
                         </div>
                         <h4>Invite Friends</h4>
-                        <p>Earn referral bonuses</p>
+                        <p>Earn 10% referral bonuses</p>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.location.href='transactions.html'">
+                        <div class="action-icon info">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h4>History</h4>
+                        <p>View all transactions</p>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.location.href='support.html'">
+                        <div class="action-icon secondary">
+                            <i class="fas fa-headset"></i>
+                        </div>
+                        <h4>Support</h4>
+                        <p>24/7 customer support</p>
                     </div>
                 </div>
             </section>
@@ -303,9 +415,13 @@
             <!-- Investment Plans -->
             <section class="plans-section">
                 <div class="section-header">
-                    <h2 class="section-title">Investment Plans</h2>
+                    <div>
+                        <h2 class="section-title">Investment Plans</h2>
+                        <p class="section-subtitle">Choose from our curated investment options</p>
+                    </div>
                     <div class="section-actions">
-                        <button class="btn btn-outline" onclick="window.location.href='investments.html'">
+                        <button class="btn btn-primary" onclick="window.location.href='investments.html'">
+                            <i class="fas fa-eye"></i>
                             View All Plans
                         </button>
                     </div>
@@ -313,132 +429,14 @@
                 
                 <div class="plans-tabs">
                     <div class="tabs-header">
-                        <button class="tab-btn active" data-tab="basic">Basic Plans</button>
-                        <button class="tab-btn" data-tab="vip">VIP Plans</button>
-                        <button class="tab-btn" data-tab="my">My Investments</button>
-                    </div>
-                    
-                    <div class="tabs-content">
-                        <div class="tab-pane active" id="basic-plans">
-                            <div class="plans-grid" id="basicPlansContainer">
-                                <!-- Basic plans will be loaded here -->
-                            </div>
-                        </div>
-                        <div class="tab-pane" id="vip-plans">
-                            <div class="plans-grid" id="vipPlansContainer">
-                                <!-- VIP plans will be loaded here -->
-                            </div>
-                        </div>
-                        <div class="tab-pane" id="my-plans">
-                            <div class="plans-grid" id="myPlansContainer">
-                                <!-- My investments will be loaded here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-            
-            <!-- Recent Activity & Earnings Chart -->
-            <div class="grid-section">
-                <section class="chart-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Earnings Overview</h2>
-                        <select class="time-select" id="timeRange">
-                            <option value="7d">Last 7 days</option>
-                            <option value="30d" selected>Last 30 days</option>
-                            <option value="90d">Last 90 days</option>
-                        </select>
-                    </div>
-                    <div class="chart-container">
-                        <canvas id="earningsChart"></canvas>
-                    </div>
-                </section>
-                
-                <section class="activity-section">
-                    <div class="section-header">
-                        <h2 class="section-title">Recent Activity</h2>
-                        <button class="btn btn-link" onclick="window.location.href='transactions.html'">
-                            View All
+                        <button class="tab-btn active" data-tab="basic">
+                            <i class="fas fa-star"></i>
+                            Basic Plans
                         </button>
-                    </div>
-                    <div class="activity-list" id="recentActivity">
-                        <!-- Recent activity will be loaded here -->
-                    </div>
-                </section>
-            </div>
-            
-            <!-- Referral Banner -->
-            <section class="referral-banner">
-                <div class="referral-content">
-                    <div class="referral-info">
-                        <h3>Invite Friends & Earn Rewards</h3>
-                        <p>Share your referral link and earn 10% commission on their investments</p>
-                        <div class="referral-link-container">
-                            <input type="text" readonly class="referral-link" id="referralLink" 
-                                   value="https://uzumaki.in/ref/loading...">
-                            <button class="btn btn-copy" id="copyReferralBtn">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="referral-stats">
-                        <div class="stat-item">
-                            <h4 id="totalReferrals">0</h4>
-                            <p>Total Referrals</p>
-                        </div>
-                        <div class="stat-item">
-                            <h4 id="referralIncome">₹0.00</h4>
-                            <p>Total Earnings</p>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </div>
-    </main>
-    
-    <!-- Mobile Bottom Navigation -->
-    <nav class="bottom-nav">
-        <a href="dashboard.html" class="bottom-nav-link active">
-            <i class="fas fa-home"></i>
-            <span>Home</span>
-        </a>
-        <a href="wallet.html" class="bottom-nav-link">
-            <i class="fas fa-wallet"></i>
-            <span>Recharge</span>
-        </a>
-        <a href="investments.html" class="bottom-nav-link">
-            <i class="fas fa-chart-line"></i>
-            <span>Invest</span>
-        </a>
-        <a href="profile.html" class="bottom-nav-link">
-            <i class="fas fa-user"></i>
-            <span>Profile</span>
-        </a>
-    </nav>
-    
-    <!-- Toast Container -->
-    <div class="toast-container" id="toastContainer"></div>
-    
-    <!-- Notification Modal -->
-    <div class="modal" id="notificationModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3>Notifications</h3>
-                <button class="modal-close" id="closeNotificationModal">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="modal-body">
-                <div class="notifications-list" id="notificationsList">
-                    <!-- Notifications will be loaded here -->
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Core Scripts -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script type="module" src="../../assets/js/user/dashboard.js"></script>
-    <script type="module" src="../../assets/js/user/sidebar.js"></script>
-</body>
-    </html>
+                        <button class="tab-btn" data-tab="vip">
+                            <i class="fas fa-crown"></i>
+                            VIP Plans
+                        </button>
+                        <button class="tab-btn" data-tab="my">
+                            <i class="fas fa-chart-line"></i>
+                        
