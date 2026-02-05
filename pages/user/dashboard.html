@@ -1,582 +1,444 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Uzumaki Investments</title>
     
     <!-- Core CSS -->
-    <link rel="stylesheet" href="/assets/css/core/reset.css">
-    <link rel="stylesheet" href="/assets/css/core/variables.css">
-    <link rel="stylesheet" href="/assets/css/core/layout.css">
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
     
-    <!-- Page CSS -->
-    <link rel="stylesheet" href="/assets/css/user/dashboard.css">
+    <!-- Dashboard CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/dashboard.css">
     
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
-    <style>
-        /* Custom animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
-        
-        /* Custom styles for dashboard */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-        
-        .metric-card {
-            background: linear-gradient(135deg, var(--white), var(--gray-50));
-            border-radius: 16px;
-            padding: 24px;
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
-            animation: fadeInUp 0.6s ease;
-        }
-        
-        .metric-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(67, 97, 238, 0.15);
-            border-color: var(--primary);
-        }
-        
-        .metric-card.primary {
-            border-left: 4px solid var(--primary);
-        }
-        
-        .metric-card.success {
-            border-left: 4px solid var(--success);
-        }
-        
-        .metric-card.warning {
-            border-left: 4px solid var(--warning);
-        }
-        
-        .metric-card.danger {
-            border-left: 4px solid var(--danger);
-        }
-        
-        .metric-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-        
-        .metric-icon {
-            width: 48px;
-            height: 48px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-        }
-        
-        .metric-icon.balance {
-            background: linear-gradient(135deg, #4361ee, #4895ef);
-            color: white;
-        }
-        
-        .metric-icon.invested {
-            background: linear-gradient(135deg, #2ecc71, #27ae60);
-            color: white;
-        }
-        
-        .metric-icon.earnings {
-            background: linear-gradient(135deg, #f39c12, #e67e22);
-            color: white;
-        }
-        
-        .metric-icon.referrals {
-            background: linear-gradient(135deg, #9b59b6, #8e44ad);
-            color: white;
-        }
-        
-        .metric-value {
-            font-size: 2rem;
-            font-weight: 700;
-            color: var(--gray-900);
-            margin: 8px 0;
-        }
-        
-        .metric-label {
-            font-size: 0.875rem;
-            color: var(--gray-600);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .metric-change {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            font-size: 0.875rem;
-            font-weight: 500;
-        }
-        
-        .metric-change.positive {
-            color: var(--success);
-        }
-        
-        .metric-change.negative {
-            color: var(--danger);
-        }
-        
-        /* Quick actions */
-        .quick-actions-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin: 24px 0;
-        }
-        
-        .quick-action {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid var(--gray-200);
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-        
-        .quick-action:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border-color: var(--primary);
-        }
-        
-        .quick-action-icon {
-            width: 56px;
-            height: 56px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            font-size: 1.5rem;
-        }
-        
-        .quick-action-title {
-            font-weight: 600;
-            color: var(--gray-900);
-            margin-bottom: 4px;
-        }
-        
-        .quick-action-desc {
-            font-size: 0.875rem;
-            color: var(--gray-600);
-        }
-        
-        /* Investment cards */
-        .investment-card {
-            background: var(--white);
-            border-radius: 16px;
-            border: 1px solid var(--gray-200);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .investment-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
-        }
-        
-        .investment-card.vip {
-            border: 2px solid #FFD700;
-            position: relative;
-        }
-        
-        .vip-badge {
-            position: absolute;
-            top: 12px;
-            right: 12px;
-            background: linear-gradient(135deg, #FFD700, #FFB300);
-            color: #333;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .investment-header {
-            padding: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-        }
-        
-        .investment-body {
-            padding: 20px;
-        }
-        
-        .investment-features {
-            list-style: none;
-            padding: 0;
-            margin: 16px 0;
-        }
-        
-        .investment-feature {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid var(--gray-100);
-        }
-        
-        .investment-feature:last-child {
-            border-bottom: none;
-        }
-        
-        .feature-label {
-            color: var(--gray-600);
-        }
-        
-        .feature-value {
-            font-weight: 600;
-            color: var(--gray-900);
-        }
-        
-        .investment-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        
-        /* Activity timeline */
-        .activity-timeline {
-            position: relative;
-            padding-left: 24px;
-        }
-        
-        .activity-timeline::before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            width: 2px;
-            background: var(--gray-200);
-        }
-        
-        .activity-item {
-            position: relative;
-            padding: 16px 0;
-            padding-left: 24px;
-        }
-        
-        .activity-item::before {
-            content: '';
-            position: absolute;
-            left: -8px;
-            top: 24px;
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: var(--primary);
-            border: 2px solid var(--white);
-        }
-        
-        .activity-time {
-            font-size: 0.75rem;
-            color: var(--gray-500);
-            margin-bottom: 4px;
-        }
-        
-        .activity-content {
-            font-size: 0.875rem;
-            color: var(--gray-800);
-        }
-        
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .quick-actions-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            
-            .investment-actions {
-                flex-direction: column;
-            }
-        }
-        
-        @media (max-width: 480px) {
-            .quick-actions-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    </style>
 </head>
-<body>
-    <!-- Loading overlay -->
-    <div id="loadingOverlay" class="loading-overlay">
+<body class="app-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay active">
         <div class="loading-content">
-            <div class="spinner"></div>
+            <div class="spinner-large"></div>
             <p>Loading your dashboard...</p>
         </div>
     </div>
     
-    <!-- Header -->
-    <header class="header">
-        <div class="container">
-            <div class="header-content">
-                <!-- Mobile menu toggle -->
-                <button class="menu-toggle" id="menuToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                
-                <!-- Logo -->
-                <div class="logo">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Uzumaki</span>
-                </div>
-                
-                <!-- Desktop navigation -->
-                <nav class="desktop-nav">
-                    <a href="dashboard.html" class="nav-link active">
-                        <i class="fas fa-home"></i>
-                        <span>Dashboard</span>
-                    </a>
-                    <a href="investments.html" class="nav-link">
-                        <i class="fas fa-chart-pie"></i>
-                        <span>Invest</span>
-                    </a>
-                    <a href="wallet.html" class="nav-link">
-                        <i class="fas fa-wallet"></i>
-                        <span>Wallet</span>
-                    </a>
-                    <a href="referrals.html" class="nav-link">
-                        <i class="fas fa-user-friends"></i>
-                        <span>Referrals</span>
-                    </a>
-                </nav>
-                
-                <!-- User actions -->
-                <div class="user-actions">
-                    <!-- Notifications -->
-                    <div class="notification-dropdown">
-                        <button class="btn-icon" id="notificationBtn">
-                            <i class="fas fa-bell"></i>
-                            <span class="notification-count">3</span>
-                        </button>
-                        <div class="dropdown-menu notification-menu">
-                            <div class="dropdown-header">
-                                <h3>Notifications</h3>
-                                <button class="btn-link mark-all-read">Mark all as read</button>
-                            </div>
-                            <div class="notification-list" id="notificationList">
-                                <!-- Notifications will be loaded here -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Theme toggle -->
-                    <button class="btn-icon" id="themeToggle">
-                        <i class="fas fa-moon"></i>
-                    </button>
-                    
-                    <!-- User dropdown -->
-                    <div class="user-dropdown">
-                        <button class="user-dropdown-toggle" id="userDropdownToggle">
-                            <div class="user-avatar" id="userAvatar">
-                                <i class="fas fa-user"></i>
-                            </div>
-                            <span class="user-name" id="userName">Loading...</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </button>
-                        <div class="dropdown-menu user-menu">
-                            <div class="user-info">
-                                <div class="user-avatar-lg">
-                                    <i class="fas fa-user"></i>
-                                </div>
-                                <div>
-                                    <h4 id="dropdownUserName">Loading...</h4>
-                                    <p id="dropdownUserEmail">Loading...</p>
-                                </div>
-                            </div>
-                            <div class="dropdown-divider"></div>
-                            <a href="profile.html" class="dropdown-item">
-                                <i class="fas fa-user-circle"></i>
-                                <span>Profile</span>
-                            </a>
-                            <a href="settings.html" class="dropdown-item">
-                                <i class="fas fa-cog"></i>
-                                <span>Settings</span>
-                            </a>
-                            <a href="support.html" class="dropdown-item">
-                                <i class="fas fa-headset"></i>
-                                <span>Support</span>
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <button class="dropdown-item logout-btn" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
-    
-    <!-- Mobile sidebar -->
-    <aside class="mobile-sidebar" id="mobileSidebar">
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar desktop-sidebar">
         <div class="sidebar-header">
-            <div class="user-info">
-                <div class="user-avatar">
-                    <i class="fas fa-user"></i>
+            <div class="brand-logo">
+                <div class="logo-spiral">
+                    <div class="spiral-inner"></div>
                 </div>
-                <div>
-                    <h4 id="sidebarUserName">Loading...</h4>
-                    <p id="sidebarUserEmail">Loading...</p>
-                </div>
+                <h2 class="brand-name">Uzumaki</h2>
             </div>
-            <button class="sidebar-close" id="sidebarClose">
-                <i class="fas fa-times"></i>
+            <button class="sidebar-collapse" id="sidebarCollapse">
+                <i class="fas fa-chevron-left"></i>
             </button>
         </div>
         
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
+                <i class="fas fa-user" id="userAvatarFallback"></i>
+            </div>
+            <div class="user-info">
+                <h4 id="sidebarUserName">Loading...</h4>
+                <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                <div class="user-tier">
+                    <span class="tier-badge" id="userTier">Standard</span>
+                </div>
+            </div>
+        </div>
+        
         <nav class="sidebar-nav">
-            <a href="dashboard.html" class="sidebar-link active">
+            <a href="dashboard.html" class="nav-link active">
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
-            <a href="investments.html" class="sidebar-link">
-                <i class="fas fa-chart-pie"></i>
-                <span>Investments</span>
-            </a>
-            <a href="wallet.html" class="sidebar-link">
+            <a href="wallet.html" class="nav-link">
                 <i class="fas fa-wallet"></i>
-                <span>Wallet</span>
+                <span>Recharge</span>
             </a>
-            <a href="transactions.html" class="sidebar-link">
-                <i class="fas fa-exchange-alt"></i>
-                <span>Transactions</span>
+            <a href="investments.html" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
             </a>
-            <a href="referrals.html" class="sidebar-link">
-                <i class="fas fa-user-friends"></i>
-                <span>Referrals</span>
-            </a>
-            <a href="profile.html" class="sidebar-link">
+            <a href="profile.html" class="nav-link">
                 <i class="fas fa-user-circle"></i>
                 <span>Profile</span>
             </a>
-            <a href="settings.html" class="sidebar-link">
-                <i class="fas fa-cog"></i>
-                <span>Settings</span>
+            <a href="transactions.html" class="nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
             </a>
-            <a href="support.html" class="sidebar-link">
+            <a href="referrals.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="nav-link">
                 <i class="fas fa-headset"></i>
                 <span>Support</span>
             </a>
         </nav>
         
         <div class="sidebar-footer">
-            <button class="btn btn-block logout-btn" id="mobileLogoutBtn">
+            <button class="btn btn-logout" id="sidebarLogout">
                 <i class="fas fa-sign-out-alt"></i>
                 <span>Logout</span>
             </button>
         </div>
     </aside>
     
-    <!-- Main content -->
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <i class="fas fa-chart-line"></i>
+                <span>Uzumaki</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon" id="mobileNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge badge-danger" id="mobileNotificationCount">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <div class="user-profile-mobile">
+                <div class="user-avatar">
+                    <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
+                    <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                </div>
+                <div class="user-info">
+                    <h4 id="mobileUserName">Loading...</h4>
+                    <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                </div>
+            </div>
+            <button class="close-sidebar" id="closeMobileSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="dashboard.html" class="mobile-nav-link active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="mobile-nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Recharge</span>
+            </a>
+            <a href="investments.html" class="mobile-nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="mobile-nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="mobile-nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="mobile-nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+        </nav>
+        
+        <div class="mobile-sidebar-footer">
+            <button class="btn btn-block btn-logout" id="mobileLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
     <main class="main-content">
         <div class="container">
-            <!-- Welcome section -->
+            <!-- Welcome Section -->
             <section class="welcome-section">
                 <div class="welcome-content">
-                    <h1>Welcome back, <span id="welcomeUserName">User</span>! 👋</h1>
-                    <p class="text-gray-600">Here's your investment summary for today</p>
+                    <div class="greeting">
+                        <h1>Welcome back, <span id="welcomeUserName" class="highlight">User</span>! 👋</h1>
+                        <p class="greeting-subtitle">Here's your investment summary for today</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <button class="btn btn-primary btn-with-icon" onclick="window.location.href='wallet.html'">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Recharge</span>
+                        </button>
+                        <button class="btn btn-success btn-with-icon" onclick="window.location.href='investments.html'">
+                            <i class="fas fa-chart-line"></i>
+                            <span>Invest Now</span>
+                        </button>
+                    </div>
                 </div>
-                <div class="welcome-actions">
-                    <button class="btn btn-primary" onclick="window.location.href='investments.html'">
-                        <i class="fas fa-plus"></i>
-                        <span>New Investment</span>
-                    </button>
-                    <button class="btn btn-secondary" onclick="window.location.href='wallet.html'">
-                        <i class="fas fa-wallet"></i>
-                        <span>Add Funds</span>
-                    </button>
+                <div class="date-display">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span id="currentDate">Today, January 1, 2024</span>
                 </div>
             </section>
             
-            <!-- Stats grid -->
+            <!-- Stats Grid -->
             <section class="stats-section">
-                <div class="dashboard-grid">
+                <div class="stats-grid">
                     <!-- Total Balance -->
-                    <div class="metric-card primary">
-                        <div class="metric-header">
-                            <div>
-                                <p class="metric-label">Total Balance</p>
-                                <h2 class="metric-value" id="totalBalance">₹0.00</h2>
-                            </div>
-                            <div class="metric-icon balance">
-                                <i class="fas fa-wallet"></i>
-                            </div>
+                    <div class="stat-card stat-card-primary">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
                         </div>
-                        <div class="metric-footer">
-                            <span class="metric-change positive">
+                        <div class="stat-content">
+                            <h3 class="stat-label">Total Balance</h3>
+                            <h2 class="stat-value" id="totalBalance">₹0.00</h2>
+                            <div class="stat-change positive">
                                 <i class="fas fa-arrow-up"></i>
-                                <span id="balanceChange">+0.00%</span>
-                            </span>
-                            <span class="metric-time">Since yesterday</span>
+                                <span id="balanceChange">+0.00% today</span>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Total Invested -->
-                    <div class="metric-card success">
-                        <div class="metric-header">
-                            <div>
-                                <p class="metric-label">Total Invested</p>
-                                <h2 class="metric-value" id="totalInvested">₹0.00</h2>
-                            </div>
-                            <div class="metric-icon invested">
-                                <i class="fas fa-chart-line"></i>
-                            </div>
+                    <div class="stat-card stat-card-success">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
                         </div>
-                        <div class="metric-footer">
-                            <span class="metric-change positive">
-                                <i class="fas fa-arrow-up"></i>
-                                <span id="investedChange">+0.00%</span>
-                            </span>
-                            <span class="metric-time">Active investments</span>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Total Invested</h3>
+                            <h2 class="stat-value" id="totalInvested">₹0.00</h2>
+                            <div class="stat-meta">
+                                <span class="active-plans" id="activePlans">0 active plans</span>
+                            </div>
                         </div>
                     </div>
                     
                     <!-- Total Earnings -->
-                    <div class="metric-card warning">
-                        <div class="metric-header">
-                            <div>
-                                <p class="metric-label">Total Earnings</p>
-                                <h2 class="metric-value" id="totalEarnings">₹0.00</h2>
-                            </div>
-                            <div class="metric-icon earnings">
-                                <i class="fas fa-coins"></i>
+                    <div class="stat-card stat-card-warning">
+                        <div class="stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Total Earnings</h3>
+                            <h2 class="stat-value" id="totalEarnings">₹0.00</h2>
+                            <div class="stat-change positive">
+                                <i class="fas fa-arrow-up"></i>
+                                <span id="earningsChange">+₹0.00 today</span>
                             </div>
                         </div>
-   
+                    </div>
+                    
+                    <!-- Referral Earnings -->
+                    <div class="stat-card stat-card-purple">
+                        <div class="stat-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-label">Referral Earnings</h3>
+                            <h2 class="stat-value" id="referralEarnings">₹0.00</h2>
+                            <div class="stat-meta">
+                                <span class="referral-count" id="referralCount">0 referrals</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Quick Actions -->
+            <section class="quick-actions-section">
+                <h2 class="section-title">Quick Actions</h2>
+                <div class="quick-actions-grid">
+                    <div class="quick-action" onclick="window.location.href='wallet.html'">
+                        <div class="action-icon">
+                            <i class="fas fa-money-bill-wave"></i>
+                        </div>
+                        <h4>Add Funds</h4>
+                        <p>Deposit money to your wallet</p>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.location.href='investments.html'">
+                        <div class="action-icon">
+                            <i class="fas fa-chart-pie"></i>
+                        </div>
+                        <h4>New Investment</h4>
+                        <p>Start a new investment plan</p>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.location.href='withdraw.html'">
+                        <div class="action-icon">
+                            <i class="fas fa-hand-holding-usd"></i>
+                        </div>
+                        <h4>Withdraw</h4>
+                        <p>Withdraw your earnings</p>
+                    </div>
+                    
+                    <div class="quick-action" onclick="window.location.href='referrals.html'">
+                        <div class="action-icon">
+                            <i class="fas fa-share-alt"></i>
+                        </div>
+                        <h4>Invite Friends</h4>
+                        <p>Earn referral bonuses</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Investment Plans -->
+            <section class="plans-section">
+                <div class="section-header">
+                    <h2 class="section-title">Investment Plans</h2>
+                    <div class="section-actions">
+                        <button class="btn btn-outline" onclick="window.location.href='investments.html'">
+                            View All Plans
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="plans-tabs">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="basic">Basic Plans</button>
+                        <button class="tab-btn" data-tab="vip">VIP Plans</button>
+                        <button class="tab-btn" data-tab="my">My Investments</button>
+                    </div>
+                    
+                    <div class="tabs-content">
+                        <div class="tab-pane active" id="basic-plans">
+                            <div class="plans-grid" id="basicPlansContainer">
+                                <!-- Basic plans will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="vip-plans">
+                            <div class="plans-grid" id="vipPlansContainer">
+                                <!-- VIP plans will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="my-plans">
+                            <div class="plans-grid" id="myPlansContainer">
+                                <!-- My investments will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Recent Activity & Earnings Chart -->
+            <div class="grid-section">
+                <section class="chart-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Earnings Overview</h2>
+                        <select class="time-select" id="timeRange">
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d" selected>Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                </section>
+                
+                <section class="activity-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <button class="btn btn-link" onclick="window.location.href='transactions.html'">
+                            View All
+                        </button>
+                    </div>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- Recent activity will be loaded here -->
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Referral Banner -->
+            <section class="referral-banner">
+                <div class="referral-content">
+                    <div class="referral-info">
+                        <h3>Invite Friends & Earn Rewards</h3>
+                        <p>Share your referral link and earn 10% commission on their investments</p>
+                        <div class="referral-link-container">
+                            <input type="text" readonly class="referral-link" id="referralLink" 
+                                   value="https://uzumaki.in/ref/loading...">
+                            <button class="btn btn-copy" id="copyReferralBtn">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="referral-stats">
+                        <div class="stat-item">
+                            <h4 id="totalReferrals">0</h4>
+                            <p>Total Referrals</p>
+                        </div>
+                        <div class="stat-item">
+                            <h4 id="referralIncome">₹0.00</h4>
+                            <p>Total Earnings</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-link active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>Recharge</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Notification Modal -->
+    <div class="modal" id="notificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Notifications</h3>
+                <button class="modal-close" id="closeNotificationModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="notifications-list" id="notificationsList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="../../assets/js/user/dashboard.js"></script>
+    <script type="module" src="../../assets/js/user/sidebar.js"></script>
+</body>
+    </html>
