@@ -1,5 +1,5 @@
 // signup.js - Professional Signup with All Features
-import { sessionManager, dbService, utils } from '../core/supabase.js';
+import { sessionManager, dbService, utils, supabase } from '../supabase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize all components
