@@ -439,4 +439,207 @@
                         </button>
                         <button class="tab-btn" data-tab="my">
                             <i class="fas fa-chart-line"></i>
-                        
+                            My Investments
+                        </button>
+                    </div>
+                    
+                    <div class="tabs-content">
+                        <div class="tab-pane active" id="basic-plans">
+                            <div class="plans-grid" id="basicPlansContainer">
+                                <!-- Basic plans will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="vip-plans">
+                            <div class="plans-grid" id="vipPlansContainer">
+                                <!-- VIP plans will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="my-plans">
+                            <div class="plans-grid" id="myPlansContainer">
+                                <!-- My investments will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Recent Activity & Earnings Chart -->
+            <div class="grid-section">
+                <section class="chart-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Earnings Overview</h2>
+                        <div class="chart-controls">
+                            <select class="time-select" id="timeRange">
+                                <option value="7d">Last 7 days</option>
+                                <option value="30d" selected>Last 30 days</option>
+                                <option value="90d">Last 90 days</option>
+                                <option value="1y">Last Year</option>
+                            </select>
+                            <button class="btn-icon" id="exportChart">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="earningsChart"></canvas>
+                    </div>
+                    <div class="chart-stats">
+                        <div class="chart-stat">
+                            <span>Highest</span>
+                            <strong id="chartHighest">₹0.00</strong>
+                        </div>
+                        <div class="chart-stat">
+                            <span>Average</span>
+                            <strong id="chartAverage">₹0.00</strong>
+                        </div>
+                        <div class="chart-stat">
+                            <span>Growth</span>
+                            <strong class="positive" id="chartGrowth">+0%</strong>
+                        </div>
+                    </div>
+                </section>
+                
+                <section class="activity-section">
+                    <div class="section-header">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <div class="section-actions">
+                            <button class="btn-icon" id="refreshActivities">
+                                <i class="fas fa-sync-alt"></i>
+                            </button>
+                            <button class="btn btn-link" onclick="window.location.href='transactions.html'">
+                                View All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- Recent activity will be loaded here -->
+                    </div>
+                </section>
+            </div>
+            
+            <!-- Referral Banner -->
+            <section class="referral-banner">
+                <div class="referral-content">
+                    <div class="referral-info">
+                        <div class="referral-header">
+                            <i class="fas fa-gift"></i>
+                            <h3>Invite Friends & Earn Rewards</h3>
+                        </div>
+                        <p>Share your referral link and earn 10% commission on their investments. Unlimited earning potential!</p>
+                        <div class="referral-link-container">
+                            <div class="referral-input-group">
+                                <input type="text" readonly class="referral-link" id="referralLink" 
+                                       value="https://uzumaki.in/ref/loading...">
+                                <button class="btn btn-copy" id="copyReferralBtn">
+                                    <i class="fas fa-copy"></i>
+                                    Copy
+                                </button>
+                                <button class="btn btn-share" id="shareReferralBtn">
+                                    <i class="fas fa-share-alt"></i>
+                                    Share
+                                </button>
+                            </div>
+                        </div>
+                        <div class="referral-features">
+                            <span><i class="fas fa-check-circle"></i> Instant Commission</span>
+                            <span><i class="fas fa-check-circle"></i> Multiple Levels</span>
+                            <span><i class="fas fa-check-circle"></i> No Limits</span>
+                        </div>
+                    </div>
+                    <div class="referral-stats">
+                        <div class="stat-item">
+                            <i class="fas fa-users"></i>
+                            <h4 id="totalReferrals">0</h4>
+                            <p>Total Referrals</p>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-coins"></i>
+                            <h4 id="referralIncome">₹0.00</h4>
+                            <p>Total Earnings</p>
+                        </div>
+                        <div class="stat-item">
+                            <i class="fas fa-trophy"></i>
+                            <h4 id="referralRank">#0</h4>
+                            <p>Your Rank</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-link active">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="transactions.html" class="bottom-nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>History</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Notification Modal -->
+    <div class="modal" id="notificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    <i class="fas fa-bell"></i>
+                    Notifications
+                </h3>
+                <div class="modal-actions">
+                    <button class="btn-icon" id="markAllRead">
+                        <i class="fas fa-check-double"></i>
+                    </button>
+                    <button class="modal-close" id="closeNotificationModal">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="modal-body">
+                <div class="notifications-list" id="notificationsList">
+                    <!-- Notifications will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Withdraw Modal -->
+    <div class="modal" id="quickWithdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Quick Withdraw</h3>
+                <button class="modal-close" id="closeWithdrawModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Quick withdraw form -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/core/utils.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script type="module" src="../../assets/js/user/dashboard.js"></script>
+    <script src="../../assets/js/user/sidebar.js"></script>
+</body>
+</html>
