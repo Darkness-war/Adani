@@ -1,9 +1,6 @@
 // assets/js/core/csrf-protect.js
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { supabase } from '../supabase.js';
 
-const supabase = createClient(
-    'https://atcfrcolbuikjnsoujzw.supabase.co',
-    'sb_publishable_mUDZkzcq09gllPPjk8pGQ_k6APV_gv'
 );
 
 class CSRFProtection {
