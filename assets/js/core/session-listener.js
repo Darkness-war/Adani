@@ -1,9 +1,5 @@
 // assets/js/core/session-listener.js
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
-
-const supabase = createClient(
-    'https://atcfrcolbuikjnsoujzw.supabase.co',
-    'sb_publishable_mUDZkzcq09gllPPjkG8pGQ_k6APV_gv'
+import { supabase } from '../supabase.js';
 );
 
 class SessionListener {
