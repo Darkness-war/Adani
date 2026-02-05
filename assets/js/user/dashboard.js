@@ -568,4 +568,535 @@ class Dashboard {
     }
     
     createInvestmentCard(investment) {
-        const plan = invest
+        const plan = investment.plans || {};
+        const startDate = new Date(investment.start_date);
+        const now = new Date();
+        const endDate = new Date(investment.end_date);
+        
+        const daysTotal = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const daysPassed = Math.floor((now - startDate) / (1000 * 60 * 60 * 24));
+        const daysRemaining = Math.max(0, daysTotal - daysPassed);
+        const progress = Math.min((daysPassed / daysTotal) * 100, 100);
+        
+        const earnedSoFar = investment.amount * (plan.daily_return / 100) * daysPassed;
+        
+        return `
+            <div class="plan-card">
+                <div class="plan-header ${plan.type === 'vip' ? 'vip' : ''}">
+                    <h3>${plan.name || 'Investment Plan'}</h3>
+                    <p class="plan-description">Active Investment</p>
+                    <div class="plan-amount">₹${investment.amount?.toLocaleString() || '0'}</div>
+                    <p class="plan-period">${daysPassed}/${daysTotal} days completed</p>
+                </div>
+                <div class="plan-body">
+                    <div class="progress-container">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <span>${daysPassed} days</span>
+                            <span>${daysRemaining} days left</span>
+                        </div>
+                    </div>
+                    <div class="plan-features">
+                        <div class="plan-feature">
+                            <span class="feature-label">Earned So Far</span>
+                            <span class="feature-value success">₹${earnedSoFar.toLocaleString()}</span>
+                        </div>
+                        <div class="plan-feature">
+                            <span class="feature-label">Status</span>
+                            <span class="feature-value ${investment.status === 'active' ? 'success' : 'warning'}">
+                                ${investment.status?.charAt(0).toUpperCase() + investment.status?.slice(1) || 'Active'}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    async loadRecentTransactions(userId) {
+        try {
+            const { data: transactions, error } = await supabase
+                .from('transactions')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(5);
+            
+            if (error) throw error;
+            
+            this.userData.transactions = transactions || [];
+            this.renderRecentActivity();
+            
+        } catch (error) {
+            console.error('[Dashboard] Error loading transactions:', error);
+            this.userData.transactions = [];
+            this.renderRecentActivity();
+        }
+    }
+    
+    renderRecentActivity() {
+        const container = document.getElementById('recentActivity');
+        if (!container) return;
+        
+        if (this.userData.transactions.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-history"></i>
+                    <h4>No Recent Activity</h4>
+                    <p>Your transactions will appear here</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = this.userData.transactions.map(tx => this.createActivityItem(tx)).join('');
+    }
+    
+    createActivityItem(transaction) {
+        const iconMap = {
+            deposit: { icon: 'arrow-down', color: 'deposit', label: 'Deposit' },
+            withdrawal: { icon: 'arrow-up', color: 'withdrawal', label: 'Withdrawal' },
+            investment: { icon: 'chart-pie', color: 'info', label: 'Investment' },
+            earning: { icon: 'coins', color: 'earning', label: 'Earnings' },
+            referral: { icon: 'user-plus', color: 'referral', label: 'Referral Bonus' }
+        };
+        
+        const typeInfo = iconMap[transaction.type] || { icon: 'exchange-alt', color: 'info', label: transaction.type };
+        const date = new Date(transaction.created_at);
+        const timeString = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        const dateString = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        
+        return `
+            <div class="activity-item">
+                <div class="activity-icon ${typeInfo.color}">
+                    <i class="fas fa-${typeInfo.icon}"></i>
+                </div>
+                <div class="activity-details">
+                    <div class="activity-title">${typeInfo.label}</div>
+                    <div class="activity-description">${transaction.description || 'Transaction completed'}</div>
+                    <div class="activity-meta">
+                        <span>${dateString} at ${timeString}</span>
+                        <span class="activity-amount ${transaction.amount >= 0 ? 'positive' : 'negative'}">
+                            ${transaction.amount >= 0 ? '+' : ''}₹${Math.abs(transaction.amount).toLocaleString()}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    async loadNotifications(userId) {
+        try {
+            const { data: notifications, error } = await supabase
+                .from('notifications')
+                .select('*')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false })
+                .limit(10);
+            
+            if (error) throw error;
+            
+            this.userData.notifications = notifications || [];
+            
+            // Update notification count
+            const unreadCount = notifications?.filter(n => !n.read).length || 0;
+            this.updateNotificationCount(unreadCount);
+            
+        } catch (error) {
+            console.error('[Dashboard] Error loading notifications:', error);
+        }
+    }
+    
+    updateNotificationCount(count) {
+        const notificationElements = [
+            document.getElementById('mobileNotificationCount')
+        ];
+        
+        notificationElements.forEach(el => {
+            if (el) {
+                el.textContent = count > 9 ? '9+' : count;
+                el.style.display = count > 0 ? 'flex' : 'none';
+            }
+        });
+    }
+    
+    async loadReferralStats(userId) {
+        try {
+            const { profile } = authGuard.getUser();
+            
+            if (!profile) return;
+            
+            // Update referral link
+            const referralLink = document.getElementById('referralLink');
+            if (referralLink && profile.referral_code) {
+                referralLink.value = `https://uzumaki.in/ref/${profile.referral_code}`;
+            }
+            
+            // Get referral count
+            const { data: referrals, error: refError } = await supabase
+                .from('profiles')
+                .select('id')
+                .eq('referred_by', userId);
+            
+            let referralCount = 0;
+            if (!refError && referrals) {
+                referralCount = referrals.length;
+            }
+            
+            // Get referral earnings
+            const { data: referralEarnings, error: earnError } = await supabase
+                .from('transactions')
+                .select('amount')
+                .eq('user_id', userId)
+                .eq('type', 'referral');
+            
+            let referralIncome = 0;
+            if (!earnError && referralEarnings) {
+                referralIncome = referralEarnings.reduce((sum, earn) => sum + (earn.amount || 0), 0);
+            }
+            
+            // Update UI
+            document.getElementById('totalReferrals').textContent = referralCount;
+            document.getElementById('referralCount').innerHTML = `<i class="fas fa-users"></i> ${referralCount} referrals`;
+            document.getElementById('referralIncome').textContent = `₹${referralIncome.toLocaleString()}`;
+            document.getElementById('referralEarnings').textContent = `₹${referralIncome.toLocaleString()}`;
+            
+        } catch (error) {
+            console.error('[Dashboard] Error loading referral stats:', error);
+        }
+    }
+    
+    async loadEarningsData(userId) {
+        try {
+            // Generate sample data for chart
+            const earningsData = [];
+            const days = 30;
+            let currentValue = 1000;
+            
+            for (let i = days; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                
+                // Random walk for earnings
+                currentValue += (Math.random() - 0.5) * 200;
+                currentValue = Math.max(500, currentValue);
+                
+                earningsData.push({
+                    date: date.toISOString().split('T')[0],
+                    earnings: Math.round(currentValue)
+                });
+            }
+            
+            this.userData.earningsData = earningsData;
+            
+            // Update chart stats
+            this.updateChartStats(earningsData);
+            
+        } catch (error) {
+            console.error('[Dashboard] Error loading earnings data:', error);
+        }
+    }
+    
+    updateChartStats(earningsData) {
+        if (!earningsData || earningsData.length === 0) return;
+        
+        const earnings = earningsData.map(d => d.earnings);
+        const highest = Math.max(...earnings);
+        const average = Math.round(earnings.reduce((a, b) => a + b, 0) / earnings.length);
+        const growth = earnings.length > 1 ? 
+            ((earnings[earnings.length - 1] - earnings[0]) / earnings[0] * 100).toFixed(1) : 0;
+        
+        const highestEl = document.getElementById('chartHighest');
+        const averageEl = document.getElementById('chartAverage');
+        const growthEl = document.getElementById('chartGrowth');
+        
+        if (highestEl) highestEl.textContent = `₹${highest.toLocaleString()}`;
+        if (averageEl) averageEl.textContent = `₹${average.toLocaleString()}`;
+        if (growthEl) {
+            growthEl.textContent = `${growth >= 0 ? '+' : ''}${growth}%`;
+            growthEl.className = growth >= 0 ? 'chart-stat positive' : 'chart-stat negative';
+        }
+    }
+    
+    initChart() {
+        const ctx = document.getElementById('earningsChart');
+        if (!ctx) return;
+        
+        // Destroy existing chart
+        if (this.chart) {
+            this.chart.destroy();
+        }
+        
+        // Prepare data
+        const labels = this.userData.earningsData.map(d => {
+            const date = new Date(d.date);
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        });
+        
+        const data = this.userData.earningsData.map(d => d.earnings);
+        
+        // Create gradient
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(67, 97, 238, 0.3)');
+        gradient.addColorStop(1, 'rgba(67, 97, 238, 0.05)');
+        
+        // Create chart
+        this.chart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Daily Earnings',
+                    data: data,
+                    borderColor: '#4361ee',
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#4361ee',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false }
+                    },
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return '₹' + value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    setupTabs() {
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabPanes = document.querySelectorAll('.tab-pane');
+        
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabId = btn.dataset.tab;
+                
+                // Update active tab button
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Show corresponding tab pane
+                tabPanes.forEach(pane => {
+                    pane.classList.remove('active');
+                    if (pane.id === `${tabId}-plans`) {
+                        pane.classList.add('active');
+                    }
+                });
+            });
+        });
+    }
+    
+    setupTimeFilter() {
+        const timeBtns = document.querySelectorAll('.time-btn');
+        
+        timeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const timeRange = btn.dataset.time;
+                
+                // Update active button
+                timeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Filter chart data
+                this.updateChartTimeRange(timeRange);
+            });
+        });
+    }
+    
+    updateChartTimeRange(range) {
+        // Generate new data based on range
+        const days = range === 'today' ? 1 : 
+                    range === 'week' ? 7 : 
+                    30; // month
+        
+        this.userData.earningsData = this.generateSampleData(days);
+        this.updateChartStats(this.userData.earningsData);
+        this.initChart();
+    }
+    
+    generateSampleData(days) {
+        const earningsData = [];
+        let currentValue = 1000;
+        
+        for (let i = days; i >= 0; i--) {
+            const date = new Date();
+            date.setDate(date.getDate() - i);
+            
+            currentValue += (Math.random() - 0.5) * 200;
+            currentValue = Math.max(500, currentValue);
+            
+            earningsData.push({
+                date: date.toISOString().split('T')[0],
+                earnings: Math.round(currentValue)
+            });
+        }
+        
+        return earningsData;
+    }
+    
+    setupEventListeners() {
+        // Copy referral link
+        const copyBtn = document.getElementById('copyReferralBtn');
+        if (copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const referralLink = document.getElementById('referralLink');
+                if (referralLink) {
+                    navigator.clipboard.writeText(referralLink.value)
+                        .then(() => this.showToast('Referral link copied!', 'success'))
+                        .catch(() => this.showToast('Failed to copy link', 'error'));
+                }
+            });
+        }
+        
+        // Refresh activities
+        const refreshBtn = document.getElementById('refreshActivities');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', () => {
+                const userId = authGuard.getUserId();
+                if (userId) {
+                    this.loadRecentTransactions(userId);
+                    this.showToast('Activities refreshed', 'success');
+                }
+            });
+        }
+        
+        // Mobile refresh
+        const mobileRefresh = document.getElementById('mobileRefresh');
+        if (mobileRefresh) {
+            mobileRefresh.addEventListener('click', () => {
+                this.loadAllData();
+                this.showToast('Dashboard refreshed', 'success');
+            });
+        }
+        
+        // Quick withdraw
+        const quickWithdraw = document.getElementById('quickWithdraw');
+        if (quickWithdraw) {
+            quickWithdraw.addEventListener('click', () => {
+                const { profile } = authGuard.getUser();
+                if (profile?.balance < 100) {
+                    this.showToast('Minimum withdrawal is ₹100', 'warning');
+                    return;
+                }
+                window.location.href = 'withdraw.html';
+            });
+        }
+    }
+    
+    setupRealtime() {
+        const userId = authGuard.getUserId();
+        if (!userId) return;
+        
+        // Subscribe to profile changes
+        supabase
+            .channel('profile-changes')
+            .on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+                (payload) => {
+                    console.log('Profile updated:', payload.new);
+                    // Update local profile
+                    const { profile } = authGuard.getUser();
+                    if (profile) {
+                        Object.assign(profile, payload.new);
+                        this.updateStatsUI({
+                            balance: profile.balance,
+                            totalInvested: this.userData.stats.totalInvested,
+                            totalEarnings: this.userData.stats.totalEarnings,
+                            todayEarnings: this.userData.stats.todayEarnings,
+                            activePlans: this.userData.stats.activePlans,
+                            investmentProfit: this.userData.stats.investmentProfit
+                        });
+                    }
+                }
+            )
+            .subscribe();
+    }
+    
+    showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toastContainer');
+        if (!toastContainer) return;
+        
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const icons = {
+            success: 'check-circle',
+            error: 'exclamation-circle',
+            warning: 'exclamation-triangle',
+            info: 'info-circle'
+        };
+        
+        toast.innerHTML = `
+            <div class="toast-icon">
+                <i class="fas fa-${icons[type] || 'info-circle'}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (toast.parentNode) {
+                toast.remove();
+            }
+        }, 5000);
+        
+        // Close button
+        const closeBtn = toast.querySelector('.toast-close');
+        closeBtn.addEventListener('click', () => toast.remove());
+    }
+    
+    hideLoading() {
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        if (loadingOverlay) {
+            loadingOverlay.classList.remove('active');
+            setTimeout(() => {
+                loadingOverlay.style.display = 'none';
+            }, 300);
+        }
+        
+        // Remove loading states
+        this.removeLoadingStates();
+    }
+}
+
+// Initialize dashboard when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Start loading animation immediately
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    if (loadingOverlay) {
+        loadingOverlay.classList.add('active');
+    }
+    
+    // Initialize dashboard after a short delay
+    setTimeout(() => {
+        window.dashboard = new Dashboard();
+    }, 500);
+});
