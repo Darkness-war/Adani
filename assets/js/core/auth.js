@@ -1,360 +1,395 @@
-// core/auth.js
 import { sessionManager, dbService, utils, supabase } from './supabase.js';
-import { showToast, showLoading, hideLoading } from './utils.js';
 
 class AuthGuard {
     constructor() {
-        this.currentUser = null;
-        this.currentProfile = null;
-        this.publicPages = [
+        this.currentPage = window.location.pathname.split('/').pop();
+        this.publicPages = new Set([
             'index.html',
-            'login.html', 
+            'login.html',
             'signup.html',
             'forgot-password.html',
-            'reset-password.html',
             'terms.html',
-            'privacy.html',
-            'contact.html'
-        ];
+            'privacy-policy.html',
+            'contact.html',
+            'refund.html'
+        ]);
+        
+        this.adminPages = new Set([
+            'admin-dashboard.html',
+            'admin-users.html',
+            'admin-investments.html',
+            'admin-withdrawals.html',
+            'admin-logs.html',
+            'admin-settings.html'
+        ]);
         
         this.init();
     }
 
     async init() {
-        console.log('[AuthGuard] Initializing...');
-        
         try {
-            // Get current session
-            const { data: { session }, error } = await supabase.auth.getSession();
+            // Initialize session manager first
+            await sessionManager.initialize();
             
-            if (error) {
-                console.error('[AuthGuard] Session error:', error);
-                this.handleUnauthenticated();
-                return;
+            // Wait for session to load properly
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            // Check auth status with retry
+            let attempts = 0;
+            let user = null;
+            let profile = null;
+            
+            while (attempts < 3) {
+                try {
+                    const result = await sessionManager.getCurrentUser();
+                    user = result.user;
+                    profile = result.profile;
+                    
+                    if (user || attempts === 2) break;
+                    
+                    // Wait and retry
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                    attempts++;
+                } catch (error) {
+                    console.warn(`Auth check attempt ${attempts + 1} failed:`, error.message);
+                    attempts++;
+                    await new Promise(resolve => setTimeout(resolve, 300));
+                }
             }
             
-            if (!session) {
-                this.handleUnauthenticated();
-                return;
-            }
+            // Handle page access
+            await this.handlePageAccess(user, profile);
             
-            this.currentUser = session.user;
-            await this.loadUserProfile();
+            // Update UI based on auth state
+            this.updateUI(user, profile);
+            
+            // Setup auth state listener with proper error handling
+            sessionManager.subscribe((event, user, profile) => {
+                console.log(`[AuthGuard] Auth changed: ${event}`, user ? 'User logged in' : 'No user');
+                this.handleAuthChange(event, user, profile);
+            });
+            
+            // Setup inactivity timer
+            this.setupInactivityTimer();
             
         } catch (error) {
             console.error('[AuthGuard] Initialization error:', error);
-            this.handleUnauthenticated();
+            // Fallback: redirect to login if not on public page
+            const currentPage = window.location.pathname.split('/').pop();
+            if (!this.publicPages.has(currentPage)) {
+                window.location.href = '/pages/auth/login.html';
+            }
         }
     }
 
-    async loadUserProfile() {
-        try {
-            if (!this.currentUser) return;
-            
-            // Get user profile from database
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', this.currentUser.id)
-                .single();
-            
-            if (error) {
-                // Profile doesn't exist, create one
-                if (error.code === 'PGRST116') {
-                    await this.createUserProfile();
+    async handlePageAccess(user, profile) {
+        const isPublicPage = this.publicPages.has(this.currentPage);
+        const isAdminPage = this.adminPages.has(this.currentPage);
+        
+        console.log(`[AuthGuard] Page: ${this.currentPage}, User: ${user ? user.email : 'none'}, Public: ${isPublicPage}`);
+        
+        // Redirect logic
+        if (!user && !isPublicPage) {
+            // Not logged in and not on public page
+            console.log('[AuthGuard] Not logged in, redirecting to login');
+            window.location.href = '/pages/auth/login.html';
+            return;
+        }
+        
+        if (user && isPublicPage && this.currentPage !== 'index.html') {
+            // Logged in but on auth page (except index)
+            console.log('[AuthGuard] Already logged in, redirecting to dashboard');
+            window.location.href = '/pages/user/dashboard.html';
+            return;
+        }
+        
+        if (user && isAdminPage) {
+            // Check if user is admin
+            try {
+                const isAdmin = await sessionManager.isAdmin();
+                if (!isAdmin) {
+                    console.log('[AuthGuard] Not admin, redirecting to 403');
+                    window.location.href = '/pages/errors/403.html';
                     return;
                 }
-                throw error;
-            }
-            
-            this.currentProfile = profile;
-            
-            // Update UI
-            this.updateUI();
-            
-            console.log('[AuthGuard] Profile loaded:', profile);
-            
-        } catch (error) {
-            console.error('[AuthGuard] Profile load error:', error);
-            showToast('Failed to load user profile', 'error');
-        }
-    }
-
-    async createUserProfile() {
-        try {
-            const { data: profile, error } = await supabase
-                .from('profiles')
-                .insert({
-                    id: this.currentUser.id,
-                    email: this.currentUser.email,
-                    full_name: this.currentUser.user_metadata?.full_name || 
-                               this.currentUser.email?.split('@')[0] || 'User',
-                    avatar_url: this.currentUser.user_metadata?.avatar_url || null,
-                    balance: 0,
-                    tier: 'standard',
-                    is_verified: false,
-                    referral_code: this.generateReferralCode(),
-                    created_at: new Date().toISOString()
-                })
-                .select()
-                .single();
-            
-            if (error) throw error;
-            
-            this.currentProfile = profile;
-            console.log('[AuthGuard] Profile created:', profile);
-            
-        } catch (error) {
-            console.error('[AuthGuard] Profile creation error:', error);
-            showToast('Failed to create user profile', 'error');
-        }
-    }
-
-    generateReferralCode() {
-        return 'UZ' + Math.random().toString(36).substring(2, 10).toUpperCase();
-    }
-
-    handleUnauthenticated() {
-        const currentPage = window.location.pathname.split('/').pop();
-        const isPublicPage = this.publicPages.includes(currentPage);
-        
-        if (!isPublicPage && !currentPage.includes('.html')) {
-            // Handle index page
-            if (window.location.pathname.endsWith('/')) {
+            } catch (error) {
+                console.error('[AuthGuard] Admin check failed:', error);
+                window.location.href = '/pages/errors/403.html';
                 return;
             }
         }
-        
-        if (!isPublicPage) {
-            console.log('[AuthGuard] Redirecting to login...');
-            window.location.href = '/pages/auth/login.html';
-        }
     }
 
-    updateUI() {
-        if (!this.currentUser || !this.currentProfile) return;
-        
-        // Update all user name elements
-        const userNameElements = document.querySelectorAll('.user-name, #sidebarUserName, #mobileUserName, #welcomeUserName');
-        const userName = this.currentProfile.full_name || 
-                        this.currentUser.email?.split('@')[0] || 
-                        'User';
-        
-        userNameElements.forEach(el => {
-            if (el) el.textContent = userName;
-        });
-        
-        // Update all email elements
-        const emailElements = document.querySelectorAll('.user-email, #sidebarUserEmail, #mobileUserEmail');
-        const userEmail = this.currentUser.email || 'user@example.com';
-        
-        emailElements.forEach(el => {
-            if (el) el.textContent = userEmail;
-        });
-        
-        // Update tier badges
-        const tierElements = document.querySelectorAll('.tier-badge, #userTier, #mobileUserTier');
-        const userTier = this.currentProfile.tier || 'Standard';
-        
-        tierElements.forEach(el => {
-            if (el) {
-                el.textContent = userTier;
-                el.className = `tier-badge ${userTier.toLowerCase()}`;
-            }
-        });
-        
-        // Update avatar images
-        const avatarImgs = document.querySelectorAll('#userAvatarImg, #mobileUserAvatarImg');
-        const avatarFallbacks = document.querySelectorAll('#userAvatarFallback, #mobileUserAvatarFallback');
-        
-        if (this.currentProfile.avatar_url) {
-            avatarImgs.forEach(img => {
-                if (img) {
-                    img.src = this.currentProfile.avatar_url;
-                    img.style.display = 'block';
-                }
-            });
-            avatarFallbacks.forEach(fallback => {
-                if (fallback) fallback.style.display = 'none';
-            });
-        } else {
-            avatarImgs.forEach(img => {
-                if (img) img.style.display = 'none';
-            });
-            avatarFallbacks.forEach(fallback => {
-                if (fallback) {
-                    fallback.textContent = userName.charAt(0).toUpperCase();
-                    fallback.style.display = 'flex';
-                }
-            });
-        }
-        
-        // Update verification badge
-        const verifiedBadge = document.getElementById('userVerified');
-        if (verifiedBadge) {
-            verifiedBadge.style.display = this.currentProfile.is_verified ? 'inline-flex' : 'none';
-        }
-        
-        // Update welcome message
-        const welcomeName = document.getElementById('welcomeUserName');
-        if (welcomeName) {
-            welcomeName.textContent = userName;
-        }
-        
-        // Update referral link
-        const referralLink = document.getElementById('referralLink');
-        if (referralLink && this.currentProfile.referral_code) {
-            referralLink.value = `https://uzumaki.in/ref/${this.currentProfile.referral_code}`;
-        }
-    }
-
-    async checkAuth() {
-        return new Promise(async (resolve) => {
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                
-                if (error || !session) {
-                    this.handleUnauthenticated();
-                    resolve(false);
-                    return;
-                }
-                
-                this.currentUser = session.user;
-                
-                if (!this.currentProfile) {
-                    await this.loadUserProfile();
-                }
-                
-                resolve(true);
-                
-            } catch (error) {
-                console.error('[AuthGuard] Check auth error:', error);
-                this.handleUnauthenticated();
-                resolve(false);
-            }
-        });
-    }
-
-    async logout() {
+    updateUI(user, profile) {
         try {
-            showLoading('Logging out...');
-            
-            // Clear local data
-            this.currentUser = null;
-            this.currentProfile = null;
-            
-            // Sign out from Supabase
-            const { error } = await supabase.auth.signOut();
-            
-            if (error) throw error;
-            
-            // Redirect to login page
-            window.location.href = '/pages/auth/login.html';
-            
+            if (user) {
+                console.log('[AuthGuard] Updating UI for logged in user:', user.email);
+                
+                // Update user info in header/sidebar
+                this.updateUserElements(user, profile);
+                
+                // Show user-specific elements
+                document.querySelectorAll('.auth-only').forEach(el => {
+                    el.style.display = '';
+                });
+                
+                // Hide auth buttons
+                document.querySelectorAll('.no-auth').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // Show logout button if exists
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.style.display = '';
+                    logoutBtn.onclick = window.logout;
+                }
+            } else {
+                console.log('[AuthGuard] Updating UI for logged out state');
+                
+                // Show auth buttons
+                document.querySelectorAll('.no-auth').forEach(el => {
+                    el.style.display = '';
+                });
+                
+                // Hide user-specific elements
+                document.querySelectorAll('.auth-only').forEach(el => {
+                    el.style.display = 'none';
+                });
+                
+                // Hide logout button
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.style.display = 'none';
+                }
+            }
         } catch (error) {
-            console.error('[AuthGuard] Logout error:', error);
-            showToast('Logout failed. Please try again.', 'error');
-        } finally {
-            hideLoading();
+            console.error('[AuthGuard] UI update error:', error);
         }
     }
 
-    getUser() {
-        return {
-            user: this.currentUser,
-            profile: this.currentProfile
+    updateUserElements(user, profile) {
+        try {
+            // Update user name
+            document.querySelectorAll('.user-name').forEach(el => {
+                if (el) {
+                    el.textContent = profile?.full_name || user.email?.split('@')[0] || 'User';
+                }
+            });
+            
+            // Update user email
+            document.querySelectorAll('.user-email').forEach(el => {
+                if (el) {
+                    el.textContent = user.email || '';
+                }
+            });
+            
+            // Update user balance
+            document.querySelectorAll('.user-balance').forEach(el => {
+                if (el && profile) {
+                    el.textContent = utils.formatCurrency(profile.balance || 0);
+                }
+            });
+            
+            // Update user avatar
+            document.querySelectorAll('.user-avatar').forEach(el => {
+                if (el && profile?.avatar_url) {
+                    el.style.backgroundImage = `url(${profile.avatar_url})`;
+                    el.innerHTML = ''; // Clear initials
+                } else if (el) {
+                    const initials = (profile?.full_name || 'U').charAt(0).toUpperCase();
+                    el.innerHTML = `<span>${initials}</span>`;
+                }
+            });
+            
+            // Update VIP status
+            document.querySelectorAll('.vip-badge').forEach(el => {
+                if (el) {
+                    if (profile?.is_vip) {
+                        el.style.display = '';
+                        el.textContent = 'VIP';
+                        el.className = 'vip-badge active';
+                    } else {
+                        el.style.display = 'none';
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('[AuthGuard] User elements update error:', error);
+        }
+    }
+
+    handleAuthChange(event, user, profile) {
+        console.log(`[AuthGuard] Auth changed: ${event}`, user ? user.email : 'No user');
+        
+        switch (event) {
+            case 'SIGNED_IN':
+                this.updateUI(user, profile);
+                if (this.publicPages.has(this.currentPage) && this.currentPage !== 'index.html') {
+                    window.location.href = '/pages/user/dashboard.html';
+                }
+                break;
+                
+            case 'SIGNED_OUT':
+                this.updateUI(null, null);
+                if (!this.publicPages.has(this.currentPage)) {
+                    window.location.href = '/pages/auth/login.html';
+                }
+                break;
+                
+            case 'USER_UPDATED':
+                this.updateUI(user, profile);
+                break;
+                
+            case 'TOKEN_REFRESHED':
+                // Session was refreshed, nothing to do
+                break;
+        }
+    }
+
+    setupInactivityTimer() {
+        let inactivityTimer;
+        const logoutTime = 30 * 60 * 1000; // 30 minutes
+        
+        const resetTimer = () => {
+            clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(() => {
+                this.handleInactive();
+            }, logoutTime);
         };
+        
+        // Events that reset the timer
+        const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
+        events.forEach(event => {
+            document.addEventListener(event, resetTimer, true);
+        });
+        
+        resetTimer(); // Start the timer
     }
 
-    isAuthenticated() {
-        return !!this.currentUser;
+    async handleInactive() {
+        try {
+            const { user } = await sessionManager.getCurrentUser();
+            if (user) {
+                console.log('[AuthGuard] Logging out due to inactivity');
+                utils.showToast('You have been logged out due to inactivity', 'warning');
+                await sessionManager.logout();
+            }
+        } catch (error) {
+            console.error('[AuthGuard] Inactivity handler error:', error);
+        }
     }
 
-    getUserId() {
-        return this.currentUser?.id;
+    // Public methods
+    async requireAuth() {
+        try {
+            await sessionManager.initialize();
+            const { user } = await sessionManager.getCurrentUser();
+            if (!user) {
+                console.log('[AuthGuard] requireAuth: No user, redirecting');
+                window.location.href = '/pages/auth/login.html';
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('[AuthGuard] requireAuth error:', error);
+            window.location.href = '/pages/auth/login.html';
+            return false;
+        }
     }
 
-    getProfile() {
-        return this.currentProfile;
+    async requireAdmin() {
+        try {
+            await sessionManager.initialize();
+            const isAdmin = await sessionManager.isAdmin();
+            if (!isAdmin) {
+                console.log('[AuthGuard] requireAdmin: Not admin');
+                window.location.href = '/pages/errors/403.html';
+                return false;
+            }
+            return true;
+        } catch (error) {
+            console.error('[AuthGuard] requireAdmin error:', error);
+            window.location.href = '/pages/errors/403.html';
+            return false;
+        }
+    }
+
+    async getCurrentUser() {
+        try {
+            await sessionManager.initialize();
+            return await sessionManager.getCurrentUser();
+        } catch (error) {
+            console.error('[AuthGuard] getCurrentUser error:', error);
+            return { user: null, profile: null };
+        }
     }
 }
 
-// Create singleton instance
+// Initialize auth guard
 const authGuard = new AuthGuard();
 
 // Export for use in other modules
 export default authGuard;
 
-// Global functions for HTML event handlers
-window.handleLogout = async () => {
-    await authGuard.logout();
+// Global logout function
+window.logout = async () => {
+    try {
+        console.log('[AuthGuard] Logout initiated');
+        utils.showLoading();
+        await sessionManager.logout();
+        console.log('[AuthGuard] Logout successful');
+    } catch (error) {
+        console.error('[AuthGuard] Logout error:', error);
+        utils.showToast('Logout failed. Please try again.', 'error');
+    } finally {
+        utils.hideLoading();
+    }
 };
 
-// Initialize on DOM content loaded
-document.addEventListener('DOMContentLoaded', async () => {
-    console.log('[AuthGuard] DOM loaded, checking auth...');
+// Check auth on page load
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('[AuthGuard] DOM loaded, initializing auth UI');
     
-    // Set up logout buttons
-    const logoutButtons = [
-        document.getElementById('sidebarLogout'),
-        document.getElementById('mobileLogoutBtn'),
-        document.getElementById('logoutBtn')
-    ];
-    
-    logoutButtons.forEach(btn => {
-        if (btn) {
-            btn.addEventListener('click', window.handleLogout);
-        }
-    });
-    
-    // Check auth for protected pages
-    const currentPage = window.location.pathname.split('/').pop();
-    const isProtectedPage = !authGuard.publicPages.includes(currentPage);
-    
-    if (isProtectedPage) {
-        const isAuthenticated = await authGuard.checkAuth();
-        
-        if (!isAuthenticated) {
-            // Redirect will happen in checkAuth
-            return;
-        }
-        
-        // Update UI with user data
-        authGuard.updateUI();
+    // Add logout button listener if exists
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            window.logout();
+        });
     }
-});
-
-// Listen for auth state changes
-supabase.auth.onAuthStateChange(async (event, session) => {
-    console.log('[AuthGuard] Auth state changed:', event);
     
-    switch (event) {
-        case 'SIGNED_IN':
-            authGuard.currentUser = session.user;
-            await authGuard.loadUserProfile();
-            showToast('Successfully signed in!', 'success');
-            break;
-            
-        case 'SIGNED_OUT':
-            authGuard.currentUser = null;
-            authGuard.currentProfile = null;
-            
-            // Only redirect if not on a public page
-            const currentPage = window.location.pathname.split('/').pop();
-            const isPublicPage = authGuard.publicPages.includes(currentPage);
-            
-            if (!isPublicPage) {
-                window.location.href = '/pages/auth/login.html';
-            }
-            break;
-            
-        case 'USER_UPDATED':
-            authGuard.currentUser = session.user;
-            authGuard.updateUI();
-            break;
-            
-        case 'TOKEN_REFRESHED':
-            console.log('[AuthGuard] Token refreshed');
-            break;
+    // Add user menu functionality
+    const userMenuBtn = document.getElementById('userMenuBtn');
+    const userMenu = document.getElementById('userMenu');
+    if (userMenuBtn && userMenu) {
+        userMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            userMenu.classList.toggle('show');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', () => {
+            userMenu.classList.remove('show');
+        });
     }
+    
+    // Check if we're on a public page and update UI accordingly
+    setTimeout(() => {
+        const currentPage = window.location.pathname.split('/').pop();
+        const isPublicPage = ['index.html', 'login.html', 'signup.html', 'forgot-password.html'].includes(currentPage);
+        
+        if (isPublicPage) {
+            // Check if already logged in and redirect
+            sessionManager.getCurrentUser().then(({ user }) => {
+                if (user && currentPage !== 'index.html') {
+                    console.log('[AuthGuard] Already logged in on public page, redirecting');
+                    setTimeout(() => {
+                        window.location.href = '/pages/user/dashboard.html';
+                    }, 1000);
+                }
+            });
+        }
+    }, 1000);
 });
