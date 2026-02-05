@@ -1,9 +1,16 @@
-// Supabase Configuration
+// TO:
 const SUPABASE_URL = 'https://atcfrcolbuikjnsoujzw.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_mUDZkzcq09gllPPjkG8pGQ_k6APV_gv';
 
 // Initialize Supabase client
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: false
+  }
+});
 
 // Session Management
 class SessionManager {
@@ -648,7 +655,7 @@ const utils = {
             loader.style.display = 'none';
         }
     }
-};
+}
 
 // Add CSS for animations
 const style = document.createElement('style');
@@ -669,4 +676,13 @@ style.textContent = `
             transform: translateX(0);
             opacity: 1;
         }
-        to 
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+`;
+document.head.appendChild(style);
+
+// Export supabase client
+export { supabase, sessionManager, dbService, utils };
