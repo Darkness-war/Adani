@@ -1,6 +1,6 @@
 // assets/js/auth/signup.js - Full Working Version
 // Import from supabase.js
-import { sessionManager, dbService, utils, supabase } from '../supabase.js';
+import { sessionManager, dbService, utils, supabase } from '../core/supabase.js';
 
 // Global variables
 let isSubmitting = false;
