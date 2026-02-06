@@ -1,5 +1,5 @@
-// login.js - Modern Enhanced Version with Dark Theme Fix
-import { sessionManager, dbService, utils } from '../core/supabase.js';
+// login.js - Modern Enhanced Version with Dark Theme 
+import { sessionManager, dbService, utils, supabase } from '../core/supabase.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize components
