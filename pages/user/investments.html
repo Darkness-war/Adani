@@ -1,77 +1,845 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <title>Investments</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Core CSS -->
-  <link rel="stylesheet" href="/assets/css/core/reset.css" />
-  <link rel="stylesheet" href="/assets/css/core/variables.css" />
-  <link rel="stylesheet" href="/assets/css/core/layout.css" />
-
-  <!-- User CSS -->
-  <link rel="stylesheet" href="/assets/css/user/investments.css" />
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Core JS -->
-  <script src="/assets/js/core/supabase.js"></script>
-  <script src="/assets/js/core/auth.js"></script>
-  <script src="/assets/js/core/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Plans | Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
+    
+    <!-- Dashboard CSS (for sidebar and layout) -->
+    <link rel="stylesheet" href="../../assets/css/user/dashboard.css">
+    
+    <!-- Investments CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/investments.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
-<body>
-
-  <div class="app">
-
-    <!-- Top Bar -->
-    <header class="app-header">
-      <div class="app-title">Investments</div>
-      <button class="icon-btn" onclick="signOut()">⎋</button>
-    </header>
-
-    <!-- Main Content -->
-    <main class="app-content">
-
-      <!-- Summary -->
-      <div class="card">
-        <div class="card-title">Investment Summary</div>
-        <div style="display:flex; justify-content:space-between; margin-top:12px;">
-          <div>
-            <div class="card-subtitle">Total Invested</div>
-            <strong id="totalInvested">₹0.00</strong>
-          </div>
-          <div>
-            <div class="card-subtitle">Total Profit</div>
-            <strong id="totalInvestmentProfit">₹0.00</strong>
-          </div>
+<body class="app-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Investments</h2>
+            <p class="loading-text">Loading investment plans...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
         </div>
-      </div>
-
-      <!-- Investments List -->
-      <div class="card">
-        <div class="card-title">Your Investments</div>
-        <ul id="investmentList" style="margin-top:12px; font-size:14px;">
-          <li>Loading...</li>
-        </ul>
-      </div>
-
+    </div>
+    
+    <!-- Desktop Sidebar (Same as dashboard) -->
+    <aside class="sidebar desktop-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <div class="logo-spiral">
+                    <div class="spiral-inner"></div>
+                </div>
+                <h2 class="brand-name">Uzumaki</h2>
+            </div>
+            <button class="sidebar-collapse" id="sidebarCollapse">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
+                <i class="fas fa-user" id="userAvatarFallback"></i>
+                <span class="status-indicator online"></span>
+            </div>
+            <div class="user-info">
+                <h4 id="sidebarUserName">Loading...</h4>
+                <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                <div class="user-tier">
+                    <span class="tier-badge" id="userTier">Standard</span>
+                    <span class="verification-badge" id="userVerified">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="nav-link active">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="account-summary">
+                <div class="summary-item">
+                    <span>Total Balance</span>
+                    <strong id="sidebarBalance">₹0.00</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Earnings Today</span>
+                    <strong class="positive" id="sidebarEarnings">+₹0.00</strong>
+                </div>
+            </div>
+            <button class="btn btn-logout" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Mobile Header (Same as dashboard) -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <div class="logo-spiral mini">
+                    <div class="spiral-inner"></div>
+                </div>
+                <span>Uzumaki</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon" id="mobileNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge badge-danger" id="mobileNotificationCount">0</span>
+                </button>
+                <button class="btn-icon" id="mobileRefresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Mobile Sidebar (Same as dashboard) -->
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <div class="user-profile-mobile">
+                <div class="user-avatar">
+                    <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
+                    <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="user-info">
+                    <h4 id="mobileUserName">Loading...</h4>
+                    <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                    <div class="user-tier">
+                        <span class="tier-badge" id="mobileUserTier">Standard</span>
+                    </div>
+                </div>
+            </div>
+            <button class="close-sidebar" id="closeMobileSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-account-summary">
+            <div class="summary-item">
+                <span>Total Balance</span>
+                <strong id="mobileBalance">₹0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>Today's Earnings</span>
+                <strong class="positive" id="mobileEarnings">+₹0.00</strong>
+            </div>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="dashboard.html" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="mobile-nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="mobile-nav-link active">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="mobile-nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="mobile-nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="mobile-nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mobile-sidebar-footer">
+            <button class="btn btn-block btn-logout" id="mobileLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="investments-container">
+            <!-- Header with Stats -->
+            <div class="investments-header">
+                <div>
+                    <h1>Investment Plans</h1>
+                    <p class="investments-subtitle">Choose from our expertly curated investment opportunities</p>
+                </div>
+                <div class="investment-stats">
+                    <div class="investment-stat">
+                        <div class="investment-stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="investment-stat-content">
+                            <div class="investment-stat-value" id="availableBalance">₹0.00</div>
+                            <div class="investment-stat-label">Available Balance</div>
+                        </div>
+                    </div>
+                    <div class="investment-stat success">
+                        <div class="investment-stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="investment-stat-content">
+                            <div class="investment-stat-value" id="totalInvested">₹0.00</div>
+                            <div class="investment-stat-label">Total Invested</div>
+                        </div>
+                    </div>
+                    <div class="investment-stat warning">
+                        <div class="investment-stat-icon">
+                            <i class="fas fa-coins"></i>
+                        </div>
+                        <div class="investment-stat-content">
+                            <div class="investment-stat-value" id="totalEarnings">₹0.00</div>
+                            <div class="investment-stat-label">Total Earnings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Tabs Navigation -->
+            <div class="investments-tabs">
+                <button class="investment-tab active" data-tab="all-plans">
+                    <i class="fas fa-layer-group"></i>
+                    <span>All Plans</span>
+                    <span class="tab-badge" id="allPlansCount">0</span>
+                </button>
+                <button class="investment-tab" data-tab="normal-plans">
+                    <i class="fas fa-star"></i>
+                    <span>Normal Plans</span>
+                </button>
+                <button class="investment-tab" data-tab="vip-plans">
+                    <i class="fas fa-crown"></i>
+                    <span>VIP Plans</span>
+                    <span class="tab-badge" id="vipPlansCount">0</span>
+                </button>
+                <button class="investment-tab" data-tab="my-investments">
+                    <i class="fas fa-chart-line"></i>
+                    <span>My Investments</span>
+                    <span class="tab-badge" id="myInvestmentsCount">0</span>
+                </button>
+                <button class="investment-tab" data-tab="calculator">
+                    <i class="fas fa-calculator"></i>
+                    <span>Calculator</span>
+                </button>
+                <button class="investment-tab" data-tab="comparison">
+                    <i class="fas fa-balance-scale"></i>
+                    <span>Comparison</span>
+                </button>
+            </div>
+            
+            <!-- All Plans Tab Content -->
+            <div class="tab-content active" id="all-plans-content">
+                <div class="plans-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Available Investment Plans</h2>
+                            <p class="section-subtitle">Start with as little as ₹500. Higher returns for VIP members.</p>
+                        </div>
+                        <div class="section-actions">
+                            <div class="filter-controls">
+                                <div class="search-box">
+                                    <i class="fas fa-search search-icon"></i>
+                                    <input type="text" class="search-input" id="planSearch" placeholder="Search plans...">
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">Sort by:</label>
+                                    <select class="filter-select" id="sortPlans">
+                                        <option value="price_asc">Price: Low to High</option>
+                                        <option value="price_desc">Price: High to Low</option>
+                                        <option value="roi_desc">Highest ROI</option>
+                                        <option value="duration_asc">Shortest Duration</option>
+                                        <option value="popularity_desc">Most Popular</option>
+                                    </select>
+                                </div>
+                                <div class="filter-group">
+                                    <label class="filter-label">Filter:</label>
+                                    <select class="filter-select" id="filterPlans">
+                                        <option value="all">All Plans</option>
+                                        <option value="normal">Normal Only</option>
+                                        <option value="vip">VIP Only</option>
+                                        <option value="featured">Featured</option>
+                                        <option value="new">New Arrivals</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Plans Grid -->
+                    <div class="plans-grid" id="allPlansContainer">
+                        <!-- Plans will be loaded here -->
+                    </div>
+                    
+                    <!-- Loading State -->
+                    <div class="loading-grid" id="plansLoading" style="display: none;">
+                        <div class="loading-card">
+                            <div class="loading-pulse loading-title"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-price"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                        </div>
+                        <div class="loading-card">
+                            <div class="loading-pulse loading-title"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-price"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                        </div>
+                        <div class="loading-card">
+                            <div class="loading-pulse loading-title"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-description"></div>
+                            <div class="loading-pulse loading-price"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                            <div class="loading-pulse loading-feature"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="empty-state" id="noPlans" style="display: none;">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>No Investment Plans Available</h4>
+                        <p>Check back soon for new investment opportunities.</p>
+                        <button class="btn btn-outline" id="refreshPlans">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Plans
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- My Investments Tab Content -->
+            <div class="tab-content" id="my-investments-content">
+                <div class="my-investments-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">My Active Investments</h2>
+                            <p class="section-subtitle">Track performance and manage your investments</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" id="addInvestmentBtn">
+                                <i class="fas fa-plus"></i>
+                                <span>New Investment</span>
+                            </button>
+                            <button class="btn btn-outline" id="exportInvestments">
+                                <i class="fas fa-download"></i>
+                                <span>Export</span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Investments List -->
+                    <div id="myInvestmentsContainer">
+                        <!-- Investments will be loaded here -->
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div class="empty-state" id="noInvestments" style="display: none;">
+                        <i class="fas fa-chart-line"></i>
+                        <h4>No Active Investments</h4>
+                        <p>Start your investment journey by choosing a plan that suits your goals.</p>
+                        <button class="btn btn-primary" onclick="switchTab('all-plans')">
+                            <i class="fas fa-search"></i>
+                            Browse Plans
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Investment Performance Chart -->
+                <div class="plans-section" id="performanceChartSection" style="display: none;">
+                    <div class="section-header">
+                        <h2 class="section-title">Investment Performance</h2>
+                        <div class="section-actions">
+                            <select class="filter-select" id="chartTimeRange">
+                                <option value="7d">Last 7 days</option>
+                                <option value="30d" selected>Last 30 days</option>
+                                <option value="90d">Last 90 days</option>
+                                <option value="1y">Last Year</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="investmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Calculator Tab Content -->
+            <div class="tab-content" id="calculator-content">
+                <div class="calculator-section">
+                    <div class="calculator-header">
+                        <h3>Investment Calculator</h3>
+                        <p>Calculate potential returns for different investment scenarios</p>
+                    </div>
+                    
+                    <div class="calculator-grid">
+                        <div class="calculator-inputs">
+                            <div class="calculator-input-group">
+                                <label for="calcAmount">Investment Amount (₹)</label>
+                                <input type="number" id="calcAmount" class="calculator-input" 
+                                       placeholder="Enter amount" value="10000" min="500" step="100">
+                                <input type="range" id="calcAmountSlider" class="calculator-slider" 
+                                       min="500" max="1000000" step="100" value="10000">
+                                <div class="slider-labels">
+                                    <span>₹500</span>
+                                    <span>₹1,000,000</span>
+                                </div>
+                            </div>
+                            
+                            <div class="calculator-input-group">
+                                <label for="calcDuration">Investment Duration (Months)</label>
+                                <input type="number" id="calcDuration" class="calculator-input" 
+                                       placeholder="Months" value="12" min="1" max="60">
+                                <input type="range" id="calcDurationSlider" class="calculator-slider" 
+                                       min="1" max="60" step="1" value="12">
+                                <div class="slider-labels">
+                                    <span>1 month</span>
+                                    <span>60 months</span>
+                                </div>
+                            </div>
+                            
+                            <div class="calculator-input-group">
+                                <label for="calcROI">Expected ROI (%)</label>
+                                <input type="number" id="calcROI" class="calculator-input" 
+                                       placeholder="Annual ROI" value="15" min="1" max="100" step="0.1">
+                                <input type="range" id="calcROISlider" class="calculator-slider" 
+                                       min="1" max="100" step="0.1" value="15">
+                                <div class="slider-labels">
+                                    <span>1%</span>
+                                    <span>100%</span>
+                                </div>
+                            </div>
+                            
+                            <div class="calculator-input-group">
+                                <label for="calcCompound">Compound Frequency</label>
+                                <select id="calcCompound" class="calculator-input">
+                                    <option value="monthly">Monthly</option>
+                                    <option value="quarterly" selected>Quarterly</option>
+                                    <option value="semi-annual">Semi-Annual</option>
+                                    <option value="annual">Annual</option>
+                                    <option value="none">No Compounding</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="calculator-results">
+                            <div class="calculator-result-item">
+                                <div class="calculator-result-label">Principal Amount</div>
+                                <div class="calculator-result-value" id="calcPrincipal">₹10,000</div>
+                            </div>
+                            <div class="calculator-result-item">
+                                <div class="calculator-result-label">Total Interest</div>
+                                <div class="calculator-result-value" id="calcInterest">₹1,500</div>
+                            </div>
+                            <div class="calculator-result-item">
+                                <div class="calculator-result-label">Total Duration</div>
+                                <div class="calculator-result-value" id="calcTotalDuration">12 months</div>
+                            </div>
+                            <div class="calculator-result-item">
+                                <div class="calculator-result-label">Monthly Returns</div>
+                                <div class="calculator-result-value" id="calcMonthly">₹125</div>
+                            </div>
+                            <div class="calculator-total">
+                                <div class="calculator-total-label">Total Value</div>
+                                <div class="calculator-total-value" id="calcTotal">₹11,500</div>
+                            </div>
+                            <div class="calculator-actions">
+                                <button class="btn btn-outline" id="resetCalculator">
+                                    <i class="fas fa-redo"></i>
+                                    Reset
+                                </button>
+                                <button class="btn btn-invest" id="investFromCalculator">
+                                    <i class="fas fa-chart-line"></i>
+                                    Invest Now
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Comparison Tab Content -->
+            <div class="tab-content" id="comparison-content">
+                <div class="comparison-section">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Plan Comparison</h2>
+                            <p class="section-subtitle">Compare features across different investment plans</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-outline" id="selectForComparison">
+                                <i class="fas fa-plus"></i>
+                                Add Plan
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="comparison-table">
+                        <div class="table-responsive">
+                            <table id="comparisonTable">
+                                <thead>
+                                    <tr>
+                                        <th>Features</th>
+                                        <!-- Plan columns will be added here -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Minimum Investment</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Maximum Investment</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Duration</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Monthly ROI</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Total ROI</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Withdrawal Frequency</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Compounding</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Referral Bonus</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Risk Level</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Supported Assets</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>Insurance</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                    <tr>
+                                        <td>24/7 Support</td>
+                                        <!-- Plan data will be added here -->
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="empty-state" id="noComparison" style="display: none;">
+                        <i class="fas fa-balance-scale"></i>
+                        <h4>No Plans Selected</h4>
+                        <p>Select plans from the All Plans tab to compare features side by side.</p>
+                        <button class="btn btn-primary" onclick="switchTab('all-plans')">
+                            <i class="fas fa-search"></i>
+                            Browse Plans
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
-
-    <!-- Bottom Navigation -->
+    
+    <!-- Mobile Bottom Navigation -->
     <nav class="bottom-nav">
-      <a href="/pages/user/dashboard.html">Home</a>
-      <a href="/pages/user/wallet.html">Wallet</a>
-      <a href="/pages/user/investments.html" class="active">Invest</a>
-      <a href="/pages/user/profile.html">Profile</a>
+        <a href="dashboard.html" class="bottom-nav-link">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link active">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="transactions.html" class="bottom-nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>History</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
     </nav>
-
-  </div>
-
-  <!-- Page JS -->
-  <script src="/assets/js/user/investments.js"></script>
-
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Modals -->
+    <!-- Invest Modal -->
+    <div class="invest-modal" id="investModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-chart-line"></i> Invest in Plan</h3>
+                <button class="modal-close" id="closeInvestModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="investForm">
+                    <div class="investment-form-group">
+                        <label class="investment-form-label">Selected Plan</label>
+                        <div class="selected-plan-info" id="selectedPlanInfo">
+                            <!-- Plan info will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label for="investAmount" class="investment-form-label">Investment Amount (₹)</label>
+                        <input type="number" id="investAmount" class="investment-form-input" 
+                               placeholder="Enter amount" required min="500">
+                        <div class="investment-form-row">
+                            <button type="button" class="btn btn-outline btn-sm" data-percent="25">25%</button>
+                            <button type="button" class="btn btn-outline btn-sm" data-percent="50">50%</button>
+                            <button type="button" class="btn btn-outline btn-sm" data-percent="75">75%</button>
+                            <button type="button" class="btn btn-outline btn-sm" data-percent="100">100%</button>
+                        </div>
+                        <p class="form-helper" id="amountHelper">Minimum: ₹500</p>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label for="investDuration" class="investment-form-label">Investment Duration</label>
+                        <select id="investDuration" class="investment-form-input" required>
+                            <option value="">Select duration</option>
+                            <option value="3">3 months</option>
+                            <option value="6">6 months</option>
+                            <option value="12">12 months</option>
+                            <option value="24">24 months</option>
+                            <option value="36">36 months</option>
+                        </select>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label class="investment-form-label">Payment Method</label>
+                        <div class="payment-methods">
+                            <label class="payment-method" for="paymentWallet">
+                                <input type="radio" id="paymentWallet" name="paymentMethod" value="wallet" checked hidden>
+                                <i class="fas fa-wallet"></i>
+                                <span>Wallet Balance</span>
+                            </label>
+                            <label class="payment-method" for="paymentBank">
+                                <input type="radio" id="paymentBank" name="paymentMethod" value="bank" hidden>
+                                <i class="fas fa-university"></i>
+                                <span>Bank Transfer</span>
+                            </label>
+                            <label class="payment-method" for="paymentUPI">
+                                <input type="radio" id="paymentUPI" name="paymentMethod" value="upi" hidden>
+                                <i class="fas fa-qrcode"></i>
+                                <span>UPI</span>
+                            </label>
+                            <label class="payment-method" for="paymentCrypto">
+                                <input type="radio" id="paymentCrypto" name="paymentMethod" value="crypto" hidden>
+                                <i class="fas fa-coins"></i>
+                                <span>Crypto</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label for="investNotes" class="investment-form-label">Notes (Optional)</label>
+                        <textarea id="investNotes" class="investment-form-input" rows="3" 
+                                  placeholder="Add any notes about this investment..."></textarea>
+                    </div>
+                    
+                    <div class="investment-summary">
+                        <div class="investment-summary-item">
+                            <span>Principal Amount:</span>
+                            <strong id="summaryAmount">₹0.00</strong>
+                        </div>
+                        <div class="investment-summary-item">
+                            <span>Expected Monthly Return:</span>
+                            <strong id="summaryMonthly">₹0.00</strong>
+                        </div>
+                        <div class="investment-summary-item">
+                            <span>Total Expected Return:</span>
+                            <strong id="summaryTotal">₹0.00</strong>
+                        </div>
+                        <div class="investment-summary-item total">
+                            <span>Final Value:</span>
+                            <strong id="summaryFinal">₹0.00</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelInvest">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="confirmInvest">
+                            <i class="fas fa-check"></i>
+                            Confirm Investment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Plan Details Modal -->
+    <div class="invest-modal" id="planDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Plan Details</h3>
+                <button class="modal-close" id="closeDetailsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="planDetailsContent">
+                    <!-- Plan details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Withdraw Earnings Modal -->
+    <div class="invest-modal" id="withdrawModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-hand-holding-usd"></i> Withdraw Earnings</h3>
+                <button class="modal-close" id="closeWithdrawModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="withdrawForm">
+                    <div class="investment-form-group">
+                        <label class="investment-form-label">Investment</label>
+                        <div id="withdrawInvestmentInfo">
+                            <!-- Investment info will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label for="withdrawAmount" class="investment-form-label">Withdrawal Amount (₹)</label>
+                        <input type="number" id="withdrawAmount" class="investment-form-input" 
+                               placeholder="Enter amount" required min="100">
+                        <p class="form-helper" id="withdrawHelper">Available: ₹0.00</p>
+                    </div>
+                    
+                    <div class="investment-form-group">
+                        <label for="withdrawMethod" class="investment-form-label">Withdrawal Method</label>
+                        <select id="withdrawMethod" class="investment-form-input" required>
+                            <option value="">Select method</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="upi">UPI</option>
+                            <option value="crypto">Crypto Wallet</option>
+                            <option value="reinvest">Reinvest</option>
+                        </select>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelWithdraw">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="confirmWithdraw">
+                            <i class="fas fa-check"></i>
+                            Process Withdrawal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/core/utils.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/user/sidebar.js"></script>
+    <script type="module" src="../../assets/js/user/investments.js"></script>
 </body>
 </html>
