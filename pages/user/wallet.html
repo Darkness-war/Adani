@@ -1,99 +1,981 @@
+[file name]: wallet.html
+[file content begin]
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <title>Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Core CSS -->
-  <link rel="stylesheet" href="/assets/css/core/reset.css" />
-  <link rel="stylesheet" href="/assets/css/core/variables.css" />
-  <link rel="stylesheet" href="/assets/css/core/layout.css" />
-
-  <!-- User CSS -->
-  <link rel="stylesheet" href="/assets/css/user/wallet.css" />
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Core JS -->
-  <script src="/assets/js/core/supabase.js"></script>
-  <script src="/assets/js/core/auth.js"></script>
-  <script src="/assets/js/core/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet | Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
+    
+    <!-- Dashboard CSS (for sidebar and layout) -->
+    <link rel="stylesheet" href="../../assets/css/user/dashboard.css">
+    
+    <!-- Wallet CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/wallet.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Animate.css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 </head>
-
-<body>
-
-  <div class="app">
-
-    <!-- Top Bar -->
-    <header class="app-header">
-      <div class="app-title">Wallet</div>
-      <button class="icon-btn" onclick="signOut()">⎋</button>
+<body class="app-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Investments</h2>
+            <p class="loading-text">Loading your wallet...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Desktop Sidebar (Same as dashboard) -->
+    <aside class="sidebar desktop-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <div class="logo-spiral">
+                    <div class="spiral-inner"></div>
+                </div>
+                <h2 class="brand-name">Uzumaki</h2>
+            </div>
+            <button class="sidebar-collapse" id="sidebarCollapse">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
+                <i class="fas fa-user" id="userAvatarFallback"></i>
+                <span class="status-indicator online"></span>
+            </div>
+            <div class="user-info">
+                <h4 id="sidebarUserName">Loading...</h4>
+                <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                <div class="user-tier">
+                    <span class="tier-badge" id="userTier">Standard</span>
+                    <span class="verification-badge" id="userVerified">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="nav-link active">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="account-summary">
+                <div class="summary-item">
+                    <span>Total Balance</span>
+                    <strong id="sidebarBalance">₹0.00</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Earnings Today</span>
+                    <strong class="positive" id="sidebarEarnings">+₹0.00</strong>
+                </div>
+            </div>
+            <button class="btn btn-logout" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Mobile Header (Same as dashboard) -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <div class="logo-spiral mini">
+                    <div class="spiral-inner"></div>
+                </div>
+                <span>Uzumaki</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon" id="mobileNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge badge-danger" id="mobileNotificationCount">0</span>
+                </button>
+                <button class="btn-icon" id="mobileRefresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
     </header>
-
+    
+    <!-- Mobile Sidebar (Same as dashboard) -->
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <div class="user-profile-mobile">
+                <div class="user-avatar">
+                    <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
+                    <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="user-info">
+                    <h4 id="mobileUserName">Loading...</h4>
+                    <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                    <div class="user-tier">
+                        <span class="tier-badge" id="mobileUserTier">Standard</span>
+                    </div>
+                </div>
+            </div>
+            <button class="close-sidebar" id="closeMobileSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-account-summary">
+            <div class="summary-item">
+                <span>Total Balance</span>
+                <strong id="mobileBalance">₹0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>Today's Earnings</span>
+                <strong class="positive" id="mobileEarnings">+₹0.00</strong>
+            </div>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="dashboard.html" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="mobile-nav-link active">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="mobile-nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="mobile-nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="mobile-nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="mobile-nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mobile-sidebar-footer">
+            <button class="btn btn-block btn-logout" id="mobileLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
     <!-- Main Content -->
-    <main class="app-content">
-
-      <!-- Balance Card -->
-      <div class="card">
-        <div class="card-title">Current Balance</div>
-        <h2 id="walletBalance" style="margin-top: 12px;">₹0.00</h2>
-      </div>
-
-      <!-- Actions -->
-      <div class="card">
-        <div class="card-title">Wallet Actions</div>
-
-        <form id="depositForm" style="margin-top: 12px; display: flex; gap: 8px;">
-          <input
-            type="number"
-            id="depositAmount"
-            placeholder="Deposit amount"
-            style="flex: 1;"
-            min="1"
-            required
-          />
-          <button type="submit" class="btn btn-primary">Deposit</button>
-        </form>
-
-        <form id="withdrawForm" style="margin-top: 12px; display: flex; gap: 8px;">
-          <input
-            type="number"
-            id="withdrawAmount"
-            placeholder="Withdraw amount"
-            style="flex: 1;"
-            min="1"
-            required
-          />
-          <button type="submit" class="btn btn-outline">Withdraw</button>
-        </form>
-
-        <p id="walletMsg" style="margin-top: 12px; font-size: 14px;"></p>
-      </div>
-
-      <!-- Transactions -->
-      <div class="card">
-        <div class="card-title">Recent Transactions</div>
-        <ul id="walletTransactions" style="margin-top: 12px; font-size: 14px;">
-          <li>Loading...</li>
-        </ul>
-      </div>
-
+    <main class="main-content">
+        <div class="wallet-container">
+            <!-- Wallet Header -->
+            <div class="wallet-header">
+                <div>
+                    <h1>My Wallet</h1>
+                    <p class="wallet-subtitle">Manage your funds, deposits, and withdrawals</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="exportStatement">
+                        <i class="fas fa-file-export"></i>
+                        <span>Export Statement</span>
+                    </button>
+                    <button class="btn btn-primary" id="refreshWallet">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="wallet-stats-grid">
+                <div class="wallet-stat-card primary">
+                    <div class="wallet-stat-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="wallet-stat-content">
+                        <div class="wallet-stat-label">Available Balance</div>
+                        <div class="wallet-stat-value" id="availableBalance">₹0.00</div>
+                        <div class="wallet-stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+2.4% today</span>
+                        </div>
+                    </div>
+                    <div class="wallet-stat-actions">
+                        <button class="btn btn-sm btn-light" id="quickDepositBtn">
+                            <i class="fas fa-plus"></i>
+                            Add Money
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-stat-card success">
+                    <div class="wallet-stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="wallet-stat-content">
+                        <div class="wallet-stat-label">Total Invested</div>
+                        <div class="wallet-stat-value" id="totalInvested">₹0.00</div>
+                        <div class="wallet-stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>Active investments</span>
+                        </div>
+                    </div>
+                    <div class="wallet-stat-actions">
+                        <button class="btn btn-sm btn-light" onclick="window.location.href='investments.html'">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-stat-card warning">
+                    <div class="wallet-stat-icon">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="wallet-stat-content">
+                        <div class="wallet-stat-label">Total Earnings</div>
+                        <div class="wallet-stat-value" id="totalEarnings">₹0.00</div>
+                        <div class="wallet-stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+₹125 today</span>
+                        </div>
+                    </div>
+                    <div class="wallet-stat-actions">
+                        <button class="btn btn-sm btn-light" id="withdrawEarningsBtn">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            Withdraw
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="wallet-stat-card info">
+                    <div class="wallet-stat-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="wallet-stat-content">
+                        <div class="wallet-stat-label">Withdrawal Limit</div>
+                        <div class="wallet-stat-value" id="dailyWithdrawalLimit">₹0/₹50,000</div>
+                        <div class="wallet-stat-change">
+                            <i class="fas fa-clock"></i>
+                            <span>Resets in 8h 45m</span>
+                        </div>
+                    </div>
+                    <div class="wallet-stat-actions">
+                        <button class="btn btn-sm btn-light" id="viewLimitsBtn">
+                            <i class="fas fa-info-circle"></i>
+                            Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Main Wallet Layout -->
+            <div class="wallet-layout">
+                <!-- Left Column - Actions -->
+                <div class="wallet-actions-column">
+                    <!-- Quick Actions -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <button class="quick-action-btn primary" id="depositActionBtn">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <div class="quick-action-label">Deposit</div>
+                                <div class="quick-action-desc">Add funds to wallet</div>
+                            </button>
+                            
+                            <button class="quick-action-btn success" id="withdrawActionBtn">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                </div>
+                                <div class="quick-action-label">Withdraw</div>
+                                <div class="quick-action-desc">Withdraw to bank</div>
+                            </button>
+                            
+                            <button class="quick-action-btn warning" id="transferActionBtn">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div>
+                                <div class="quick-action-label">Transfer</div>
+                                <div class="quick-action-desc">Send to another user</div>
+                            </button>
+                            
+                            <button class="quick-action-btn info" id="convertActionBtn">
+                                <div class="quick-action-icon">
+                                    <i class="fas fa-sync-alt"></i>
+                                </div>
+                                <div class="quick-action-label">Convert</div>
+                                <div class="quick-action-desc">Convert between assets</div>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Payment Methods -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-credit-card"></i> Payment Methods</h3>
+                            <button class="btn btn-link btn-sm" id="addPaymentMethod">
+                                <i class="fas fa-plus"></i>
+                                Add New
+                            </button>
+                        </div>
+                        <div class="payment-methods-list" id="paymentMethodsList">
+                            <!-- Payment methods will be loaded here -->
+                        </div>
+                        <div class="empty-state compact" id="noPaymentMethods">
+                            <i class="fas fa-credit-card"></i>
+                            <p>No payment methods added</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Limits & Rules -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-shield-alt"></i> Limits & Rules</h3>
+                        </div>
+                        <div class="rules-list">
+                            <div class="rule-item">
+                                <div class="rule-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">Deposit Minimum</div>
+                                    <div class="rule-description">₹120 per transaction</div>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-icon warning">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">Deposit Maximum</div>
+                                    <div class="rule-description">₹49,999 per transaction</div>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-icon success">
+                                    <i class="fas fa-check-circle"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">Withdrawal Minimum</div>
+                                    <div class="rule-description">₹130 per transaction</div>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-icon warning">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">Withdrawal Maximum</div>
+                                    <div class="rule-description">₹50,000 per day</div>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-icon info">
+                                    <i class="fas fa-percentage"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">TDS Charges</div>
+                                    <div class="rule-description">18% deducted on withdrawals</div>
+                                </div>
+                            </div>
+                            <div class="rule-item">
+                                <div class="rule-icon warning">
+                                    <i class="fas fa-calendar-times"></i>
+                                </div>
+                                <div class="rule-content">
+                                    <div class="rule-title">Banking Hours</div>
+                                    <div class="rule-description">Mon-Fri, 9AM-6PM only</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Right Column - Transactions & Details -->
+                <div class="wallet-details-column">
+                    <!-- Transaction History -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-history"></i> Recent Transactions</h3>
+                            <div class="header-actions">
+                                <button class="btn btn-outline btn-sm" id="filterTransactions">
+                                    <i class="fas fa-filter"></i>
+                                    Filter
+                                </button>
+                                <button class="btn btn-link btn-sm" onclick="window.location.href='transactions.html'">
+                                    View All
+                                    <i class="fas fa-arrow-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="transactions-table">
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Transaction ID</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Date</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionsTableBody">
+                                        <!-- Transactions will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        
+                        <div class="empty-state" id="noTransactions">
+                            <i class="fas fa-exchange-alt"></i>
+                            <h4>No Transactions Yet</h4>
+                            <p>Your transaction history will appear here</p>
+                            <button class="btn btn-outline" id="makeFirstTransaction">
+                                Make Your First Transaction
+                            </button>
+                        </div>
+                        
+                        <div class="transactions-summary">
+                            <div class="summary-item">
+                                <span>Total Deposits Today:</span>
+                                <strong class="positive" id="todayDeposits">₹0.00</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>Total Withdrawals Today:</span>
+                                <strong class="negative" id="todayWithdrawals">₹0.00</strong>
+                            </div>
+                            <div class="summary-item">
+                                <span>Pending Transactions:</span>
+                                <strong class="warning" id="pendingTransactions">0</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Bank Accounts -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-university"></i> Linked Bank Accounts</h3>
+                            <button class="btn btn-primary btn-sm" id="addBankAccount">
+                                <i class="fas fa-plus"></i>
+                                Add Account
+                            </button>
+                        </div>
+                        
+                        <div class="bank-accounts-list" id="bankAccountsList">
+                            <!-- Bank accounts will be loaded here -->
+                        </div>
+                        
+                        <div class="empty-state compact" id="noBankAccounts">
+                            <i class="fas fa-university"></i>
+                            <p>No bank accounts linked</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Balance Breakdown -->
+                    <div class="wallet-card">
+                        <div class="wallet-card-header">
+                            <h3><i class="fas fa-pie-chart"></i> Balance Breakdown</h3>
+                        </div>
+                        
+                        <div class="balance-breakdown">
+                            <div class="breakdown-chart">
+                                <canvas id="balanceChart"></canvas>
+                            </div>
+                            <div class="breakdown-legend">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--primary)"></div>
+                                    <div class="legend-label">Available Balance</div>
+                                    <div class="legend-value" id="legendAvailable">₹0.00</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--success)"></div>
+                                    <div class="legend-label">Invested Funds</div>
+                                    <div class="legend-value" id="legendInvested">₹0.00</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--warning)"></div>
+                                    <div class="legend-label">Pending Earnings</div>
+                                    <div class="legend-value" id="legendPending">₹0.00</div>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: var(--info)"></div>
+                                    <div class="legend-label">Locked Funds</div>
+                                    <div class="legend-value" id="legendLocked">₹0.00</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Admin Controls (Visible only to admin) -->
+            <div class="admin-controls-section" id="adminControls" style="display: none;">
+                <div class="wallet-card danger-zone">
+                    <div class="wallet-card-header">
+                        <h3><i class="fas fa-user-shield"></i> Admin Controls</h3>
+                        <span class="badge badge-danger">ADMIN ONLY</span>
+                    </div>
+                    
+                    <div class="admin-controls-grid">
+                        <div class="admin-control-group">
+                            <label class="control-label">Adjust User Balance</label>
+                            <div class="control-input-group">
+                                <input type="number" class="control-input" id="adjustAmount" placeholder="Amount">
+                                <select class="control-select" id="adjustType">
+                                    <option value="add">Add Funds</option>
+                                    <option value="subtract">Deduct Funds</option>
+                                </select>
+                                <button class="btn btn-danger" id="applyAdjustment">
+                                    Apply
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="admin-control-group">
+                            <label class="control-label">Transaction Status</label>
+                            <div class="control-input-group">
+                                <input type="text" class="control-input" id="transactionId" placeholder="Transaction ID">
+                                <select class="control-select" id="transactionStatus">
+                                    <option value="approved">Approve</option>
+                                    <option value="rejected">Reject</option>
+                                    <option value="pending">Set Pending</option>
+                                </select>
+                                <button class="btn btn-warning" id="updateTransactionStatus">
+                                    Update
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="admin-control-group">
+                            <label class="control-label">System Limits</label>
+                            <div class="control-input-group">
+                                <input type="number" class="control-input" id="newDepositMin" placeholder="New Deposit Min">
+                                <input type="number" class="control-input" id="newDepositMax" placeholder="New Deposit Max">
+                                <button class="btn btn-primary" id="updateDepositLimits">
+                                    Update Limits
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
-
-    <!-- Bottom Navigation -->
+    
+    <!-- Mobile Bottom Navigation -->
     <nav class="bottom-nav">
-      <a href="/pages/user/dashboard.html">Home</a>
-      <a href="/pages/user/wallet.html" class="active">Wallet</a>
-      <a href="/pages/user/investments.html">Invest</a>
-      <a href="/pages/user/profile.html">Profile</a>
+        <a href="dashboard.html" class="bottom-nav-link">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link active">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="transactions.html" class="bottom-nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>History</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
     </nav>
-
-  </div>
-
-  <!-- Page JS -->
-  <script src="/assets/js/user/wallet.js"></script>
-
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Modals -->
+    
+    <!-- Deposit Modal -->
+    <div class="wallet-modal" id="depositModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> Add Money to Wallet</h3>
+                <button class="modal-close" id="closeDepositModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="depositForm">
+                    <div class="wallet-form-group">
+                        <label for="depositAmount" class="wallet-form-label">Amount (₹)</label>
+                        <input type="number" id="depositAmount" class="wallet-form-input" 
+                               placeholder="Enter amount" min="120" max="49999" step="1" required>
+                        <div class="amount-presets">
+                            <button type="button" class="amount-preset" data-amount="500">₹500</button>
+                            <button type="button" class="amount-preset" data-amount="1000">₹1,000</button>
+                            <button type="button" class="amount-preset" data-amount="5000">₹5,000</button>
+                            <button type="button" class="amount-preset" data-amount="10000">₹10,000</button>
+                            <button type="button" class="amount-preset" data-amount="20000">₹20,000</button>
+                        </div>
+                        <p class="form-helper" id="depositLimits">Minimum: ₹120 | Maximum: ₹49,999</p>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label class="wallet-form-label">Payment Method</label>
+                        <div class="payment-options" id="depositPaymentOptions">
+                            <!-- Payment options will be loaded here -->
+                        </div>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="depositNotes" class="wallet-form-label">Notes (Optional)</label>
+                        <textarea id="depositNotes" class="wallet-form-input" rows="2" 
+                                  placeholder="Add reference or notes for this deposit..."></textarea>
+                    </div>
+                    
+                    <div class="deposit-summary">
+                        <div class="summary-item">
+                            <span>Deposit Amount:</span>
+                            <strong id="summaryDepositAmount">₹0.00</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Processing Fee:</span>
+                            <strong id="summaryDepositFee">₹0.00</strong>
+                        </div>
+                        <div class="summary-item total">
+                            <span>Total to Pay:</span>
+                            <strong id="summaryDepositTotal">₹0.00</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="deposit-terms">
+                        <label class="checkbox">
+                            <input type="checkbox" id="depositAgreement" required>
+                            <span class="checkmark"></span>
+                            I agree to the <a href="#" class="text-link">terms and conditions</a> and confirm this deposit
+                        </label>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelDeposit">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="confirmDeposit">
+                            <i class="fas fa-lock"></i>
+                            Proceed to Payment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Withdrawal Modal -->
+    <div class="wallet-modal" id="withdrawalModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-hand-holding-usd"></i> Withdraw Funds</h3>
+                <button class="modal-close" id="closeWithdrawalModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="withdrawalForm">
+                    <div class="wallet-form-group">
+                        <label for="withdrawalAmount" class="wallet-form-label">Amount (₹)</label>
+                        <input type="number" id="withdrawalAmount" class="wallet-form-input" 
+                               placeholder="Enter amount" min="130" max="50000" step="1" required>
+                        <div class="amount-presets">
+                            <button type="button" class="amount-preset" data-amount="500">₹500</button>
+                            <button type="button" class="amount-preset" data-amount="1000">₹1,000</button>
+                            <button type="button" class="amount-preset" data-amount="5000">₹5,000</button>
+                            <button type="button" class="amount-preset" data-amount="10000">₹10,000</button>
+                            <button type="button" class="amount-preset" data-amount="20000">₹20,000</button>
+                        </div>
+                        <p class="form-helper" id="withdrawalLimits">Minimum: ₹130 | Maximum: ₹50,000 per day</p>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label class="wallet-form-label">Withdrawal Method</label>
+                        <select id="withdrawalMethod" class="wallet-form-input" required>
+                            <option value="">Select method</option>
+                            <option value="bank">Bank Transfer</option>
+                            <option value="upi">UPI</option>
+                            <option value="paytm">PayTM Wallet</option>
+                        </select>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="withdrawalAccount" class="wallet-form-label">Bank Account</label>
+                        <select id="withdrawalAccount" class="wallet-form-input" required>
+                            <option value="">Select account</option>
+                            <!-- Bank accounts will be loaded here -->
+                        </select>
+                        <p class="form-helper">
+                            <a href="#" class="text-link" id="addNewAccountLink">Add new bank account</a>
+                        </p>
+                    </div>
+                    
+                    <div class="withdrawal-summary">
+                        <div class="summary-item">
+                            <span>Withdrawal Amount:</span>
+                            <strong id="summaryWithdrawalAmount">₹0.00</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>TDS (18%):</span>
+                            <strong class="negative" id="summaryTDS">₹0.00</strong>
+                        </div>
+                        <div class="summary-item">
+                            <span>Processing Fee:</span>
+                            <strong class="negative" id="summaryWithdrawalFee">₹10.00</strong>
+                        </div>
+                        <div class="summary-item total">
+                            <span>You Will Receive:</span>
+                            <strong id="summaryWithdrawalNet">₹0.00</strong>
+                        </div>
+                    </div>
+                    
+                    <div class="withdrawal-notice">
+                        <div class="notice-icon">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div class="notice-content">
+                            <strong>Important:</strong> Withdrawals are processed only during banking hours (Mon-Fri, 9AM-6PM). Requests made outside these hours will be processed on the next working day.
+                        </div>
+                    </div>
+                    
+                    <div class="withdrawal-terms">
+                        <label class="checkbox">
+                            <input type="checkbox" id="withdrawalAgreement" required>
+                            <span class="checkmark"></span>
+                            I understand that 18% TDS will be deducted as per government regulations
+                        </label>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelWithdrawal">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="confirmWithdrawal">
+                            <i class="fas fa-check"></i>
+                            Confirm Withdrawal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Bank Account Modal -->
+    <div class="wallet-modal" id="addBankAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-university"></i> Add Bank Account</h3>
+                <button class="modal-close" id="closeBankAccountModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="bankAccountForm">
+                    <div class="wallet-form-group">
+                        <label for="accountHolderName" class="wallet-form-label">Account Holder Name</label>
+                        <input type="text" id="accountHolderName" class="wallet-form-input" 
+                               placeholder="Enter name as per bank records" required>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="accountNumber" class="wallet-form-label">Account Number</label>
+                        <input type="text" id="accountNumber" class="wallet-form-input" 
+                               placeholder="Enter account number" required>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="ifscCode" class="wallet-form-label">IFSC Code</label>
+                        <input type="text" id="ifscCode" class="wallet-form-input" 
+                               placeholder="Enter IFSC code" required>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="bankName" class="wallet-form-label">Bank Name</label>
+                        <input type="text" id="bankName" class="wallet-form-input" 
+                               placeholder="Enter bank name" required>
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="bankBranch" class="wallet-form-label">Branch Name</label>
+                        <input type="text" id="bankBranch" class="wallet-form-input" 
+                               placeholder="Enter branch name">
+                    </div>
+                    
+                    <div class="wallet-form-group">
+                        <label for="accountType" class="wallet-form-label">Account Type</label>
+                        <select id="accountType" class="wallet-form-input" required>
+                            <option value="">Select account type</option>
+                            <option value="savings">Savings Account</option>
+                            <option value="current">Current Account</option>
+                        </select>
+                    </div>
+                    
+                    <div class="account-verification">
+                        <label class="checkbox">
+                            <input type="checkbox" id="accountVerification" required>
+                            <span class="checkmark"></span>
+                            I confirm that the provided bank details are accurate and belong to me
+                        </label>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelBankAccount">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBankAccount">
+                            <i class="fas fa-save"></i>
+                            Save Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- QR Code Modal (for UPI payments) -->
+    <div class="wallet-modal" id="qrCodeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-qrcode"></i> Scan to Pay</h3>
+                <button class="modal-close" id="closeQrModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="qr-payment-container">
+                    <div class="qr-code">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://uzumaki.in/pay/12345" 
+                             alt="Payment QR Code" id="paymentQrCode">
+                    </div>
+                    <div class="qr-details">
+                        <div class="qr-amount">
+                            <span>Amount to Pay:</span>
+                            <strong id="qrAmount">₹0.00</strong>
+                        </div>
+                        <div class="qr-upi">
+                            <span>UPI ID:</span>
+                            <strong id="qrUpiId">pay@uzumaki.in</strong>
+                            <button class="btn btn-link btn-sm" id="copyUpiId">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </div>
+                        <div class="qr-instructions">
+                            <h4>Instructions:</h4>
+                            <ol>
+                                <li>Scan the QR code with your UPI app</li>
+                                <li>Enter the exact amount shown</li>
+                                <li>Add reference: <code id="qrReference">WLT12345</code></li>
+                                <li>Complete the payment</li>
+                                <li>Click "Payment Done" below</li>
+                            </ol>
+                        </div>
+                        <div class="qr-timer">
+                            <i class="fas fa-clock"></i>
+                            <span>Expires in:</span>
+                            <strong id="qrTimer">15:00</strong>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" id="cancelQrPayment">
+                        Cancel Payment
+                    </button>
+                    <button type="button" class="btn btn-primary" id="confirmPaymentDone">
+                        <i class="fas fa-check"></i>
+                        Payment Done
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/core/utils.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/user/sidebar.js"></script>
+    <script type="module" src="../../assets/js/user/wallet.js"></script>
 </body>
 </html>
+[file content end]
