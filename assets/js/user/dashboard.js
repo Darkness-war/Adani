@@ -1,6 +1,6 @@
 // dashboard.js - Fixed with proper auth integration
-import { sessionManager, dbService, utils, supabase } from '../core/supabase.js';
-import authGuard from '../../core/auth.js';
+import { sessionManager, dbService, utils, supabase } from '../core/supabase.s';
+import authGuard from '../../core/auth.s';
 
 class Dashboard {
     constructor() {
