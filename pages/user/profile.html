@@ -1,95 +1,708 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <title>Profile</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- CORE CSS -->
-  <link rel="stylesheet" href="/assets/css/core/reset.css" />
-  <link rel="stylesheet" href="/assets/css/core/variables.css" />
-  <link rel="stylesheet" href="/assets/css/core/layout.css" />
-
-  <!-- PAGE CSS -->
-  <link rel="stylesheet" href="/assets/css/user/profile.css" />
-
-  <!-- CORE JS -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="/assets/js/core/supabase.js"></script>
-  <script src="/assets/js/core/auth.js"></script>
-  <script src="/assets/js/core/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Settings | Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
+    
+    <!-- Dashboard CSS (for sidebar and layout) -->
+    <link rel="stylesheet" href="../../assets/css/user/dashboard.css">
+    
+    <!-- Profile CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/profile.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-
-<body>
-  <div class="app-layout">
-
-    <!-- SIDEBAR (UNCHANGED FLOW) -->
-    <aside class="sidebar">
-      <div class="logo">InvestSafe</div>
-      <nav>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="wallet.html">Wallet</a>
-        <a href="investments.html">Investments</a>
-        <a href="transactions.html">Transactions</a>
-        <a class="active">Profile</a>
-      </nav>
-    </aside>
-
-    <!-- MAIN -->
-    <main class="profile">
-
-      <header class="profile-header">
-        <h1>My Profile</h1>
-      </header>
-
-      <!-- PROFILE CARD -->
-      <section class="profile-card">
-
-        <div class="avatar-section">
-          <div class="avatar">
-            <span id="avatarInitial">U</span>
-          </div>
-          <p class="email" id="emailText"></p>
+<body class="app-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Investments</h2>
+            <p class="loading-text">Loading your profile...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
         </div>
-
-        <form id="profileForm">
-
-          <div class="input-group">
-            <label>Full Name</label>
-            <input type="text" id="fullName" required />
-          </div>
-
-          <div class="input-group">
-            <label>Phone</label>
-            <input type="text" id="phone" />
-          </div>
-
-          <div class="input-group">
-            <label>Password</label>
-            <input type="password" placeholder="••••••••" disabled />
-            <small>Password change via email reset</small>
-          </div>
-
-          <button type="submit" class="save-btn">
-            Save Changes
-          </button>
-
-          <p id="profileMsg"></p>
-
-        </form>
-
-      </section>
-
-      <!-- SECURITY -->
-      <section class="profile-card danger">
-        <h3>Security</h3>
-        <button class="logout-btn" onclick="signOut()">Logout</button>
-      </section>
-
+    </div>
+    
+    <!-- Desktop Sidebar (Same as dashboard) -->
+    <aside class="sidebar desktop-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <div class="logo-spiral">
+                    <div class="spiral-inner"></div>
+                </div>
+                <h2 class="brand-name">Uzumaki</h2>
+            </div>
+            <button class="sidebar-collapse" id="sidebarCollapse">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
+                <i class="fas fa-user" id="userAvatarFallback"></i>
+                <span class="status-indicator online"></span>
+            </div>
+            <div class="user-info">
+                <h4 id="sidebarUserName">Loading...</h4>
+                <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                <div class="user-tier">
+                    <span class="tier-badge" id="userTier">Standard</span>
+                    <span class="verification-badge" id="userVerified">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="nav-link active">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="account-summary">
+                <div class="summary-item">
+                    <span>Total Balance</span>
+                    <strong id="sidebarBalance">₹0.00</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Earnings Today</span>
+                    <strong class="positive" id="sidebarEarnings">+₹0.00</strong>
+                </div>
+            </div>
+            <button class="btn btn-logout" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Mobile Header (Same as dashboard) -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <div class="logo-spiral mini">
+                    <div class="spiral-inner"></div>
+                </div>
+                <span>Uzumaki</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon" id="mobileNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge badge-danger" id="mobileNotificationCount">0</span>
+                </button>
+                <button class="btn-icon" id="mobileRefresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Mobile Sidebar (Same as dashboard) -->
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <div class="user-profile-mobile">
+                <div class="user-avatar">
+                    <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
+                    <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="user-info">
+                    <h4 id="mobileUserName">Loading...</h4>
+                    <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                    <div class="user-tier">
+                        <span class="tier-badge" id="mobileUserTier">Standard</span>
+                    </div>
+                </div>
+            </div>
+            <button class="close-sidebar" id="closeMobileSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-account-summary">
+            <div class="summary-item">
+                <span>Total Balance</span>
+                <strong id="mobileBalance">₹0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>Today's Earnings</span>
+                <strong class="positive" id="mobileEarnings">+₹0.00</strong>
+            </div>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="dashboard.html" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="mobile-nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="mobile-nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-link active">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="mobile-nav-link">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="mobile-nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="mobile-nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mobile-sidebar-footer">
+            <button class="btn btn-block btn-logout" id="mobileLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="profile-container">
+            <!-- Profile Header -->
+            <div class="profile-header">
+                <div>
+                    <h1>Profile Settings</h1>
+                    <p class="profile-subtitle">Manage your account information and security</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="exportProfile">
+                        <i class="fas fa-download"></i>
+                        <span>Export Data</span>
+                    </button>
+                    <button class="btn btn-primary" id="saveAllChanges">
+                        <i class="fas fa-save"></i>
+                        <span>Save Changes</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Profile Layout -->
+            <div class="profile-layout">
+                <!-- Left Sidebar -->
+                <div class="profile-sidebar">
+                    <!-- User Info Card -->
+                    <div class="profile-card user-info-card">
+                        <div class="user-avatar-large">
+                            <div class="user-avatar-inner">
+                                <img src="" alt="User Avatar" id="profileAvatarImg" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>U</text></svg>'">
+                                <div class="avatar-upload-btn" id="avatarUploadBtn">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h3 class="user-name" id="profileUserName">Loading...</h3>
+                        <p class="user-email" id="profileUserEmail">user@example.com</p>
+                        
+                        <div class="verification-status" id="verificationStatus">
+                            <div class="verification-content">
+                                <div class="verification-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="verification-text">
+                                    <h4>Account Verified</h4>
+                                    <p>Your account is fully secured</p>
+                                </div>
+                            </div>
+                            <button class="btn btn-link" id="verifyAccount">
+                                <i class="fas fa-check"></i>
+                            </button>
+                        </div>
+                        
+                        <div class="user-stats">
+                            <div class="user-stat">
+                                <div class="user-stat-label">Member Since</div>
+                                <div class="user-stat-value" id="memberSince">2024</div>
+                            </div>
+                            <div class="user-stat">
+                                <div class="user-stat-label">Investment Rank</div>
+                                <div class="user-stat-value" id="investmentRank">#1</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Profile Navigation -->
+                    <div class="profile-nav">
+                        <div class="nav-section">
+                            <div class="nav-section-title">Profile Settings</div>
+                            <a href="#personal" class="profile-nav-item active" data-section="personal">
+                                <i class="fas fa-user"></i>
+                                <span>Personal Information</span>
+                            </a>
+                            <a href="#security" class="profile-nav-item" data-section="security">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Security</span>
+                                <span class="nav-badge" id="securityBadge">2</span>
+                            </a>
+                            <a href="#preferences" class="profile-nav-item" data-section="preferences">
+                                <i class="fas fa-cog"></i>
+                                <span>Preferences</span>
+                            </a>
+                        </div>
+                        
+                        <div class="nav-section">
+                            <div class="nav-section-title">Activity</div>
+                            <a href="#activity" class="profile-nav-item" data-section="activity">
+                                <i class="fas fa-history"></i>
+                                <span>Recent Activity</span>
+                            </a>
+                            <a href="#sessions" class="profile-nav-item" data-section="sessions">
+                                <i class="fas fa-desktop"></i>
+                                <span>Active Sessions</span>
+                                <span class="nav-badge">1</span>
+                            </a>
+                            <a href="#notifications" class="profile-nav-item" data-section="notifications">
+                                <i class="fas fa-bell"></i>
+                                <span>Notifications</span>
+                            </a>
+                        </div>
+                        
+                        <div class="nav-section">
+                            <div class="nav-section-title">Account</div>
+                            <a href="#referrals" class="profile-nav-item" data-section="referrals">
+                                <i class="fas fa-user-friends"></i>
+                                <span>Referral Program</span>
+                            </a>
+                            <a href="#subscription" class="profile-nav-item" data-section="subscription">
+                                <i class="fas fa-crown"></i>
+                                <span>Subscription</span>
+                            </a>
+                            <a href="#api" class="profile-nav-item" data-section="api">
+                                <i class="fas fa-code"></i>
+                                <span>API Access</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Main Content Area -->
+                <div class="profile-main">
+                    <!-- Personal Information Section -->
+                    <div class="profile-section active" id="personalSection">
+                        <div class="profile-card">
+                            <div class="profile-card-header">
+                                <h3><i class="fas fa-user"></i> Personal Information</h3>
+                                <button class="btn btn-outline" id="editPersonalInfo">
+                                    <i class="fas fa-edit"></i>
+                                    <span>Edit</span>
+                                </button>
+                            </div>
+                            
+                            <form id="personalInfoForm">
+                                <div class="profile-form-row">
+                                    <div class="profile-form-group">
+                                        <label for="firstName">First Name</label>
+                                        <input type="text" id="firstName" class="profile-form-input" 
+                                               placeholder="Enter your first name" required>
+                                    </div>
+                                    <div class="profile-form-group">
+                                        <label for="lastName">Last Name</label>
+                                        <input type="text" id="lastName" class="profile-form-input" 
+                                               placeholder="Enter your last name" required>
+                                    </div>
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <label for="email">Email Address</label>
+                                    <input type="email" id="email" class="profile-form-input" 
+                                           placeholder="Enter your email" required disabled>
+                                    <p class="form-helper">Email cannot be changed</p>
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <label for="phone">Phone Number</label>
+                                    <input type="tel" id="phone" class="profile-form-input" 
+                                           placeholder="Enter your phone number">
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <label for="dateOfBirth">Date of Birth</label>
+                                    <input type="date" id="dateOfBirth" class="profile-form-input">
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <label for="address">Address</label>
+                                    <textarea id="address" class="profile-form-input" rows="3" 
+                                              placeholder="Enter your complete address"></textarea>
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <label for="country">Country</label>
+                                    <select id="country" class="profile-form-input">
+                                        <option value="">Select Country</option>
+                                        <option value="IN">India</option>
+                                        <option value="US">United States</option>
+                                        <option value="UK">United Kingdom</option>
+                                        <!-- More countries -->
+                                    </select>
+                                </div>
+                                
+                                <div class="profile-form-group">
+                                    <button type="submit" class="btn btn-primary" id="savePersonalInfo">
+                                        <i class="fas fa-save"></i>
+                                        <span>Save Changes</span>
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Security Section -->
+                    <div class="profile-section" id="securitySection">
+                        <div class="profile-card">
+                            <div class="profile-card-header">
+                                <h3><i class="fas fa-shield-alt"></i> Security Settings</h3>
+                            </div>
+                            
+                            <!-- Security Features -->
+                            <div class="security-features">
+                                <div class="security-feature enabled">
+                                    <div class="security-feature-icon">
+                                        <i class="fas fa-key"></i>
+                                    </div>
+                                    <div class="security-feature-content">
+                                        <h4>Password Protection</h4>
+                                        <p>Last changed: 2 days ago</p>
+                                    </div>
+                                    <div class="security-feature-switch">
+                                        <button class="btn btn-outline" id="changePasswordBtn">
+                                            Change
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="security-feature">
+                                    <div class="security-feature-icon">
+                                        <i class="fas fa-mobile-alt"></i>
+                                    </div>
+                                    <div class="security-feature-content">
+                                        <h4>Two-Factor Authentication</h4>
+                                        <p>Add extra security layer</p>
+                                    </div>
+                                    <div class="security-feature-switch">
+                                        <label class="switch">
+                                            <input type="checkbox" id="enable2FA">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                
+                                <div class="security-feature enabled">
+                                    <div class="security-feature-icon">
+                                        <i class="fas fa-history"></i>
+                                    </div>
+                                    <div class="security-feature-content">
+                                        <h4>Login History</h4>
+                                        <p>Track all account access</p>
+                                    </div>
+                                    <div class="security-feature-switch">
+                                        <button class="btn btn-outline" id="viewLoginHistory">
+                                            View
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="security-feature">
+                                    <div class="security-feature-icon">
+                                        <i class="fas fa-user-shield"></i>
+                                    </div>
+                                    <div class="security-feature-content">
+                                        <h4>Biometric Login</h4>
+                                        <p>Use fingerprint or face ID</p>
+                                    </div>
+                                    <div class="security-feature-switch">
+                                        <label class="switch">
+                                            <input type="checkbox" id="enableBiometric">
+                                            <span class="slider"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Active Sessions -->
+                            <div class="profile-card-header" style="margin-top: 2rem;">
+                                <h3><i class="fas fa-desktop"></i> Active Sessions</h3>
+                                <button class="btn btn-outline btn-danger" id="logoutAllSessions">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout All</span>
+                                </button>
+                            </div>
+                            
+                            <div class="recent-activity-list" id="activeSessionsList">
+                                <!-- Sessions will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Activity Section -->
+                    <div class="profile-section" id="activitySection">
+                        <div class="profile-card">
+                            <div class="profile-card-header">
+                                <h3><i class="fas fa-history"></i> Recent Activity</h3>
+                                <button class="btn btn-outline" id="refreshActivity">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Refresh</span>
+                                </button>
+                            </div>
+                            
+                            <div class="recent-activity-list" id="recentActivityList">
+                                <!-- Activity items will be loaded here -->
+                            </div>
+                            
+                            <div class="empty-state" id="noActivity" style="display: none;">
+                                <i class="fas fa-history"></i>
+                                <h4>No Recent Activity</h4>
+                                <p>Your recent account activities will appear here</p>
+                                <button class="btn btn-outline" onclick="window.location.href='transactions.html'">
+                                    View All Transactions
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Danger Zone -->
+                    <div class="profile-card danger-zone">
+                        <div class="danger-zone-header">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <h4>Danger Zone</h4>
+                        </div>
+                        
+                        <p>These actions are irreversible and will permanently affect your account. Please proceed with caution.</p>
+                        
+                        <div class="danger-actions">
+                            <button class="danger-btn" id="deactivateAccount">
+                                <i class="fas fa-user-slash"></i>
+                                <span>Deactivate Account</span>
+                            </button>
+                            <button class="danger-btn" id="deleteAccount">
+                                <i class="fas fa-trash-alt"></i>
+                                <span>Delete Account</span>
+                            </button>
+                            <button class="danger-btn" id="exportAllData">
+                                <i class="fas fa-database"></i>
+                                <span>Export All Data</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
-  </div>
-
-  <!-- PAGE JS -->
-  <script src="/assets/js/user/profile.js"></script>
+    
+    <!-- Mobile Bottom Navigation -->
+    <nav class="bottom-nav">
+        <a href="dashboard.html" class="bottom-nav-link">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="transactions.html" class="bottom-nav-link">
+            <i class="fas fa-exchange-alt"></i>
+            <span>History</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link active">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </nav>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Modals -->
+    <!-- Change Password Modal -->
+    <div class="profile-modal" id="changePasswordModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Change Password</h3>
+                <button class="modal-close" id="closePasswordModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="changePasswordForm">
+                    <div class="profile-form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" class="profile-form-input" 
+                               placeholder="Enter current password" required>
+                    </div>
+                    
+                    <div class="profile-form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" class="profile-form-input" 
+                               placeholder="Enter new password" required>
+                        <div class="password-strength" style="margin-top: 0.5rem;">
+                            <div class="strength-bars">
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
+                                <div class="strength-bar"></div>
+                            </div>
+                            <span class="strength-text" id="passwordStrengthText">Password strength</span>
+                        </div>
+                    </div>
+                    
+                    <div class="profile-form-group">
+                        <label for="confirmNewPassword">Confirm New Password</label>
+                        <input type="password" id="confirmNewPassword" class="profile-form-input" 
+                               placeholder="Confirm new password" required>
+                        <p class="form-helper" id="passwordMatchHelper"></p>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelPasswordChange">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitPasswordChange">
+                            Update Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Avatar Upload Modal -->
+    <div class="profile-modal" id="avatarUploadModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-camera"></i> Update Profile Picture</h3>
+                <button class="modal-close" id="closeAvatarModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="avatar-upload-container">
+                    <div class="avatar-preview-large">
+                        <img src="" alt="Preview" id="avatarPreview">
+                    </div>
+                    
+                    <div class="upload-options">
+                        <label class="upload-option">
+                            <input type="radio" name="avatarSource" value="camera" checked>
+                            <i class="fas fa-camera"></i>
+                            <span>Take Photo</span>
+                        </label>
+                        <label class="upload-option">
+                            <input type="radio" name="avatarSource" value="gallery">
+                            <i class="fas fa-images"></i>
+                            <span>Choose from Gallery</span>
+                        </label>
+                        <label class="upload-option">
+                            <input type="radio" name="avatarSource" value="url">
+                            <i class="fas fa-link"></i>
+                            <span>Enter URL</span>
+                        </label>
+                    </div>
+                    
+                    <div class="url-input" style="display: none;">
+                        <input type="url" id="avatarUrl" class="profile-form-input" 
+                               placeholder="https://example.com/avatar.jpg">
+                    </div>
+                    
+                    <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="cancelAvatarUpload">
+                            Cancel
+                        </button>
+                        <button type="button" class="btn btn-primary" id="saveAvatar">
+                            Save Picture
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../assets/js/core/utils.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/user/sidebar.js"></script>
+    <script type="module" src="../../assets/js/user/profile.js"></script>
 </body>
-    </html>
+</html>
