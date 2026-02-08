@@ -1,11 +1,8 @@
 import { supabase } from "./supabase.js";
 
-const protectedUserPages = [
-  "/pages/user/dashboard.html",
-  "/pages/user/wallet.html",
-  "/pages/user/investments.html",
-  "/pages/user/transactions.html",
-  "/pages/user/profile.html"
+if (!profile?.is_admin) {
+        window.location.href = '/pages/user/dashboard.html';
+        return false;
 ];
 
 const protectedAdminPages = [
