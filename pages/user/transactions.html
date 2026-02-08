@@ -1,61 +1,643 @@
+[file name]: transactions.html
+[file content begin]
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
-  <meta charset="UTF-8" />
-  <title>Transactions</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Core CSS -->
-  <link rel="stylesheet" href="/assets/css/core/reset.css" />
-  <link rel="stylesheet" href="/assets/css/core/variables.css" />
-  <link rel="stylesheet" href="/assets/css/core/layout.css" />
-
-  <!-- User CSS -->
-  <link rel="stylesheet" href="/assets/css/user/transactions.css" />
-
-  <!-- Supabase CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Core JS -->
-  <script src="/assets/js/core/supabase.js"></script>
-  <script src="/assets/js/core/auth.js"></script>
-  <script src="/assets/js/core/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History | Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="../../assets/css/core/reset.css">
+    <link rel="stylesheet" href="../../assets/css/core/variables.css">
+    <link rel="stylesheet" href="../../assets/css/core/layout.css">
+    
+    <!-- Dashboard CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/dashboard.css">
+    
+    <!-- Transactions CSS -->
+    <link rel="stylesheet" href="../../assets/css/user/transactions.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- DataTables CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
 </head>
-
-<body>
-
-  <div class="app">
-
-    <!-- Top Bar -->
-    <header class="app-header">
-      <div class="app-title">Transactions</div>
-      <button class="icon-btn" onclick="signOut()">⎋</button>
+<body class="app-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Investments</h2>
+            <p class="loading-text">Loading transaction history...</p>
+            <div class="loading-progress">
+                <div class="progress-bar"></div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Desktop Sidebar -->
+    <aside class="sidebar desktop-sidebar">
+        <div class="sidebar-header">
+            <div class="brand-logo">
+                <div class="logo-spiral">
+                    <div class="spiral-inner"></div>
+                </div>
+                <h2 class="brand-name">Uzumaki</h2>
+            </div>
+            <button class="sidebar-collapse" id="sidebarCollapse">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+        </div>
+        
+        <div class="user-profile">
+            <div class="user-avatar">
+                <img src="" alt="User" id="userAvatarImg" onerror="this.style.display='none'">
+                <i class="fas fa-user" id="userAvatarFallback"></i>
+                <span class="status-indicator online"></span>
+            </div>
+            <div class="user-info">
+                <h4 id="sidebarUserName">Loading...</h4>
+                <p class="user-email" id="sidebarUserEmail">user@example.com</p>
+                <div class="user-tier">
+                    <span class="tier-badge" id="userTier">Standard</span>
+                    <span class="verification-badge" id="userVerified">
+                        <i class="fas fa-check-circle"></i>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="nav-link active">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="account-summary">
+                <div class="summary-item">
+                    <span>Total Balance</span>
+                    <strong id="sidebarBalance">₹0.00</strong>
+                </div>
+                <div class="summary-item">
+                    <span>Earnings Today</span>
+                    <strong class="positive" id="sidebarEarnings">+₹0.00</strong>
+                </div>
+            </div>
+            <button class="btn btn-logout" id="sidebarLogout">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="header-content">
+            <button class="menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <div class="logo-spiral mini">
+                    <div class="spiral-inner"></div>
+                </div>
+                <span>Uzumaki</span>
+            </div>
+            <div class="mobile-actions">
+                <button class="btn-icon" id="mobileNotifications">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge badge-danger" id="mobileNotificationCount">0</span>
+                </button>
+                <button class="btn-icon" id="mobileRefresh">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+        </div>
     </header>
-
+    
+    <!-- Mobile Sidebar -->
+    <div class="mobile-sidebar-overlay" id="mobileSidebarOverlay"></div>
+    <aside class="mobile-sidebar" id="mobileSidebar">
+        <div class="mobile-sidebar-header">
+            <div class="user-profile-mobile">
+                <div class="user-avatar">
+                    <img src="" alt="User" id="mobileUserAvatarImg" onerror="this.style.display='none'">
+                    <i class="fas fa-user" id="mobileUserAvatarFallback"></i>
+                    <span class="status-indicator online"></span>
+                </div>
+                <div class="user-info">
+                    <h4 id="mobileUserName">Loading...</h4>
+                    <p class="user-email" id="mobileUserEmail">user@example.com</p>
+                    <div class="user-tier">
+                        <span class="tier-badge" id="mobileUserTier">Standard</span>
+                    </div>
+                </div>
+            </div>
+            <button class="close-sidebar" id="closeMobileSidebar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="mobile-account-summary">
+            <div class="summary-item">
+                <span>Total Balance</span>
+                <strong id="mobileBalance">₹0.00</strong>
+            </div>
+            <div class="summary-item">
+                <span>Today's Earnings</span>
+                <strong class="positive" id="mobileEarnings">+₹0.00</strong>
+            </div>
+        </div>
+        
+        <nav class="mobile-nav">
+            <a href="dashboard.html" class="mobile-nav-link">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="wallet.html" class="mobile-nav-link">
+                <i class="fas fa-wallet"></i>
+                <span>Wallet</span>
+            </a>
+            <a href="investments.html" class="mobile-nav-link">
+                <i class="fas fa-chart-line"></i>
+                <span>Invest</span>
+            </a>
+            <a href="profile.html" class="mobile-nav-link">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile</span>
+            </a>
+            <a href="transactions.html" class="mobile-nav-link active">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transactions</span>
+            </a>
+            <a href="referrals.html" class="mobile-nav-link">
+                <i class="fas fa-user-friends"></i>
+                <span>Referrals</span>
+            </a>
+            <a href="support.html" class="mobile-nav-link">
+                <i class="fas fa-headset"></i>
+                <span>Support</span>
+            </a>
+            <a href="settings.html" class="mobile-nav-link">
+                <i class="fas fa-cog"></i>
+                <span>Settings</span>
+            </a>
+        </nav>
+        
+        <div class="mobile-sidebar-footer">
+            <button class="btn btn-block btn-logout" id="mobileLogoutBtn">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </button>
+        </div>
+    </aside>
+    
     <!-- Main Content -->
-    <main class="app-content">
-
-      <div class="card">
-        <div class="card-title">Transaction History</div>
-        <ul id="transactionList" style="margin-top:12px; font-size:14px;">
-          <li>Loading...</li>
-        </ul>
-      </div>
-
+    <main class="main-content">
+        <div class="transactions-container">
+            <!-- Page Header -->
+            <div class="transactions-header">
+                <div>
+                    <h1>Transaction History</h1>
+                    <p class="transactions-subtitle">Track all your deposits, withdrawals, and earnings</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-outline" id="exportTransactions">
+                        <i class="fas fa-file-export"></i>
+                        <span>Export</span>
+                    </button>
+                    <button class="btn btn-primary" id="refreshTransactions">
+                        <i class="fas fa-sync-alt"></i>
+                        <span>Refresh</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Summary Cards -->
+            <div class="transactions-summary-cards">
+                <div class="summary-card">
+                    <div class="summary-card-icon deposit">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Deposits</div>
+                        <div class="summary-card-value" id="totalDeposits">₹0.00</div>
+                        <div class="summary-card-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+12.5% this month</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-card-icon withdrawal">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Withdrawals</div>
+                        <div class="summary-card-value" id="totalWithdrawals">₹0.00</div>
+                        <div class="summary-card-change negative">
+                            <i class="fas fa-arrow-down"></i>
+                            <span>-8.3% this month</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-card-icon earning">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Earnings</div>
+                        <div class="summary-card-value" id="totalEarnings">₹0.00</div>
+                        <div class="summary-card-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+15.2% this month</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="summary-card">
+                    <div class="summary-card-icon investment">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="summary-card-content">
+                        <div class="summary-card-label">Total Investment</div>
+                        <div class="summary-card-value" id="totalInvestment">₹0.00</div>
+                        <div class="summary-card-change positive">
+                            <i class="fas fa-arrow-up"></i>
+                            <span>+22.7% this month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters Section -->
+            <div class="transactions-filters">
+                <div class="filters-header">
+                    <h3><i class="fas fa-filter"></i> Filters</h3>
+                    <button class="btn btn-link" id="clearFilters">
+                        <i class="fas fa-times"></i>
+                        Clear All
+                    </button>
+                </div>
+                
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Transaction Type</label>
+                        <div class="filter-chips">
+                            <button class="filter-chip active" data-type="all">All</button>
+                            <button class="filter-chip" data-type="deposit">
+                                <i class="fas fa-arrow-down"></i> Deposit
+                            </button>
+                            <button class="filter-chip" data-type="withdrawal">
+                                <i class="fas fa-arrow-up"></i> Withdrawal
+                            </button>
+                            <button class="filter-chip" data-type="investment">
+                                <i class="fas fa-chart-line"></i> Investment
+                            </button>
+                            <button class="filter-chip" data-type="earning">
+                                <i class="fas fa-coins"></i> Earning
+                            </button>
+                            <button class="filter-chip" data-type="referral">
+                                <i class="fas fa-user-friends"></i> Referral
+                            </button>
+                            <button class="filter-chip" data-type="fee">
+                                <i class="fas fa-file-invoice"></i> Fees
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Status</label>
+                        <div class="filter-chips">
+                            <button class="filter-chip active" data-status="all">All</button>
+                            <button class="filter-chip" data-status="completed">
+                                <i class="fas fa-check-circle"></i> Completed
+                            </button>
+                            <button class="filter-chip" data-status="pending">
+                                <i class="fas fa-clock"></i> Pending
+                            </button>
+                            <button class="filter-chip" data-status="processing">
+                                <i class="fas fa-sync-alt"></i> Processing
+                            </button>
+                            <button class="filter-chip" data-status="failed">
+                                <i class="fas fa-times-circle"></i> Failed
+                            </button>
+                            <button class="filter-chip" data-status="cancelled">
+                                <i class="fas fa-ban"></i> Cancelled
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Date Range</label>
+                        <div class="date-range-filter">
+                            <div class="date-input-group">
+                                <input type="date" id="dateFrom" class="date-input">
+                                <span class="date-separator">to</span>
+                                <input type="date" id="dateTo" class="date-input">
+                            </div>
+                            <div class="date-quick-filters">
+                                <button class="btn btn-outline btn-sm" data-days="7">7 days</button>
+                                <button class="btn btn-outline btn-sm" data-days="30">30 days</button>
+                                <button class="btn btn-outline btn-sm" data-days="90">90 days</button>
+                                <button class="btn btn-outline btn-sm" data-days="365">1 year</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-group">
+                        <label class="filter-label">Amount Range</label>
+                        <div class="amount-range-filter">
+                            <div class="amount-input-group">
+                                <input type="number" id="amountMin" class="amount-input" placeholder="Min">
+                                <span class="amount-separator">to</span>
+                                <input type="number" id="amountMax" class="amount-input" placeholder="Max">
+                            </div>
+                            <div class="amount-presets">
+                                <button class="btn btn-outline btn-sm" data-min="100" data-max="1000">₹100-1K</button>
+                                <button class="btn btn-outline btn-sm" data-min="1000" data-max="10000">₹1K-10K</button>
+                                <button class="btn btn-outline btn-sm" data-min="10000" data-max="50000">₹10K-50K</button>
+                                <button class="btn btn-outline btn-sm" data-min="50000">₹50K+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="filters-actions">
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" id="transactionSearch" class="search-input" 
+                               placeholder="Search by ID, description, or reference...">
+                        <button class="btn btn-link" id="clearSearch">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <button class="btn btn-primary" id="applyFilters">
+                        <i class="fas fa-filter"></i>
+                        Apply Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Transactions Table -->
+            <div class="transactions-table-section">
+                <div class="section-header">
+                    <h3>All Transactions</h3>
+                    <div class="table-stats">
+                        <span id="totalTransactions">0</span> transactions found
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="transactionsTable" class="display responsive" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>Transaction ID</th>
+                                <th>Type</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Date & Time</th>
+                                <th>Payment Method</th>
+                                <th>Reference</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Data will be loaded dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Empty State -->
+                <div class="empty-state" id="noTransactions">
+                    <i class="fas fa-exchange-alt"></i>
+                    <h4>No Transactions Found</h4>
+                    <p>No transactions match your current filters. Try adjusting your search criteria.</p>
+                    <button class="btn btn-outline" id="resetTableFilters">
+                        <i class="fas fa-redo"></i>
+                        Reset Filters
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Statistics Section -->
+            <div class="transactions-statistics">
+                <div class="statistics-card">
+                    <div class="statistics-header">
+                        <h3><i class="fas fa-chart-pie"></i> Transaction Statistics</h3>
+                        <select class="statistics-period" id="statisticsPeriod">
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d" selected>Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                            <option value="1y">Last year</option>
+                        </select>
+                    </div>
+                    
+                    <div class="statistics-content">
+                        <div class="statistics-chart">
+                            <canvas id="transactionsChart"></canvas>
+                        </div>
+                        
+                        <div class="statistics-breakdown">
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #10b981"></div>
+                                    Deposits
+                                </div>
+                                <div class="breakdown-value" id="statDeposits">₹0.00</div>
+                                <div class="breakdown-percentage" id="statDepositsPercent">0%</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #ef4444"></div>
+                                    Withdrawals
+                                </div>
+                                <div class="breakdown-value" id="statWithdrawals">₹0.00</div>
+                                <div class="breakdown-percentage" id="statWithdrawalsPercent">0%</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #f59e0b"></div>
+                                    Earnings
+                                </div>
+                                <div class="breakdown-value" id="statEarnings">₹0.00</div>
+                                <div class="breakdown-percentage" id="statEarningsPercent">0%</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #3b82f6"></div>
+                                    Investments
+                                </div>
+                                <div class="breakdown-value" id="statInvestments">₹0.00</div>
+                                <div class="breakdown-percentage" id="statInvestmentsPercent">0%</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #8b5cf6"></div>
+                                    Referrals
+                                </div>
+                                <div class="breakdown-value" id="statReferrals">₹0.00</div>
+                                <div class="breakdown-percentage" id="statReferralsPercent">0%</div>
+                            </div>
+                            <div class="breakdown-item">
+                                <div class="breakdown-label">
+                                    <div class="breakdown-color" style="background: #6b7280"></div>
+                                    Fees & Others
+                                </div>
+                                <div class="breakdown-value" id="statFees">₹0.00</div>
+                                <div class="breakdown-percentage" id="statFeesPercent">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
-
-    <!-- Bottom Navigation -->
+    
+    <!-- Mobile Bottom Navigation -->
     <nav class="bottom-nav">
-      <a href="/pages/user/dashboard.html">Home</a>
-      <a href="/pages/user/wallet.html">Wallet</a>
-      <a href="/pages/user/investments.html">Invest</a>
-      <a href="/pages/user/profile.html">Profile</a>
+        <a href="dashboard.html" class="bottom-nav-link">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="wallet.html" class="bottom-nav-link">
+            <i class="fas fa-wallet"></i>
+            <span>Wallet</span>
+        </a>
+        <a href="investments.html" class="bottom-nav-link">
+            <i class="fas fa-chart-line"></i>
+            <span>Invest</span>
+        </a>
+        <a href="transactions.html" class="bottom-nav-link active">
+            <i class="fas fa-exchange-alt"></i>
+            <span>History</span>
+        </a>
+        <a href="profile.html" class="bottom-nav-link">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
     </nav>
-
-  </div>
-
-  <!-- Page JS -->
-  <script src="/assets/js/user/transactions.js"></script>
-
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Transaction Details Modal -->
+    <div class="transactions-modal" id="transactionDetailsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-receipt"></i> Transaction Details</h3>
+                <button class="modal-close" id="closeDetailsModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="transactionDetailsContent">
+                    <!-- Details will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="printReceipt">
+                    <i class="fas fa-print"></i>
+                    Print Receipt
+                </button>
+                <button class="btn btn-primary" id="closeDetails">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Receipt Modal -->
+    <div class="transactions-modal" id="receiptModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-file-invoice"></i> Transaction Receipt</h3>
+                <button class="modal-close" id="closeReceiptModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="receiptContent">
+                    <!-- Receipt will be loaded here -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" id="downloadReceipt">
+                    <i class="fas fa-download"></i>
+                    Download PDF
+                </button>
+                <button class="btn btn-primary" id="printReceiptBtn">
+                    <i class="fas fa-print"></i>
+                    Print
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- DataTables -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    
+    <!-- Core Utilities -->
+    <script src="../../assets/js/core/utils.js"></script>
+    <script src="../../assets/js/core/auth.js"></script>
+    <script src="../../assets/js/user/sidebar.js"></script>
+    
+    <!-- Transactions Script -->
+    <script type="module" src="../../assets/js/user/transactions.js"></script>
 </body>
 </html>
+[file content end]
