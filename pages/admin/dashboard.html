@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<!-- pages/admin/dashboard.html -->
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | Uzumaki Investments</title>
+    
+    <!-- Core CSS -->
+    <link rel="stylesheet" href="/assets/css/core/reset.css">
+    <link rel="stylesheet" href="/assets/css/core/variables.css">
+    <link rel="stylesheet" href="/assets/css/core/layout.css">
+    
+    <!-- Admin CSS -->
+    <link rel="stylesheet" href="/assets/css/admin/admin.css">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- DataTables -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
+    
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <!-- Date Range Picker -->
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+</head>
+<body class="admin-layout">
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-content">
+            <div class="spinner-container">
+                <div class="spinner"></div>
+                <div class="spiral-animation">
+                    <div class="spiral-line"></div>
+                </div>
+            </div>
+            <h2>Uzumaki Admin</h2>
+            <p class="loading-text">Loading admin dashboard...</p>
+        </div>
+    </div>
+    
+    <!-- Admin Header -->
+    <header class="admin-header">
+        <div class="header-left">
+            <button class="sidebar-toggle" id="sidebarToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="brand">
+                <div class="logo-spiral admin">
+                    <div class="spiral-inner"></div>
+                </div>
+                <h1 class="brand-name">Uzumaki <span class="brand-badge">Admin</span></h1>
+            </div>
+        </div>
+        
+        <div class="header-center">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search users, transactions, settings...">
+                <button class="search-clear">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="header-btn" id="refreshAll">
+                <i class="fas fa-sync-alt"></i>
+                <span class="badge-pulse"></span>
+            </button>
+            
+            <button class="header-btn" id="notificationsBtn">
+                <i class="fas fa-bell"></i>
+                <span class="badge badge-danger" id="notificationCount">5</span>
+            </button>
+            
+            <button class="header-btn" id="quickActionsBtn">
+                <i class="fas fa-bolt"></i>
+            </button>
+            
+            <div class="user-dropdown">
+                <button class="user-toggle" id="userDropdownToggle">
+                    <div class="user-avatar">
+                        <img src="" alt="Admin" id="adminAvatar" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%25%22 y=%2250%25%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>A</text></svg>'">
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name" id="adminName">Administrator</span>
+                        <span class="user-role">Super Admin</span>
+                    </div>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="dropdown-menu" id="userDropdownMenu">
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-user-cog"></i>
+                        <span>My Profile</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Security</span>
+                    </a>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-cog"></i>
+                        <span>Settings</span>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item">
+                        <i class="fas fa-moon"></i>
+                        <span>Theme</span>
+                        <div class="theme-switch">
+                            <input type="checkbox" id="themeSwitch">
+                            <label for="themeSwitch"></label>
+                        </div>
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a href="#" class="dropdown-item text-danger" id="logoutBtn">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <nav class="sidebar-nav">
+            <!-- Dashboard -->
+            <a href="#dashboard" class="nav-item active" data-section="dashboard">
+                <div class="nav-icon">
+                    <i class="fas fa-tachometer-alt"></i>
+                </div>
+                <span class="nav-text">Dashboard</span>
+            </a>
+            
+            <!-- User Management -->
+            <div class="nav-group">
+                <div class="nav-header">
+                    <i class="fas fa-users"></i>
+                    <span>User Management</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="nav-submenu">
+                    <a href="#users" class="nav-subitem" data-section="users">
+                        <i class="fas fa-user-friends"></i>
+                        <span>All Users</span>
+                        <span class="badge badge-primary" id="userCountBadge">0</span>
+                    </a>
+                    <a href="#pending-verifications" class="nav-subitem" data-section="pending-verifications">
+                        <i class="fas fa-user-check"></i>
+                        <span>Pending Verifications</span>
+                        <span class="badge badge-warning" id="pendingVerificationBadge">0</span>
+                    </a>
+                    <a href="#user-activity" class="nav-subitem" data-section="user-activity">
+                        <i class="fas fa-history"></i>
+                        <span>User Activity</span>
+                    </a>
+                    <a href="#kyc" class="nav-subitem" data-section="kyc">
+                        <i class="fas fa-id-card"></i>
+                        <span>KYC Management</span>
+                        <span class="badge badge-info" id="kycBadge">0</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Financial Management -->
+            <div class="nav-group">
+                <div class="nav-header">
+                    <i class="fas fa-money-bill-wave"></i>
+                    <span>Financial Management</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="nav-submenu">
+                    <a href="#transactions" class="nav-subitem" data-section="transactions">
+                        <i class="fas fa-exchange-alt"></i>
+                        <span>All Transactions</span>
+                        <span class="badge badge-info" id="transactionBadge">0</span>
+                    </a>
+                    <a href="#deposits" class="nav-subitem" data-section="deposits">
+                        <i class="fas fa-arrow-down"></i>
+                        <span>Deposit Requests</span>
+                        <span class="badge badge-success" id="depositBadge">0</span>
+                    </a>
+                    <a href="#withdrawals" class="nav-subitem" data-section="withdrawals">
+                        <i class="fas fa-arrow-up"></i>
+                        <span>Withdrawal Requests</span>
+                        <span class="badge badge-warning" id="withdrawalBadge">0</span>
+                    </a>
+                    <a href="#earnings" class="nav-subitem" data-section="earnings">
+                        <i class="fas fa-coins"></i>
+                        <span>Earnings Distribution</span>
+                    </a>
+                    <a href="#manual-adjustments" class="nav-subitem" data-section="manual-adjustments">
+                        <i class="fas fa-hand-holding-usd"></i>
+                        <span>Manual Adjustments</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Investment Management -->
+            <div class="nav-group">
+                <div class="nav-header">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Investment Management</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="nav-submenu">
+                    <a href="#investment-plans" class="nav-subitem" data-section="investment-plans">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Investment Plans</span>
+                    </a>
+                    <a href="#active-investments" class="nav-subitem" data-section="active-investments">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Active Investments</span>
+                        <span class="badge badge-success" id="investmentBadge">0</span>
+                    </a>
+                    <a href="#plan-performance" class="nav-subitem" data-section="plan-performance">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Plan Performance</span>
+                    </a>
+                    <a href="#plan-categories" class="nav-subitem" data-section="plan-categories">
+                        <i class="fas fa-tags"></i>
+                        <span>Plan Categories</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Referral System -->
+            <a href="#referrals" class="nav-item" data-section="referrals">
+                <div class="nav-icon">
+                    <i class="fas fa-user-friends"></i>
+                </div>
+                <span class="nav-text">Referral System</span>
+                <span class="badge badge-purple" id="referralBadge">0</span>
+            </a>
+            
+            <!-- Content Management -->
+            <div class="nav-group">
+                <div class="nav-header">
+                    <i class="fas fa-newspaper"></i>
+                    <span>Content Management</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="nav-submenu">
+                    <a href="#website-settings" class="nav-subitem" data-section="website-settings">
+                        <i class="fas fa-cog"></i>
+                        <span>Website Settings</span>
+                    </a>
+                    <a href="#pages" class="nav-subitem" data-section="pages">
+                        <i class="fas fa-file-alt"></i>
+                        <span>Pages</span>
+                    </a>
+                    <a href="#announcements" class="nav-subitem" data-section="announcements">
+                        <i class="fas fa-bullhorn"></i>
+                        <span>Announcements</span>
+                        <span class="badge badge-info" id="announcementBadge">0</span>
+                    </a>
+                    <a href="#email-templates" class="nav-subitem" data-section="email-templates">
+                        <i class="fas fa-envelope"></i>
+                        <span>Email Templates</span>
+                    </a>
+                    <a href="#notifications" class="nav-subitem" data-section="notifications">
+                        <i class="fas fa-bell"></i>
+                        <span>Push Notifications</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- System Control -->
+            <div class="nav-group">
+                <div class="nav-header">
+                    <i class="fas fa-server"></i>
+                    <span>System Control</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="nav-submenu">
+                    <a href="#system-logs" class="nav-subitem" data-section="system-logs">
+                        <i class="fas fa-terminal"></i>
+                        <span>System Logs</span>
+                    </a>
+                    <a href="#api-keys" class="nav-subitem" data-section="api-keys">
+                        <i class="fas fa-key"></i>
+                        <span>API Keys</span>
+                    </a>
+                    <a href="#backup" class="nav-subitem" data-section="backup">
+                        <i class="fas fa-database"></i>
+                        <span>Backup & Restore</span>
+                    </a>
+                    <a href="#maintenance" class="nav-subitem" data-section="maintenance">
+                        <i class="fas fa-tools"></i>
+                        <span>Maintenance Mode</span>
+                    </a>
+                    <a href="#security" class="nav-subitem" data-section="security">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Security Settings</span>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Support Center -->
+            <a href="#support" class="nav-item" data-section="support">
+                <div class="nav-icon">
+                    <i class="fas fa-headset"></i>
+                </div>
+                <span class="nav-text">Support Center</span>
+                <span class="badge badge-danger" id="supportBadge">0</span>
+            </a>
+            
+            <!-- Reports -->
+            <a href="#reports" class="nav-item" data-section="reports">
+                <div class="nav-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <span class="nav-text">Reports & Analytics</span>
+            </a>
+        </nav>
+        
+        <div class="sidebar-footer">
+            <div class="system-status">
+                <div class="status-indicator online"></div>
+                <span>System Status: <strong>Online</strong></span>
+            </div>
+            <div class="system-time">
+                <i class="fas fa-clock"></i>
+                <span id="currentTime">00:00:00</span>
+            </div>
+        </div>
+    </aside>
+    
+    <!-- Main Content -->
+    <main class="admin-main" id="adminMain">
+        <!-- Dashboard Section -->
+        <section class="admin-section active" id="dashboardSection">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-tachometer-alt"></i>
+                    Admin Dashboard
+                </h2>
+                <div class="section-actions">
+                    <div class="date-range-picker">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span id="dateRange">Today</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <button class="btn btn-primary" id="exportDashboard">
+                        <i class="fas fa-download"></i>
+                        Export Report
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <!-- Total Users -->
+                <div class="stat-card">
+                    <div class="stat-icon users">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Users</div>
+                        <div class="stat-value" id="totalUsers">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="userChange">0% increase</span>
+                        </div>
+                    </div>
+                    <div class="stat-actions">
+                        <button class="stat-action" data-action="view-users">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        <button class="stat-action" data-action="add-user">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Total Balance -->
+                <div class="stat-card">
+                    <div class="stat-icon balance">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Platform Balance</div>
+                        <div class="stat-value" id="totalBalance">₹0.00</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="balanceChange">0% increase</span>
+                        </div>
+                    </div>
+                    <div class="stat-details">
+                        <span>Available: <strong id="availableBalance">₹0.00</strong></span>
+                        <span>Invested: <strong id="investedBalance">₹0.00</strong></span>
+                    </div>
+                </div>
+                
+                <!-- Total Investments -->
+                <div class="stat-card">
+                    <div class="stat-icon investments">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Investments</div>
+                        <div class="stat-value" id="totalInvestments">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="investmentChange">0% increase</span>
+                        </div>
+                    </div>
+                    <div class="stat-details">
+                        <span>Active: <strong id="activeInvestments">0</strong></span>
+                        <span>Completed: <strong id="completedInvestments">0</strong></span>
+                    </div>
+                </div>
+                
+                <!-- Today's Earnings -->
+                <div class="stat-card">
+                    <div class="stat-icon earnings">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Today's Earnings</div>
+                        <div class="stat-value" id="todayEarnings">₹0.00</div>
+                        <div class="stat-change">
+                            <i class="fas fa-arrow-up"></i>
+                            <span id="earningsChange">0% increase</span>
+                        </div>
+                    </div>
+                    <div class="stat-breakdown">
+                        <span>From Investments: <strong>₹0.00</strong></span>
+                        <span>From Referrals: <strong>₹0.00</strong></span>
+                    </div>
+                </div>
+                
+                <!-- Pending Withdrawals -->
+                <div class="stat-card">
+                    <div class="stat-icon withdrawals">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Pending Withdrawals</div>
+                        <div class="stat-value" id="pendingWithdrawals">₹0.00</div>
+                        <div class="stat-change">
+                            <i class="fas fa-clock"></i>
+                            <span id="withdrawalCount">0 requests</span>
+                        </div>
+                    </div>
+                    <div class="stat-actions">
+                        <button class="btn btn-sm btn-warning" data-action="process-withdrawals">
+                            Process All
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Support Tickets -->
+                <div class="stat-card">
+                    <div class="stat-icon support">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="stat-content">
+                        <div class="stat-label">Open Support Tickets</div>
+                        <div class="stat-value" id="openTickets">0</div>
+                        <div class="stat-change">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <span id="ticketChange">0 pending</span>
+                        </div>
+                    </div>
+                    <div class="stat-actions">
+                        <button class="btn btn-sm btn-info" data-action="view-tickets">
+                            View All
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Charts Section -->
+            <div class="charts-grid">
+                <!-- Revenue Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Revenue Overview</h3>
+                        <select class="chart-period" id="revenuePeriod">
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                            <option value="1y">Last year</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- User Growth Chart -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>User Growth</h3>
+                        <select class="chart-period" id="growthPeriod">
+                            <option value="7d">Last 7 days</option>
+                            <option value="30d">Last 30 days</option>
+                            <option value="90d">Last 90 days</option>
+                            <option value="1y">Last year</option>
+                        </select>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="growthChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Investment Distribution -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Investment Distribution</h3>
+                        <div class="chart-legend" id="investmentLegend"></div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="distributionChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Recent Activity -->
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>Recent Activity</h3>
+                        <button class="btn btn-link" id="refreshActivity">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                    <div class="activity-list" id="recentActivity">
+                        <!-- Activity items will be loaded here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Users & Transactions -->
+            <div class="data-grid">
+                <!-- Recent Users -->
+                <div class="data-card">
+                    <div class="data-header">
+                        <h3>
+                            <i class="fas fa-user-plus"></i>
+                            Recent Users
+                        </h3>
+                        <a href="#users" class="btn btn-link">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Joined</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentUsersTable">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Recent Transactions -->
+                <div class="data-card">
+                    <div class="data-header">
+                        <h3>
+                            <i class="fas fa-exchange-alt"></i>
+                            Recent Transactions
+                        </h3>
+                        <a href="#transactions" class="btn btn-link">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th>User</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentTransactionsTable">
+                                <!-- Transactions will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- System Health -->
+            <div class="health-grid">
+                <div class="health-card">
+                    <div class="health-header">
+                        <h3><i class="fas fa-server"></i> System Health</h3>
+                        <span class="health-status good">All Systems Operational</span>
+                    </div>
+                    <div class="health-metrics">
+                        <div class="metric">
+                            <span class="metric-label">CPU Usage</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 45%"></div>
+                            </div>
+                            <span class="metric-value">45%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Memory Usage</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 68%"></div>
+                            </div>
+                            <span class="metric-value">68%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Database</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 32%"></div>
+                            </div>
+                            <span class="metric-value">32%</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">API Response</span>
+                            <div class="metric-bar">
+                                <div class="metric-fill" style="width: 95%"></div>
+                            </div>
+                            <span class="metric-value">95%</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="health-card">
+                    <div class="health-header">
+                        <h3><i class="fas fa-bell"></i> Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions">
+                        <button class="quick-action" data-action="send-notification">
+                            <i class="fas fa-bullhorn"></i>
+                            <span>Send Notification</span>
+                        </button>
+                        <button class="quick-action" data-action="add-plan">
+                            <i class="fas fa-plus-circle"></i>
+                            <span>Add Plan</span>
+                        </button>
+                        <button class="quick-action" data-action="process-pending">
+                            <i class="fas fa-check-double"></i>
+                            <span>Process Pending</span>
+                        </button>
+                        <button class="quick-action" data-action="backup-now">
+                            <i class="fas fa-database"></i>
+                            <span>Backup Now</span>
+                        </button>
+                        <button class="quick-action" data-action="clear-cache">
+                            <i class="fas fa-broom"></i>
+                            <span>Clear Cache</span>
+                        </button>
+                        <button class="quick-action" data-action="system-check">
+                            <i class="fas fa-stethoscope"></i>
+                            <span>System Check</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Users Management Section -->
+        <section class="admin-section" id="usersSection">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-users"></i>
+                    User Management
+                </h2>
+                <div class="section-actions">
+                    <button class="btn btn-primary" id="addUserBtn">
+                        <i class="fas fa-user-plus"></i>
+                        Add User
+                    </button>
+                    <button class="btn btn-outline" id="exportUsers">
+                        <i class="fas fa-download"></i>
+                        Export Users
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Users Filters -->
+            <div class="filters-card">
+                <div class="filters-grid">
+                    <div class="filter-group">
+                        <label>Search Users</label>
+                        <input type="text" class="filter-input" id="userSearch" placeholder="Search by name, email, phone...">
+                    </div>
+                    <div class="filter-group">
+                        <label>Status</label>
+                        <select class="filter-select" id="userStatusFilter">
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="suspended">Suspended</option>
+                            <option value="pending">Pending</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Verification</label>
+                        <select class="filter-select" id="verificationFilter">
+                            <option value="all">All</option>
+                            <option value="verified">Verified</option>
+                            <option value="unverified">Unverified</option>
+                            <option value="pending">Pending KYC</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Date Joined</label>
+                        <input type="date" class="filter-input" id="userDateFrom">
+                        <span>to</span>
+                        <input type="date" class="filter-input" id="userDateTo">
+                    </div>
+                </div>
+                <div class="filters-actions">
+                    <button class="btn btn-secondary" id="applyUserFilters">
+                        Apply Filters
+                    </button>
+                    <button class="btn btn-link" id="resetUserFilters">
+                        Reset
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Users Table -->
+            <div class="data-card">
+                <div class="data-header">
+                    <h3>All Users</h3>
+                    <div class="data-stats">
+                        <span>Total: <strong id="totalUsersCount">0</strong></span>
+                        <span>Active: <strong id="activeUsersCount">0</strong></span>
+                        <span>New Today: <strong id="newUsersToday">0</strong></span>
+                    </div>
+                </div>
+                <div class="table-responsive">
+                    <table id="usersTable" class="display responsive" style="width:100%">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Balance</th>
+                                <th>Status</th>
+                                <th>Verification</th>
+                                <th>Joined</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Users data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Add more sections similarly for other admin features -->
+        <!-- Transactions Section -->
+        <section class="admin-section" id="transactionsSection">
+            <!-- Similar structure to users section -->
+        </section>
+        
+        <!-- Investment Plans Section -->
+        <section class="admin-section" id="investmentPlansSection">
+            <!-- Similar structure -->
+        </section>
+        
+        <!-- Website Settings Section -->
+        <section class="admin-section" id="websiteSettingsSection">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-cog"></i>
+                    Website Settings
+                </h2>
+                <div class="section-actions">
+                    <button class="btn btn-success" id="saveSettings">
+                        <i class="fas fa-save"></i>
+                        Save All Changes
+                    </button>
+                </div>
+            </div>
+            
+            <div class="settings-tabs">
+                <div class="tabs-header">
+                    <button class="tab-btn active" data-tab="general">General</button>
+                    <button class="tab-btn" data-tab="financial">Financial</button>
+                    <button class="tab-btn" data-tab="appearance">Appearance</button>
+                    <button class="tab-btn" data-tab="email">Email</button>
+                    <button class="tab-btn" data-tab="security">Security</button>
+                    <button class="tab-btn" data-tab="social">Social</button>
+                    <button class="tab-btn" data-tab="maintenance">Maintenance</button>
+                </div>
+                
+                <div class="tabs-content">
+                    <!-- General Settings -->
+                    <div class="tab-pane active" id="general-tab">
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>Website Name</label>
+                                <input type="text" class="form-control" id="websiteName" value="Uzumaki Investments">
+                            </div>
+                            <div class="form-group">
+                                <label>Website Tagline</label>
+                                <input type="text" class="form-control" id="websiteTagline" value="Smart Investment Platform">
+                            </div>
+                            <div class="form-group">
+                                <label>Admin Email</label>
+                                <input type="email" class="form-control" id="adminEmail" value="admin@uzumaki.in">
+                            </div>
+                            <div class="form-group">
+                                <label>Support Email</label>
+                                <input type="email" class="form-control" id="supportEmail" value="support@uzumaki.in">
+                            </div>
+                            <div class="form-group">
+                                <label>Contact Phone</label>
+                                <input type="text" class="form-control" id="contactPhone" value="+1 (555) 123-4567">
+                            </div>
+                            <div class="form-group">
+                                <label>Address</label>
+                                <textarea class="form-control" id="contactAddress" rows="3">123 Investment Street, Financial District, Mumbai, India</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Timezone</label>
+                                <select class="form-control" id="timezone">
+                                    <option value="Asia/Kolkata" selected>Asia/Kolkata (IST)</option>
+                                    <!-- More timezone options -->
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Currency</label>
+                                <select class="form-control" id="currency">
+                                    <option value="INR" selected>Indian Rupee (₹)</option>
+                                    <option value="USD">US Dollar ($)</option>
+                                    <option value="EUR">Euro (€)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Appearance Settings -->
+                    <div class="tab-pane" id="appearance-tab">
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label>Logo Upload</label>
+                                <div class="file-upload">
+                                    <img src="" alt="Logo" id="logoPreview" style="max-width: 200px; display: none;">
+                                    <input type="file" id="logoUpload" accept="image/*">
+                                    <label for="logoUpload" class="upload-btn">
+                                        <i class="fas fa-upload"></i> Upload Logo
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Favicon Upload</label>
+                                <div class="file-upload">
+                                    <img src="" alt="Favicon" id="faviconPreview" style="max-width: 32px; display: none;">
+                                    <input type="file" id="faviconUpload" accept="image/*">
+                                    <label for="faviconUpload" class="upload-btn">
+                                        <i class="fas fa-upload"></i> Upload Favicon
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Primary Color</label>
+                                <input type="color" id="primaryColor" value="#667eea">
+                            </div>
+                            <div class="form-group">
+                                <label>Secondary Color</label>
+                                <input type="color" id="secondaryColor" value="#764ba2">
+                            </div>
+                            <div class="form-group">
+                                <label>Theme</label>
+                                <select class="form-control" id="themeMode">
+                                    <option value="light">Light Mode</option>
+                                    <option value="dark">Dark Mode</option>
+                                    <option value="auto">Auto (System)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Custom CSS</label>
+                                <textarea class="form-control" id="customCSS" rows="6" placeholder="Enter custom CSS code..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Maintenance Settings -->
+                    <div class="tab-pane" id="maintenance-tab">
+                        <div class="settings-form">
+                            <div class="form-group">
+                                <label class="switch">
+                                    <input type="checkbox" id="maintenanceMode">
+                                    <span class="slider"></span>
+                                    <span class="switch-label">Enable Maintenance Mode</span>
+                                </label>
+                                <p class="form-help">When enabled, users will see a maintenance page instead of the website.</p>
+                            </div>
+                            <div class="form-group">
+                                <label>Maintenance Message</label>
+                                <textarea class="form-control" id="maintenanceMessage" rows="4">We're performing scheduled maintenance to improve your experience. We'll be back shortly!</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>End Time (Optional)</label>
+                                <input type="datetime-local" class="form-control" id="maintenanceEndTime">
+                            </div>
+                            <div class="form-group">
+                                <label>Allowed IPs (Separate by comma)</label>
+                                <input type="text" class="form-control" id="allowedIPs" placeholder="127.0.0.1, 192.168.1.1">
+                                <p class="form-help">These IP addresses will still be able to access the site during maintenance.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <!-- Modals -->
+    <!-- Add User Modal -->
+    <div class="admin-modal" id="addUserModal">
+        <!-- Modal content for adding users -->
+    </div>
+    
+    <!-- Edit User Modal -->
+    <div class="admin-modal" id="editUserModal">
+        <!-- Modal content for editing users -->
+    </div>
+    
+    <!-- Quick Notification Modal -->
+    <div class="admin-modal" id="notificationModal">
+        <!-- Modal for sending notifications -->
+    </div>
+    
+    <!-- Confirmation Modal -->
+    <div class="admin-modal" id="confirmationModal">
+        <!-- Confirmation dialogs -->
+    </div>
+    
+    <!-- Core Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    
+    <!-- DataTables -->
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
+    
+    <!-- Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Date Range Picker -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+    
+    <!-- Core Utilities -->
+    <script src="/assets/js/core/utils.js"></script>
+    <script src="/assets/js/core/auth.js"></script>
+    
+    <!-- Admin Scripts -->
+    <script type="module" src="/assets/js/admin/admin.js"></script>
+    <script src="/assets/js/admin/sidebar.js"></script>
+    <script src="/assets/js/admin/users.js"></script>
+    <script src="/assets/js/admin/transactions.js"></script>
+    <script src="/assets/js/admin/investments.js"></script>
+    <script src="/assets/js/admin/settings.js"></script>
+    <script src="/assets/js/admin/reports.js"></script>
+</body>
+</html>
